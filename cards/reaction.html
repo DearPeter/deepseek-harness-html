@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>反应速度测试 — DeepSeek Harness HTML</title>
+  <link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <h1>反应速度测试</h1>
+      <a href="../index.html">← 返回卡片集</a>
+    </header>
+    <div class="card-shell">
+<div id="drt-react" style="display:flex;flex-direction:column;gap:12px;">
+  <div id="drt-pad" tabindex="0" role="button" aria-label="反应测试点击区" style="height:170px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--foreground);font-size:15px;user-select:none;text-align:center;padding:0 16px;outline-offset:2px;">
+    <span id="drt-label">点击开始,等变绿后立刻点击</span>
+  </div>
+  <div class="viz-row" style="gap:28px;">
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="drt-now">—</span>
+      <span class="text-small" style="color:var(--muted-foreground);">本次(ms)</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="drt-best">—</span>
+      <span class="text-small" style="color:var(--muted-foreground);">最快(ms)</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="drt-n">0</span>
+      <span class="text-small" style="color:var(--muted-foreground);">次数</span>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var pad = document.getElementById('drt-pad');
+  var label = document.getElementById('drt-label');
+  var nowEl = document.getElementById('drt-now');
+  var bestEl = document.getElementById('drt-best');
+  var nEl = document.getElementById('drt-n');
+  var phase = 'idle';
+  var t0 = 0;
+  var best = null;
+  var count = 0;
+  var timer = null;
+  var GREEN = 'light-dark(#2e9e5b, #5fd68a)';
+  var RED = 'light-dark(#c0392b, #e57373)';
+  var NEUTRAL = 'var(--card)';
+
+  function setPad(bg, txt) {
+    pad.style.background = bg;
+    label.textContent = txt;
+  }
+  function clearTimer() { if (timer) { clearTimeout(timer); timer = null; } }
+
+  function start() {
+    clearTimer();
+    phase = 'waiting';
+    setPad(NEUTRAL, '等待变绿…');
+    timer = setTimeout(function () {
+      phase = 'go';
+      t0 = performance.now();
+      setPad(GREEN, '快点击!');
+    }, 1500 + Math.random() * 2000);
+  }
+  function tooSoon() {
+    clearTimer();
+    phase = 'early';
+    setPad(RED, '太早了!点击重试');
+  }
+  function hit() {
+    var ms = Math.round(performance.now() - t0);
+    count++;
+    nEl.textContent = String(count);
+    nowEl.textContent = ms + ' ms';
+    if (best === null || ms < best) { best = ms; bestEl.textContent = ms + ' ms'; }
+    phase = 'done';
+    setPad(NEUTRAL, '再点一次重试');
+  }
+  function onClick() {
+    if (phase === 'idle' || phase === 'done' || phase === 'early') { start(); return; }
+    if (phase === 'waiting') { tooSoon(); return; }
+    if (phase === 'go') { hit(); return; }
+  }
+
+  pad.addEventListener('click', onClick);
+  pad.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
+  });
+  setPad(NEUTRAL, '点击开始,等变绿后立刻点击');
+})();
+</script>    </div>
+  </div>
+</body>
+</html>

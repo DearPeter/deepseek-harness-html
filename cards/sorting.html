@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>排序算法可视化 — DeepSeek Harness HTML</title>
+  <link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <h1>排序算法可视化</h1>
+      <a href="../index.html">← 返回卡片集</a>
+    </header>
+    <div class="card-shell">
+<div id="dsv-sort" style="display:flex;flex-direction:column;gap:14px;">
+  <div style="position:relative;height:230px;border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;">
+    <div id="dsv-bars" style="position:absolute;inset:14px;display:flex;align-items:flex-end;gap:2px;"></div>
+  </div>
+  <div class="viz-controls" style="flex-wrap:wrap;gap:10px 18px;">
+    <div class="viz-row" style="gap:8px;align-items:center;">
+      <label class="form-label" for="dsv-algo">算法</label>
+      <select id="dsv-algo" class="form-select">
+        <option value="bubble">冒泡排序</option>
+        <option value="selection">选择排序</option>
+        <option value="insertion">插入排序</option>
+        <option value="quick">快速排序</option>
+      </select>
+    </div>
+    <div class="viz-row" style="gap:8px;align-items:center;">
+      <label class="form-label" for="dsv-size">规模</label>
+      <input id="dsv-size" class="form-control" type="range" min="10" max="90" step="5" value="50" style="width:110px;">
+      <span class="text-small" id="dsv-size-val" style="width:2em;text-align:right;">50</span>
+    </div>
+    <div class="viz-row" style="gap:8px;align-items:center;">
+      <label class="form-label" for="dsv-speed">速度</label>
+      <input id="dsv-speed" class="form-control" type="range" min="1" max="10" value="5" style="width:110px;">
+      <span class="text-small" id="dsv-speed-val" style="width:2em;text-align:right;">5</span>
+    </div>
+    <div class="viz-row" style="gap:8px;margin-left:auto;">
+      <button id="dsv-run" class="btn btn-primary">开始</button>
+      <button id="dsv-reset" class="btn btn-ghost">重置</button>
+    </div>
+  </div>
+  <div class="viz-row" style="gap:24px;">
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="dsv-cmp">0</span>
+      <span class="text-small" style="color:var(--muted-foreground);">比较次数</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="dsv-swap">0</span>
+      <span class="text-small" style="color:var(--muted-foreground);">交换次数</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:20px;font-weight:650;color:var(--foreground);line-height:1.2;" id="dsv-status">就绪</span>
+      <span class="text-small" style="color:var(--muted-foreground);">状态</span>
+    </div>
+  </div>
+</div>
+<style>
+  #dsv-bars { animation: dsv-in 0.5s ease-out; }
+  @keyframes dsv-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { #dsv-bars { animation: none; } }
+</style>
+<script>
+(function () {
+  var barsEl = document.getElementById('dsv-bars');
+  var algoSel = document.getElementById('dsv-algo');
+  var sizeInput = document.getElementById('dsv-size');
+  var speedInput = document.getElementById('dsv-speed');
+  var sizeVal = document.getElementById('dsv-size-val');
+  var speedVal = document.getElementById('dsv-speed-val');
+  var cmpEl = document.getElementById('dsv-cmp');
+  var swapEl = document.getElementById('dsv-swap');
+  var statusEl = document.getElementById('dsv-status');
+  var runBtn = document.getElementById('dsv-run');
+  var resetBtn = document.getElementById('dsv-reset');
+
+  var arr = [];
+  var els = [];
+  var running = false;
+  var stopped = true;
+  var cmp = 0, swaps = 0;
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function makeArray(n) {
+    var a = [];
+    for (var i = 0; i < n; i++) a.push(15 + Math.floor(Math.random() * 80));
+    return a;
+  }
+  function render() {
+    barsEl.innerHTML = '';
+    els = [];
+    for (var i = 0; i < arr.length; i++) {
+      var b = document.createElement('div');
+      b.style.height = arr[i] + '%';
+      b.style.flex = '1 1 0';
+      b.style.minWidth = '1px';
+      b.style.background = 'var(--border)';
+      b.style.borderRadius = '2px';
+      b.style.transition = reduced ? 'none' : 'height 70ms ease-out, background 140ms ease-out';
+      barsEl.appendChild(b);
+      els.push(b);
+    }
+  }
+  function paint() {
+    for (var i = 0; i < arr.length; i++) els[i].style.height = arr[i] + '%';
+  }
+  function clearAccents() {
+    for (var i = 0; i < els.length; i++) els[i].style.background = 'var(--border)';
+  }
+  function setBar(i, color) { if (els[i]) els[i].style.background = color; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function delay() { return 360 / Number(speedInput.value); }
+  async function visit(i, j) {
+    clearAccents();
+    setBar(i, 'var(--viz-series-1)');
+    setBar(j, 'var(--viz-series-1)');
+    if (!reduced) await sleep(delay());
+  }
+  async function swapStep(i, j) {
+    clearAccents();
+    setBar(i, 'var(--viz-series-1)');
+    setBar(j, 'var(--viz-series-1)');
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    paint();
+    if (!reduced) await sleep(delay());
+  }
+  function markSorted(i) { setBar(i, 'var(--viz-series-2)'); }
+
+  async function bubble() {
+    var n = arr.length;
+    for (var i = 0; i < n - 1; i++) {
+      for (var j = 0; j < n - 1 - i; j++) {
+        if (stopped) return;
+        cmp++; cmpEl.textContent = String(cmp);
+        await visit(j, j + 1);
+        if (arr[j] > arr[j + 1]) {
+          swaps++; swapEl.textContent = String(swaps);
+          await swapStep(j, j + 1);
+        }
+      }
+      markSorted(n - 1 - i);
+    }
+    markSorted(0);
+  }
+  async function selection() {
+    var n = arr.length;
+    for (var i = 0; i < n - 1; i++) {
+      var m = i;
+      for (var j = i + 1; j < n; j++) {
+        if (stopped) return;
+        cmp++; cmpEl.textContent = String(cmp);
+        await visit(m, j);
+        if (arr[j] < arr[m]) m = j;
+      }
+      if (m !== i) {
+        swaps++; swapEl.textContent = String(swaps);
+        await swapStep(i, m);
+      }
+      markSorted(i);
+    }
+    markSorted(n - 1);
+  }
+  async function insertion() {
+    var n = arr.length;
+    for (var i = 1; i < n; i++) {
+      var j = i;
+      while (j > 0) {
+        if (stopped) return;
+        cmp++; cmpEl.textContent = String(cmp);
+        await visit(j - 1, j);
+        if (arr[j - 1] > arr[j]) {
+          swaps++; swapEl.textContent = String(swaps);
+          await swapStep(j - 1, j);
+          j--;
+        } else break;
+      }
+      markSorted(i);
+    }
+  }
+  async function quick(lo, hi) {
+    if (lo >= hi || stopped) return;
+    var p = arr[hi];
+    var i = lo;
+    for (var j = lo; j < hi; j++) {
+      if (stopped) return;
+      cmp++; cmpEl.textContent = String(cmp);
+      await visit(j, hi);
+      if (arr[j] < p) {
+        if (i !== j) {
+          swaps++; swapEl.textContent = String(swaps);
+          await swapStep(i, j);
+        }
+        i++;
+      }
+    }
+    if (i !== hi) {
+      swaps++; swapEl.textContent = String(swaps);
+      await swapStep(i, hi);
+    }
+    markSorted(i);
+    await quick(lo, i - 1);
+    await quick(i + 1, hi);
+  }
+
+  async function run() {
+    running = true;
+    stopped = false;
+    cmp = 0; swaps = 0;
+    cmpEl.textContent = '0'; swapEl.textContent = '0';
+    statusEl.textContent = '运行中';
+    var algo = algoSel.value;
+    try {
+      if (algo === 'bubble') await bubble();
+      else if (algo === 'selection') await selection();
+      else if (algo === 'insertion') await insertion();
+      else await quick(0, arr.length - 1);
+    } catch (e) {}
+    if (!stopped) {
+      clearAccents();
+      for (var i = 0; i < els.length; i++) setBar(i, 'var(--viz-series-2)');
+      statusEl.textContent = '已排序 ✓';
+      running = false;
+      stopped = true;
+    }
+  }
+
+  runBtn.addEventListener('click', function () {
+    if (running) return;
+    arr = makeArray(Number(sizeInput.value));
+    render();
+    run();
+  });
+  resetBtn.addEventListener('click', function () {
+    stopped = true;
+    running = false;
+    arr = makeArray(Number(sizeInput.value));
+    render();
+    cmp = 0; swaps = 0;
+    cmpEl.textContent = '0'; swapEl.textContent = '0';
+    statusEl.textContent = '就绪';
+  });
+  sizeInput.addEventListener('input', function () {
+    sizeVal.textContent = sizeInput.value;
+    if (!running) {
+      arr = makeArray(Number(sizeInput.value));
+      render();
+      cmp = 0; swaps = 0;
+      cmpEl.textContent = '0'; swapEl.textContent = '0';
+      statusEl.textContent = '就绪';
+    }
+  });
+  speedInput.addEventListener('input', function () {
+    speedVal.textContent = speedInput.value;
+  });
+
+  arr = makeArray(Number(sizeInput.value));
+  render();
+})();
+</script>    </div>
+  </div>
+</body>
+</html>

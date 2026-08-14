@@ -1,0 +1,197 @@
+/* frame.css — DeepSeek Harness HTML 部署仓库公共样式
+   主题令牌与基类对齐 DSH 卡片环境,让 harness 生成的 fragment 在独立页面也能正常渲染。 */
+
+:root {
+  --background: #f6f7f9;
+  --foreground: #1f2329;
+  --card: #ffffff;
+  --card-foreground: #1f2329;
+  --muted-foreground: #6b7280;
+  --border: #e2e5ea;
+  --primary: #4d6bfe;
+  --primary-foreground: #ffffff;
+  --viz-series-1: #4d6bfe;
+  --viz-series-2: #2ea06f;
+  --viz-series-3: #f59e0b;
+  --viz-series-4: #e05252;
+  --viz-series-5: #8b5cf6;
+  --viz-series-6: #0ea5a5;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1117;
+    --foreground: #e8eaee;
+    --card: #181b23;
+    --card-foreground: #e8eaee;
+    --muted-foreground: #9aa0ab;
+    --border: #2a2f3a;
+    --primary: #6d85ff;
+    --primary-foreground: #ffffff;
+    --viz-series-1: #6d85ff;
+    --viz-series-2: #4fc38b;
+    --viz-series-3: #f5b544;
+    --viz-series-4: #ef6a6a;
+    --viz-series-5: #a78bfa;
+    --viz-series-6: #2dd4bf;
+    color-scheme: dark;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.page-head h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.page-head a {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.page-head a:hover {
+  color: var(--primary);
+}
+
+.card-shell {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 16px;
+}
+
+/* ---- 基类(对齐 DSH 卡片环境) ---- */
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+.form-label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.form-control,
+.form-select {
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.text-small {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.viz-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.viz-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.viz-stat-value {
+  font-size: 20px;
+  font-weight: 650;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.viz-stat-label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+/* ---- 画廊 ---- */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.gallery a {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 16px;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.gallery a:hover {
+  border-color: var(--primary);
+}
+
+.gallery h2 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+
+.gallery p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin: 0;
+}

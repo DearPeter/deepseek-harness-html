@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>二分查找 · 逐步执行演示 — DeepSeek Harness HTML</title>
+  <link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <h1>二分查找 · 逐步执行演示</h1>
+      <a href="../index.html">← 返回卡片集</a>
+    </header>
+    <div class="card-shell">
+<div id="dbs-demo" style="display:flex;flex-direction:column;gap:14px;">
+  <div class="viz-controls" style="flex-wrap:wrap;gap:10px 18px;">
+    <div class="viz-row" style="gap:8px;align-items:center;">
+      <label class="form-label" for="dbs-target">查找目标</label>
+      <input id="dbs-target" class="form-control" type="number" style="width:90px;">
+      <button id="dbs-regen" class="btn btn-ghost">重新生成数组</button>
+    </div>
+    <div class="viz-row" style="gap:8px;margin-left:auto;">
+      <button id="dbs-prev" class="btn btn-ghost">上一步</button>
+      <button id="dbs-next" class="btn btn-primary">单步</button>
+      <button id="dbs-play" class="btn btn-ghost">播放</button>
+      <button id="dbs-reset" class="btn btn-ghost">重置</button>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.7;color:var(--foreground);overflow-x:auto;" id="dbs-code"></div>
+
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="position:relative;padding-top:8px;">
+      <div style="position:absolute;top:0;left:0;right:0;height:5px;border-radius:3px;background:color-mix(in srgb, var(--foreground) 10%, transparent);">
+        <div id="dbs-range" style="height:100%;border-radius:3px;background:color-mix(in srgb, var(--viz-series-1) 55%, transparent);transition:left 200ms ease-out,width 200ms ease-out;"></div>
+      </div>
+      <div id="dbs-cells" style="display:flex;gap:2px;align-items:stretch;height:56px;"></div>
+    </div>
+  </div>
+
+  <div class="viz-row" style="gap:26px;flex-wrap:wrap;">
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="dbs-lo">—</span>
+      <span class="text-small" style="color:var(--muted-foreground);">lo</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="dbs-hi">—</span>
+      <span class="text-small" style="color:var(--muted-foreground);">hi</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--viz-series-1);line-height:1.2;" id="dbs-mid">—</span>
+      <span class="text-small" style="color:var(--muted-foreground);">mid</span>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--foreground);line-height:1.2;" id="dbs-step">0 / 0</span>
+      <span class="text-small" style="color:var(--muted-foreground);">步骤</span>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-width:180px;">
+      <span style="font-size:14px;color:var(--foreground);line-height:1.4;" id="dbs-msg">准备就绪</span>
+      <span class="text-small" style="color:var(--muted-foreground);">当前说明</span>
+    </div>
+  </div>
+</div>
+<style>
+  #dbs-code .ln { display:block; padding:0 6px; border-radius:4px; white-space:pre; }
+  #dbs-code .ln.cur { background:color-mix(in srgb, var(--viz-series-1) 20%, transparent); }
+</style>
+<script>
+(function () {
+  var codeEl = document.getElementById('dbs-code');
+  var cellsEl = document.getElementById('dbs-cells');
+  var rangeEl = document.getElementById('dbs-range');
+  var targetInput = document.getElementById('dbs-target');
+  var loEl = document.getElementById('dbs-lo');
+  var hiEl = document.getElementById('dbs-hi');
+  var midEl = document.getElementById('dbs-mid');
+  var stepEl = document.getElementById('dbs-step');
+  var msgEl = document.getElementById('dbs-msg');
+  var prevBtn = document.getElementById('dbs-prev');
+  var nextBtn = document.getElementById('dbs-next');
+  var playBtn = document.getElementById('dbs-play');
+  var resetBtn = document.getElementById('dbs-reset');
+  var regenBtn = document.getElementById('dbs-regen');
+
+  var LINES = [
+    'lo = 0; hi = n - 1',
+    'while (lo <= hi):',
+    '  mid = (lo + hi) // 2',
+    '  if arr[mid] == target: return mid',
+    '  if arr[mid] < target: lo = mid + 1',
+    '  else: hi = mid - 1',
+    'return -1'
+  ];
+  var arr = [];
+  var target = 0;
+  var steps = [];
+  var idx = -1;
+  var timer = null;
+  var GREEN = 'light-dark(#2e9e5b, #5fd68a)';
+  var DIM = 'color-mix(in srgb, var(--foreground) 14%, transparent)';
+
+  function buildCode() {
+    codeEl.innerHTML = '';
+    LINES.forEach(function (line, i) {
+      var d = document.createElement('span');
+      d.className = 'ln';
+      d.dataset.line = String(i + 1);
+      d.textContent = (i + 1) + '  ' + line;
+      codeEl.appendChild(d);
+    });
+  }
+  function randomSorted(n) {
+    var a = [];
+    var v = 5 + Math.floor(Math.random() * 30);
+    for (var i = 0; i < n; i++) { a.push(v); v += 1 + Math.floor(Math.random() * 12); }
+    return a;
+  }
+  function computeSteps(a, t) {
+    var out = [];
+    var lo = 0, hi = a.length - 1;
+    out.push({ line: 1, lo: lo, hi: hi, mid: -1, msg: '初始化: lo=0, hi=' + hi });
+    while (lo <= hi) {
+      out.push({ line: 2, lo: lo, hi: hi, mid: -1, msg: 'lo≤hi,进入循环' });
+      var mid = Math.floor((lo + hi) / 2);
+      out.push({ line: 3, lo: lo, hi: hi, mid: mid, msg: 'mid = ⌊(' + lo + '+' + hi + ')/2⌋ = ' + mid });
+      if (a[mid] === t) {
+        out.push({ line: 4, lo: lo, hi: hi, mid: mid, msg: 'arr[' + mid + ']=' + a[mid] + ' == ' + t + ',找到了!', found: true });
+        return out;
+      } else if (a[mid] < t) {
+        out.push({ line: 5, lo: lo, hi: hi, mid: mid, msg: 'arr[' + mid + ']=' + a[mid] + ' < ' + t + ', lo → ' + (mid + 1) });
+        lo = mid + 1;
+      } else {
+        out.push({ line: 6, lo: lo, hi: hi, mid: mid, msg: 'arr[' + mid + ']=' + a[mid] + ' > ' + t + ', hi → ' + (mid - 1) });
+        hi = mid - 1;
+      }
+    }
+    out.push({ line: 7, lo: lo, hi: hi, mid: -1, msg: 'lo>hi,未找到 ' + t });
+    return out;
+  }
+  function renderCells(s) {
+    cellsEl.innerHTML = '';
+    var visited = {};
+    for (var k = 0; k <= idx && k < steps.length; k++) { if (steps[k].mid >= 0) visited[steps[k].mid] = true; }
+    for (var i = 0; i < arr.length; i++) {
+      var c = document.createElement('div');
+      c.style.flex = '1 1 0';
+      c.style.minWidth = '14px';
+      c.style.display = 'flex';
+      c.style.alignItems = 'center';
+      c.style.justifyContent = 'center';
+      c.style.fontSize = '10px';
+      c.style.fontVariantNumeric = 'tabular-nums';
+      c.style.color = 'var(--foreground)';
+      c.style.borderRadius = '4px';
+      c.style.border = '1px solid var(--border)';
+      c.style.background = 'var(--card)';
+      if (s.found && i === s.mid) { c.style.background = GREEN; c.style.borderColor = GREEN; }
+      else if (s.mid === i) { c.style.background = 'var(--viz-series-1)'; c.style.color = 'var(--primary-foreground)'; }
+      else if (visited[i]) { c.style.background = DIM; }
+      c.textContent = String(arr[i]);
+      cellsEl.appendChild(c);
+    }
+    if (s && s.lo <= s.hi) {
+      var left = (s.lo / arr.length) * 100;
+      var width = ((s.hi - s.lo + 1) / arr.length) * 100;
+      rangeEl.style.left = left + '%';
+      rangeEl.style.width = width + '%';
+    } else {
+      rangeEl.style.left = '0%';
+      rangeEl.style.width = '0%';
+    }
+  }
+  function highlightLine(line) {
+    var lines = codeEl.querySelectorAll('.ln');
+    for (var i = 0; i < lines.length; i++) lines[i].classList.remove('cur');
+    if (line >= 1 && line <= lines.length) lines[line - 1].classList.add('cur');
+  }
+  function show() {
+    var s = idx >= 0 && idx < steps.length ? steps[idx] : null;
+    highlightLine(s ? s.line : -1);
+    if (s) {
+      loEl.textContent = String(s.lo);
+      hiEl.textContent = String(s.hi);
+      midEl.textContent = s.mid >= 0 ? String(s.mid) : '—';
+      msgEl.textContent = s.msg;
+      stepEl.textContent = (idx + 1) + ' / ' + steps.length;
+      renderCells(s);
+    } else {
+      loEl.textContent = '—'; hiEl.textContent = '—'; midEl.textContent = '—';
+      msgEl.textContent = '准备就绪,点「单步」开始';
+      stepEl.textContent = '0 / ' + steps.length;
+      renderCells({ lo: 0, hi: arr.length - 1, mid: -1, msg: '', found: false });
+    }
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= steps.length - 1;
+    playBtn.textContent = timer ? '暂停' : '播放';
+  }
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+  function reset() {
+    stopTimer();
+    idx = -1;
+    steps = computeSteps(arr, target);
+    show();
+  }
+  function next() { if (idx < steps.length - 1) { idx++; show(); if (idx >= steps.length - 1) stopTimer(); } }
+  function prev() { if (idx > 0) { idx--; show(); } }
+  function regen() {
+    stopTimer();
+    arr = randomSorted(24);
+    var pick = Math.random() < 0.6 ? arr[Math.floor(Math.random() * arr.length)] : arr[0] + Math.floor(Math.random() * (arr[arr.length - 1] - arr[0] + 1));
+    target = pick;
+    targetInput.value = String(pick);
+    idx = -1;
+    steps = computeSteps(arr, target);
+    show();
+  }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+  playBtn.addEventListener('click', function () {
+    if (timer) { stopTimer(); show(); return; }
+    if (idx >= steps.length - 1) { idx = -1; }
+    timer = setInterval(next, 750);
+    show();
+  });
+  resetBtn.addEventListener('click', reset);
+  regenBtn.addEventListener('click', regen);
+  targetInput.addEventListener('change', function () {
+    var v = Number(targetInput.value);
+    if (!isFinite(v)) return;
+    target = v;
+    reset();
+  });
+
+  buildCode();
+  regen();
+})();
+</script>    </div>
+  </div>
+</body>
+</html>
