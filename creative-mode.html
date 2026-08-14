@@ -6,215 +6,458 @@
   <title>创造模式 · 好玩的玩法索引 — DeepSeek Harness HTML</title>
   <link rel="stylesheet" href="../assets/frame.css">
   <style>
-    .hero { margin-bottom: 24px; }
-    .hero h1 { font-size: 26px; margin: 0 0 8px; }
-    .hero p { margin: 0; color: var(--muted-foreground); font-size: 14px; max-width: 640px; }
-    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
-    .nav a {
-      font-size: 12px; color: var(--foreground); text-decoration: none;
-      border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px;
-      background: var(--card);
+    :root {
+      --radius: 14px;
+      --shadow: 0 10px 30px rgba(20, 24, 40, 0.10);
+      --shadow-hover: 0 16px 40px rgba(20, 24, 40, 0.16);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .nav a:hover { border-color: var(--primary); color: var(--primary); }
-    section { margin-bottom: 34px; }
-    section h2 { font-size: 17px; margin: 0 0 14px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-    .item {
-      border: 1px solid var(--border); border-radius: 12px; background: var(--card);
-      padding: 14px 16px; display: block; text-decoration: none; color: var(--foreground);
-      transition: border-color 0.15s;
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.6);
+      }
     }
-    a.item:hover { border-color: var(--primary); }
-    .item h3 { font-size: 13.5px; margin: 0 0 6px; }
-    .item p { font-size: 12px; color: var(--muted-foreground); margin: 0; line-height: 1.55; }
-    .item .tag {
-      display: inline-block; font-size: 11px; margin-top: 8px;
-      color: var(--primary); border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-      border-radius: 999px; padding: 2px 8px;
+    * { box-sizing: border-box; }
+    body { -webkit-font-smoothing: antialiased; }
+    .page { max-width: 1000px; padding: 0 22px 80px; }
+
+    /* ---------- 顶栏 ---------- */
+    .navbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; gap: 18px;
+      padding: 14px 0; margin-bottom: 30px;
+      background: color-mix(in srgb, var(--background) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
     }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      font-size: 12.5px; color: var(--foreground);
+    .brand { font-size: 15px; font-weight: 700; letter-spacing: 0.2px; }
+    .brand .dot { color: var(--primary); }
+    .nav-links { display: flex; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
+    .nav-links a {
+      font-size: 13px; color: var(--muted-foreground); text-decoration: none;
+      padding: 6px 11px; border-radius: 999px; transition: color .15s, background .15s;
+    }
+    .nav-links a:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+    .nav-links a.active { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .navbar .gh {
+      margin-left: auto; font-size: 12px; color: var(--muted-foreground); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px;
+      transition: border-color .15s, color .15s;
+    }
+    .navbar .gh:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* ---------- Hero ---------- */
+    .hero { position: relative; overflow: hidden; margin-bottom: 42px; }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 6px 0 12px;
+      background: linear-gradient(92deg, var(--viz-series-1), var(--viz-series-5) 55%, var(--viz-series-3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero .sub { color: var(--muted-foreground); font-size: 14.5px; max-width: 560px; margin: 0 0 18px; line-height: 1.7; }
+    .hero-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat {
       border: 1px solid var(--border); background: var(--card); border-radius: 999px;
-      padding: 6px 12px;
+      padding: 7px 14px; font-size: 12.5px; color: var(--foreground);
     }
-    .chip.done { border-color: color-mix(in srgb, var(--viz-series-2) 55%, transparent); }
-    .chip.done::before { content: "✓ "; color: var(--viz-series-2); }
-    .chip.todo::before { content: "○ "; color: var(--muted-foreground); }
-    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
-    .cat {
-      border: 1px solid var(--border); border-radius: 12px; background: var(--card);
-      padding: 14px 16px;
+    .stat b { color: var(--primary); font-variant-numeric: tabular-nums; }
+    .aquarium {
+      position: absolute; right: 0; top: 6px; width: 230px; height: 150px;
+      border-radius: 22px; border: 1px solid var(--border);
+      background:
+        radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--viz-series-1) 14%, transparent), transparent 60%),
+        radial-gradient(120% 90% at 85% 100%, color-mix(in srgb, var(--viz-series-6) 12%, transparent), transparent 60%),
+        color-mix(in srgb, var(--card) 92%, transparent);
+      overflow: hidden;
     }
-    .cat h3 { font-size: 13.5px; margin: 0 0 6px; }
-    .cat p { font-size: 12px; color: var(--muted-foreground); margin: 0; line-height: 1.55; }
-    .demo-links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-    .demo-links a {
-      font-size: 12px; color: var(--primary); text-decoration: none;
-      border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-      border-radius: 999px; padding: 4px 10px;
+    .aquarium .bub {
+      position: absolute; bottom: -14px; border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--viz-series-1) 45%, transparent);
+      background: color-mix(in srgb, var(--viz-series-1) 10%, transparent);
+      animation: rise linear infinite;
     }
-    .demo-links a:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); }
-    .foot { margin-top: 30px; font-size: 12px; color: var(--muted-foreground); }
+    @keyframes rise {
+      0% { transform: translateY(0) translateX(0); opacity: 0; }
+      12% { opacity: .9; }
+      100% { transform: translateY(-170px) translateX(10px); opacity: 0; }
+    }
+    .aquarium .fish {
+      position: absolute; left: 20px; top: 66px; width: 54px; height: 32px;
+      animation: swim 9s var(--ease) infinite;
+    }
+    @keyframes swim {
+      0% { transform: translateX(0) scaleX(1); }
+      45% { transform: translateX(120px) scaleX(1); }
+      50% { transform: translateX(128px) scaleX(-1); }
+      95% { transform: translateX(0) scaleX(-1); }
+      100% { transform: translateX(0) scaleX(1); }
+    }
+    .fish .body {
+      position: absolute; inset: 0; border-radius: 50% 60% 60% 50% / 60% 55% 55% 60%;
+      background: linear-gradient(135deg, #ffd87a, #f79a1c 70%, #e07b0f);
+    }
+    .fish .tail {
+      position: absolute; left: -7px; top: 3px; width: 14px; height: 26px;
+      background: linear-gradient(160deg, #ffcf6e, #f79a1c);
+      border-radius: 70% 12% 65% 12%; transform-origin: right center;
+      animation: wig 0.7s ease-in-out infinite;
+    }
+    @keyframes wig { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+    .fish .eye {
+      position: absolute; right: 6px; top: 5px; width: 9px; height: 9px; border-radius: 50%;
+      background: #fff;
+    }
+    .fish .eye::after {
+      content: ''; position: absolute; right: 1px; top: 2px; width: 4px; height: 4px;
+      border-radius: 50%; background: #22303f;
+    }
+    .aquarium .whale {
+      position: absolute; left: 158px; top: 18px; font-size: 22px;
+      animation: bob 2.8s ease-in-out infinite;
+    }
+    @keyframes bob { 0%, 100% { transform: translateY(-3px) rotate(-5deg); } 50% { transform: translateY(3px) rotate(5deg); } }
+    @media (max-width: 760px) { .aquarium { display: none; } }
+
+    /* ---------- 区块 ---------- */
+    section { margin-bottom: 48px; scroll-margin-top: 84px; }
+    .sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .sec-head h2 { font-size: 19px; margin: 0; }
+    .sec-head .bar { width: 4px; height: 20px; border-radius: 2px; background: linear-gradient(180deg, var(--viz-series-1), var(--viz-series-5)); }
+    .sec-head .cnt { font-size: 12px; color: var(--muted-foreground); background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; }
+
+    /* ---------- 筛选 ---------- */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filters button {
+      appearance: none; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground);
+      border-radius: 999px; padding: 6px 14px; font-size: 12.5px; font-family: inherit; cursor: pointer;
+      transition: all .18s var(--ease);
+    }
+    .filters button:hover { color: var(--foreground); border-color: var(--border); }
+    .filters button.on { color: var(--primary); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+
+    /* ---------- 社区卡片 ---------- */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    .item {
+      position: relative; display: block; text-decoration: none; color: var(--foreground);
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+      padding: 18px 18px 16px; overflow: hidden;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s var(--ease), opacity .25s var(--ease);
+    }
+    .item:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); }
+    .item .ic { font-size: 26px; margin-bottom: 10px; }
+    .item h3 { font-size: 14px; margin: 0 0 6px; font-weight: 650; }
+    .item p { font-size: 12.5px; color: var(--muted-foreground); margin: 0; line-height: 1.6; }
+    .item .go {
+      position: absolute; right: 14px; top: 16px; font-size: 15px; color: var(--muted-foreground);
+      opacity: 0; transform: translate(-4px, 0); transition: all .22s var(--ease);
+    }
+    .item:hover .go { opacity: 1; transform: translate(0, 0); color: var(--primary); }
+    .tagrow { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+    .tag { font-size: 11px; border-radius: 999px; padding: 3px 9px; border: 1px solid; }
+    .tag.pet { color: var(--viz-series-6); border-color: color-mix(in srgb, var(--viz-series-6) 50%, transparent); }
+    .tag.beauty { color: var(--viz-series-5); border-color: color-mix(in srgb, var(--viz-series-5) 50%, transparent); }
+    .tag.terminal { color: var(--viz-series-4); border-color: color-mix(in srgb, var(--viz-series-4) 50%, transparent); }
+    .tag.feature { color: var(--viz-series-1); border-color: color-mix(in srgb, var(--viz-series-1) 50%, transparent); }
+    .tag.list { color: var(--viz-series-2); border-color: color-mix(in srgb, var(--viz-series-2) 50%, transparent); }
+    .tag.doc { color: var(--viz-series-3); border-color: color-mix(in srgb, var(--viz-series-3) 50%, transparent); }
+    .item.hide { display: none; }
+
+    /* ---------- 金鱼 & 灵感 ---------- */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+    .panel { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 18px 20px; }
+    .panel h3 { font-size: 14.5px; margin: 0 0 14px; }
+    .feat { display: flex; gap: 10px; align-items: baseline; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed var(--border); }
+    .feat:last-child { border-bottom: none; }
+    .feat .ck { color: var(--viz-series-2); font-weight: 700; }
+    .feat .tx { color: var(--foreground); }
+    .feat .tx small { display: block; color: var(--muted-foreground); font-size: 11.5px; margin-top: 2px; }
+    .idea {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+      border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; margin: 0 8px 10px 0;
+      background: var(--card); transition: all .18s var(--ease);
+    }
+    .idea:hover { border-color: color-mix(in srgb, var(--viz-series-3) 60%, var(--border)); transform: translateY(-2px); }
+    .idea .o { color: var(--muted-foreground); }
+    .idea.done .o { color: var(--viz-series-2); content: "✓"; }
+
+    /* ---------- 卡片玩法 ---------- */
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+    .tile {
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+      padding: 16px; transition: all .22s var(--ease);
+    }
+    .tile:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: color-mix(in srgb, var(--viz-series-1) 45%, var(--border)); }
+    .tile .ic { font-size: 24px; }
+    .tile h4 { font-size: 13.5px; margin: 8px 0 5px; }
+    .tile p { font-size: 12px; color: var(--muted-foreground); margin: 0; line-height: 1.55; }
+    .demos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .demos a {
+      text-decoration: none; font-size: 13px; color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+      border-radius: 999px; padding: 9px 18px; transition: all .18s var(--ease);
+    }
+    .demos a:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); transform: translateY(-2px); }
+
+    /* ---------- 其他 ---------- */
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s var(--ease), transform .55s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .aquarium .fish, .aquarium .bub, .aquarium .whale { animation: none; }
+      .item, .tile, .idea { transition: none; }
+    }
+    #top-btn {
+      position: fixed; right: 22px; bottom: 26px; z-index: 60;
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--card); color: var(--foreground);
+      font-size: 16px; cursor: pointer; box-shadow: var(--shadow);
+      opacity: 0; pointer-events: none; transform: translateY(8px); transition: all .25s var(--ease);
+    }
+    #top-btn.show { opacity: 1; pointer-events: auto; transform: none; }
+    #top-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .foot { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); display: flex; gap: 14px; flex-wrap: wrap; }
     .foot a { color: var(--muted-foreground); }
+    .foot a:hover { color: var(--primary); }
   </style>
 </head>
 <body>
   <div class="page">
-    <header class="page-head">
-      <h1>创造模式 · 好玩的玩法索引</h1>
-      <a href="../index.html">← 返回卡片集</a>
+    <!-- 顶栏 -->
+    <header class="navbar">
+      <span class="brand">创造模式<span class="dot">·</span>玩法索引</span>
+      <nav class="nav-links">
+        <a href="#community">社区在玩</a>
+        <a href="#fish">小金鱼</a>
+        <a href="#ideas">灵感池</a>
+        <a href="#cards">交互卡片</a>
+      </nav>
+      <a class="gh" href="https://github.com/DearPeter/deepseek-harness-html" target="_blank" rel="noopener">GitHub ↗</a>
     </header>
 
-    <div class="hero">
-      <h1>🎮 创造模式还有什么好玩的?</h1>
-      <p>DeepSeek Harness 动态插件 + 对话内交互卡片的玩法合集:社区里大家都在做什么、我们的小金鱼已经实现了什么、还有什么灵感可以继续做。</p>
+    <!-- Hero -->
+    <div class="hero reveal in">
+      <h1>创造模式,还有什么好玩的?</h1>
+      <p class="sub">DeepSeek Harness 动态插件 + 对话内交互卡片的玩法合集 —— 社区里大家都在做什么、我们的小金鱼已经实现了什么、还有哪些灵感可以继续做。</p>
+      <div class="hero-stats">
+        <span class="stat"><b>12</b> 个社区项目</span>
+        <span class="stat"><b>6</b> 项金鱼已实现</span>
+        <span class="stat"><b>7</b> 个玩法灵感</span>
+        <span class="stat"><b>3</b> 张已部署演示卡片</span>
+      </div>
+      <div class="aquarium" aria-hidden="true">
+        <span class="bub" style="left:24px; width:8px; height:8px; animation-duration:3.2s; animation-delay:.2s;"></span>
+        <span class="bub" style="left:52px; width:5px; height:5px; animation-duration:2.6s; animation-delay:1.1s;"></span>
+        <span class="bub" style="left:90px; width:10px; height:10px; animation-duration:3.8s; animation-delay:.6s;"></span>
+        <span class="bub" style="left:140px; width:6px; height:6px; animation-duration:2.9s; animation-delay:1.8s;"></span>
+        <span class="bub" style="left:182px; width:9px; height:9px; animation-duration:3.4s; animation-delay:.9s;"></span>
+        <span class="whale">🐋</span>
+        <div class="fish"><div class="tail"></div><div class="body"></div><div class="eye"></div></div>
+      </div>
     </div>
 
-    <nav class="nav">
-      <a href="#community">🐳 社区在玩的</a>
-      <a href="#fish">🐟 小金鱼已实现</a>
-      <a href="#ideas">💡 玩法灵感池</a>
-      <a href="#cards">🃏 交互卡片</a>
-    </nav>
-
+    <!-- 社区在玩 -->
     <section id="community">
-      <h2>🐳 社区在玩的 DSH 插件(桌宠 / 美化 / 终端 / 生产力)</h2>
-      <div class="grid">
-        <a class="item" href="https://github.com/1190fasheqi/dafeiyu-pet" target="_blank" rel="noopener">
-          <h3>鲸鱼娘·大肥鱼 (dafeiyu-pet)</h3>
+      <div class="sec-head reveal">
+        <span class="bar"></span><h2>🐳 社区在玩的 DSH 插件</h2><span class="cnt" id="comm-cnt">12</span>
+      </div>
+      <div class="filters reveal" id="filters">
+        <button data-f="all" class="on">全部</button>
+        <button data-f="pet">🐠 桌宠</button>
+        <button data-f="beauty">🎨 美化</button>
+        <button data-f="terminal">🖥 终端</button>
+        <button data-f="feature">🛠 功能</button>
+        <button data-f="list">📚 精选·文档</button>
+      </div>
+      <div class="grid" id="comm-grid">
+        <a class="item reveal" data-cat="pet" href="https://github.com/1190fasheqi/dafeiyu-pet" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🐋</div>
+          <h3>鲸鱼娘·大肥鱼</h3>
           <p>透明桌面宠物:三视图行走、拖拽、喂食、互动、思维链心声。</p>
-          <span class="tag">桌宠</span>
+          <div class="tagrow"><span class="tag pet">桌宠</span></div>
         </a>
-        <a class="item" href="https://github.com/YunYueSama/codex-deepseek-pet" target="_blank" rel="noopener">
-          <h3>蓝色大肥鱼 (codex-deepseek-pet)</h3>
-          <p>"你这只吃白饭的蓝色大肥鱼.jpg"——会吃饭的鲸鱼桌宠。</p>
-          <span class="tag">桌宠</span>
+        <a class="item reveal" data-cat="pet" href="https://github.com/YunYueSama/codex-deepseek-pet" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🐳</div>
+          <h3>蓝色大肥鱼</h3>
+          <p>"你这只吃白饭的蓝色大肥鱼" —— 会吃饭的鲸鱼桌宠。</p>
+          <div class="tagrow"><span class="tag pet">桌宠</span></div>
         </a>
-        <a class="item" href="https://github.com/2048Nemo/DeskPet" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="pet" href="https://github.com/2048Nemo/DeskPet" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">👧</div>
           <h3>DeskPet · deepseek 娘</h3>
           <p>住在 MacBook 刘海里的 deepseek 娘桌宠。</p>
-          <span class="tag">桌宠</span>
+          <div class="tagrow"><span class="tag pet">桌宠</span></div>
         </a>
-        <a class="item" href="https://github.com/Egger0/desk-pet" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="pet" href="https://github.com/Egger0/desk-pet" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🖼️</div>
           <h3>desk-pet</h3>
           <p>透明动画桌宠:自定义 GIF 动画 + DeepSeek 余额显示。</p>
-          <span class="tag">桌宠</span>
+          <div class="tagrow"><span class="tag pet">桌宠</span></div>
         </a>
-        <a class="item" href="https://www.npmjs.com/package/@linxin666/dsh-pet" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="pet" href="https://www.npmjs.com/package/@linxin666/dsh-pet" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🐠</div>
           <h3>@linxin666/dsh-pet</h3>
           <p>直接跑在 DSH 页面里的宠物插件(和我们的小金鱼同类)。</p>
-          <span class="tag">页内宠物</span>
+          <div class="tagrow"><span class="tag pet">桌宠</span></div>
         </a>
-        <a class="item" href="https://github.com/KinGao294/dsh-skin" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="beauty" href="https://github.com/KinGao294/dsh-skin" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🎨</div>
           <h3>dsh-skin</h3>
           <p>换皮肤 + 自定义壁纸:调色板、半透明壁纸、透明度/模糊调节。</p>
-          <span class="tag">美化</span>
+          <div class="tagrow"><span class="tag beauty">美化</span></div>
         </a>
-        <a class="item" href="https://github.com/ccch1mneyyy/dsh-cc-tui" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="terminal" href="https://github.com/ccch1mneyyy/dsh-cc-tui" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🖥️</div>
           <h3>dsh-cc-tui</h3>
           <p>Claude Code 风格全屏终端:像素鲸鱼顶栏、状态行、上下文进度条 + TPS 仪表。</p>
-          <span class="tag">终端</span>
+          <div class="tagrow"><span class="tag terminal">终端</span></div>
         </a>
-        <a class="item" href="https://github.com/Nagi-ovo/dsh-visualize" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="feature" href="https://github.com/Nagi-ovo/dsh-visualize" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🃏</div>
           <h3>dsh-visualize</h3>
           <p>对话内生成式 UI:模型把交互式 HTML 卡片直接画进会话流(本仓库已部署)。</p>
-          <span class="tag">生成式 UI</span>
+          <div class="tagrow"><span class="tag feature">生成式 UI</span></div>
         </a>
-        <a class="item" href="https://www.npmjs.com/package/@huanlin/dsh-plugin-aigc-canvas" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="feature" href="https://www.npmjs.com/package/@huanlin/dsh-plugin-aigc-canvas" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🖌️</div>
           <h3>dsh-plugin-aigc-canvas</h3>
-          <p>AIGC 画布插件。</p>
-          <span class="tag">创作</span>
+          <p>AIGC 画布插件,创作类扩展。</p>
+          <div class="tagrow"><span class="tag feature">创作</span></div>
         </a>
-        <a class="item" href="https://www.npmjs.com/package/@chushixixin/dsh-harness-mcp-server" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="feature" href="https://www.npmjs.com/package/@chushixixin/dsh-harness-mcp-server" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">🔌</div>
           <h3>dsh-harness-mcp-server</h3>
           <p>为 DSH 提供 MCP server 接入。</p>
-          <span class="tag">扩展</span>
+          <div class="tagrow"><span class="tag feature">扩展</span></div>
         </a>
-        <a class="item" href="https://github.com/awesome-dsh-plugin/awesome-dsh-plugin" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="list" href="https://github.com/awesome-dsh-plugin/awesome-dsh-plugin" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">📚</div>
           <h3>awesome-dsh-plugin</h3>
           <p>DSH 插件精选列表(有中文版),找灵感的地方。</p>
-          <span class="tag">精选列表</span>
+          <div class="tagrow"><span class="tag list">精选列表</span></div>
         </a>
-        <a class="item" href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md" target="_blank" rel="noopener">
+        <a class="item reveal" data-cat="doc" href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md" target="_blank" rel="noopener">
+          <span class="go">↗</span><div class="ic">📖</div>
           <h3>官方文档 · Cordis Primer</h3>
           <p>官方插件开发入门与教程,想自己写插件从这里开始。</p>
-          <span class="tag">开发文档</span>
+          <div class="tagrow"><span class="tag doc">开发文档</span></div>
         </a>
       </div>
     </section>
 
-    <section id="fish">
-      <h2>🐟 我们的小金鱼 · 已实现</h2>
-      <div class="chips">
-        <span class="chip done">三种运动模式(漫游 / 右下角常驻 / 自由拖动)</span>
-        <span class="chip done">换肤换色(金鱼橙 / 深海蓝 / 樱花粉 / 彩虹)</span>
-        <span class="chip done">心情与瞌睡(开心 / 好奇 / 犯困 / 睡着 Zzz)</span>
-        <span class="chip done">点击互动(蹦跳 + 气泡 + 俏皮话)</span>
-        <span class="chip done">小蓝鲸 🐋 作伴</span>
-        <span class="chip done">右键菜单(切模式 / 换装)</span>
-      </div>
-    </section>
+    <!-- 金鱼 & 灵感 -->
+    <div class="split">
+      <section id="fish" style="margin-bottom:0;">
+        <div class="sec-head reveal">
+          <span class="bar"></span><h2>🐟 小金鱼 · 已实现</h2>
+        </div>
+        <div class="panel reveal">
+          <div class="feat"><span class="ck">✓</span><div class="tx">三种运动模式<small>漫游 / 右下角常驻 / 鼠标自由拖动</small></div></div>
+          <div class="feat"><span class="ck">✓</span><div class="tx">四套皮肤换装<small>金鱼橙 / 深海蓝 / 樱花粉 / 彩虹渐变</small></div></div>
+          <div class="feat"><span class="ck">✓</span><div class="tx">心情与瞌睡系统<small>开心 / 好奇 / 犯困 / 闲置入睡飘 Zzz</small></div></div>
+          <div class="feat"><span class="ck">✓</span><div class="tx">点击互动<small>蹦跳 + 喷气泡 + 随机俏皮话</small></div></div>
+          <div class="feat"><span class="ck">✓</span><div class="tx">小蓝鲸 🐋 作伴<small>彩虹皮肤下还会自动变色</small></div></div>
+          <div class="feat"><span class="ck">✓</span><div class="tx">右键菜单<small>切换模式 / 换装,一次搞定</small></div></div>
+        </div>
+      </section>
+      <section id="ideas" style="margin-bottom:0;">
+        <div class="sec-head reveal">
+          <span class="bar"></span><h2>💡 玩法灵感池</h2>
+        </div>
+        <div class="panel reveal">
+          <span class="idea"><span class="o">○</span> 🍤 投喂养成</span>
+          <span class="idea"><span class="o">○</span> 🧲 跟随鼠标</span>
+          <span class="idea"><span class="o">○</span> 🫧 点泡泡小游戏</span>
+          <span class="idea"><span class="o">○</span> 🐙 多只宠物·水族馆</span>
+          <span class="idea"><span class="o">○</span> 🎆 泡泡雨特效</span>
+          <span class="idea"><span class="o">○</span> ⌨️ 打字机气泡</span>
+          <span class="idea"><span class="o">○</span> 💭 思维链心声<small style="display:block;color:var(--muted-foreground);font-size:11px;">社区同款,试过已撤销</small></span>
+        </div>
+      </section>
+    </div>
 
-    <section id="ideas">
-      <h2>💡 玩法灵感池(还没做的)</h2>
-      <div class="chips">
-        <span class="chip todo">投喂养成:鱼食、吃饱打嗝、越长越大、喂食计数</span>
-        <span class="chip todo">跟随鼠标:第 4 种模式,慢悠悠跟着光标游</span>
-        <span class="chip todo">点泡泡小游戏:吐带分数的小泡泡,点掉得分</span>
-        <span class="chip todo">多只宠物:加水母 / 螃蟹,迷你水族馆</span>
-        <span class="chip todo">泡泡雨特效:双击屏幕撒彩色泡泡</span>
-        <span class="chip todo">打字机气泡:说话逐字打出</span>
-        <span class="chip todo">思维链心声:模型思考实时念出来(社区同款,试过已撤销)</span>
+    <!-- 交互卡片 -->
+    <section id="cards" style="margin-top:48px;">
+      <div class="sec-head reveal">
+        <span class="bar"></span><h2>🃏 交互卡片 · 可以做什么</h2><span class="cnt">8 类</span>
       </div>
-    </section>
-
-    <section id="cards">
-      <h2>🃏 交互卡片 · 可以做什么</h2>
-      <div class="two-col">
-        <div class="cat">
-          <h3>📊 数据与图表</h3>
-          <p>折线 / 柱状 / 饼图、K 线、热力图、趋势对比。</p>
-        </div>
-        <div class="cat">
-          <h3>🔬 模拟与演示</h3>
-          <p>排序 / 搜索 / 图算法、物理模拟、概率实验。</p>
-        </div>
-        <div class="cat">
-          <h3>🧮 可调参工具</h3>
-          <p>复利 / 贷款计算器、单位换算、汇率、决策器。</p>
-        </div>
-        <div class="cat">
-          <h3>🎨 产品原型</h3>
-          <p>登录页、仪表盘、设置页、移动端界面 mockup。</p>
-        </div>
-        <div class="cat">
-          <h3>⚖️ 对比面板</h3>
-          <p>方案 A/B、版本差异、价格套餐并排对比(wide)。</p>
-        </div>
-        <div class="cat">
-          <h3>📚 教学解释</h3>
-          <p>代码逐步执行、交互式教程、递归树展开。</p>
-        </div>
-        <div class="cat">
-          <h3>🎮 小游戏</h3>
-          <p>反应测试、记忆配对、打字练习、抽签。</p>
-        </div>
-        <div class="cat">
-          <h3>🗂 日常工具</h3>
-          <p>番茄钟、任务看板、灵感生成器。</p>
-        </div>
+      <div class="tiles">
+        <div class="tile reveal"><div class="ic">📊</div><h4>数据与图表</h4><p>折线 / 柱状 / 饼图、K 线、热力图、趋势对比。</p></div>
+        <div class="tile reveal"><div class="ic">🔬</div><h4>模拟与演示</h4><p>排序 / 搜索 / 图算法、物理模拟、概率实验。</p></div>
+        <div class="tile reveal"><div class="ic">🧮</div><h4>可调参工具</h4><p>复利 / 贷款计算器、单位换算、汇率、决策器。</p></div>
+        <div class="tile reveal"><div class="ic">🎨</div><h4>产品原型</h4><p>登录页、仪表盘、设置页、移动端界面 mockup。</p></div>
+        <div class="tile reveal"><div class="ic">⚖️</div><h4>对比面板</h4><p>方案 A/B、版本差异、价格套餐并排对比(wide)。</p></div>
+        <div class="tile reveal"><div class="ic">📚</div><h4>教学解释</h4><p>代码逐步执行、交互式教程、递归树展开。</p></div>
+        <div class="tile reveal"><div class="ic">🎮</div><h4>小游戏</h4><p>反应测试、记忆配对、打字练习、抽签。</p></div>
+        <div class="tile reveal"><div class="ic">🗂</div><h4>日常工具</h4><p>番茄钟、任务看板、灵感生成器。</p></div>
       </div>
-      <div class="demo-links">
-        <a href="../cards/sorting.html">已部署演示:排序算法可视化 →</a>
-        <a href="../cards/binary-search.html">已部署演示:二分查找逐步执行 →</a>
-        <a href="../cards/reaction.html">已部署演示:反应速度测试 →</a>
+      <div class="demos reveal">
+        <a href="cards/sorting.html">🎛 排序算法可视化</a>
+        <a href="cards/binary-search.html">🔍 二分查找逐步执行</a>
+        <a href="cards/reaction.html">⚡ 反应速度测试</a>
       </div>
     </section>
 
     <footer class="foot">
-      收集自 DeepSeek Harness 会话 · 仓库 <a href="https://github.com/DearPeter/deepseek-harness-html" target="_blank" rel="noopener">deepseek-harness-html</a>
+      <span>收集自 DeepSeek Harness 会话</span>
+      <a href="https://github.com/DearPeter/deepseek-harness-html" target="_blank" rel="noopener">GitHub 仓库 ↗</a>
+      <a href="https://dearpeter.github.io/deepseek-harness-html/" target="_blank" rel="noopener">卡片集首页 ↗</a>
     </footer>
   </div>
+
+  <button id="top-btn" aria-label="回到顶部">↑</button>
+
+  <script>
+    (function () {
+      var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* 筛选 */
+      var grid = document.getElementById('comm-grid');
+      var items = Array.prototype.slice.call(grid.querySelectorAll('.item'));
+      var cnt = document.getElementById('comm-cnt');
+      var filters = document.getElementById('filters');
+      filters.addEventListener('click', function (e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        var f = btn.dataset.f;
+        Array.prototype.forEach.call(filters.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === btn); });
+        var shown = 0;
+        items.forEach(function (it) {
+          var show = f === 'all' || (it.dataset.cat || '').split(' ').indexOf(f) !== -1;
+          it.classList.toggle('hide', !show);
+          if (show) shown++;
+        });
+        cnt.textContent = String(shown);
+      });
+
+      /* 滚动渐入 */
+      var reveals = document.querySelectorAll('.reveal:not(.in)');
+      if (reduced || !('IntersectionObserver' in window)) {
+        Array.prototype.forEach.call(reveals, function (el) { el.classList.add('in'); });
+      } else {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.06 });
+        Array.prototype.forEach.call(reveals, function (el) { io.observe(el); });
+      }
+
+      /* 滚动高亮导航 + 返回顶部 */
+      var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+      var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+      var topBtn = document.getElementById('top-btn');
+      function onScroll() {
+        var y = window.scrollY;
+        topBtn.classList.toggle('show', y > 400);
+        var cur = secs[0];
+        secs.forEach(function (s) { if (s && s.offsetTop - 110 <= y) cur = s; });
+        links.forEach(function (a, i) { a.classList.toggle('active', secs[i] === cur); });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      topBtn.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); });
+    })();
+  </script>
 </body>
 </html>
