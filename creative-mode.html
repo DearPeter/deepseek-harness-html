@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>创造模式 · 好玩的玩法索引 — DeepSeek Harness HTML</title>
+  <link rel="stylesheet" href="../assets/frame.css">
+  <style>
+    .hero { margin-bottom: 24px; }
+    .hero h1 { font-size: 26px; margin: 0 0 8px; }
+    .hero p { margin: 0; color: var(--muted-foreground); font-size: 14px; max-width: 640px; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+    .nav a {
+      font-size: 12px; color: var(--foreground); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px;
+      background: var(--card);
+    }
+    .nav a:hover { border-color: var(--primary); color: var(--primary); }
+    section { margin-bottom: 34px; }
+    section h2 { font-size: 17px; margin: 0 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .item {
+      border: 1px solid var(--border); border-radius: 12px; background: var(--card);
+      padding: 14px 16px; display: block; text-decoration: none; color: var(--foreground);
+      transition: border-color 0.15s;
+    }
+    a.item:hover { border-color: var(--primary); }
+    .item h3 { font-size: 13.5px; margin: 0 0 6px; }
+    .item p { font-size: 12px; color: var(--muted-foreground); margin: 0; line-height: 1.55; }
+    .item .tag {
+      display: inline-block; font-size: 11px; margin-top: 8px;
+      color: var(--primary); border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+      border-radius: 999px; padding: 2px 8px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      font-size: 12.5px; color: var(--foreground);
+      border: 1px solid var(--border); background: var(--card); border-radius: 999px;
+      padding: 6px 12px;
+    }
+    .chip.done { border-color: color-mix(in srgb, var(--viz-series-2) 55%, transparent); }
+    .chip.done::before { content: "✓ "; color: var(--viz-series-2); }
+    .chip.todo::before { content: "○ "; color: var(--muted-foreground); }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .cat {
+      border: 1px solid var(--border); border-radius: 12px; background: var(--card);
+      padding: 14px 16px;
+    }
+    .cat h3 { font-size: 13.5px; margin: 0 0 6px; }
+    .cat p { font-size: 12px; color: var(--muted-foreground); margin: 0; line-height: 1.55; }
+    .demo-links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .demo-links a {
+      font-size: 12px; color: var(--primary); text-decoration: none;
+      border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+      border-radius: 999px; padding: 4px 10px;
+    }
+    .demo-links a:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .foot { margin-top: 30px; font-size: 12px; color: var(--muted-foreground); }
+    .foot a { color: var(--muted-foreground); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <h1>创造模式 · 好玩的玩法索引</h1>
+      <a href="../index.html">← 返回卡片集</a>
+    </header>
+
+    <div class="hero">
+      <h1>🎮 创造模式还有什么好玩的?</h1>
+      <p>DeepSeek Harness 动态插件 + 对话内交互卡片的玩法合集:社区里大家都在做什么、我们的小金鱼已经实现了什么、还有什么灵感可以继续做。</p>
+    </div>
+
+    <nav class="nav">
+      <a href="#community">🐳 社区在玩的</a>
+      <a href="#fish">🐟 小金鱼已实现</a>
+      <a href="#ideas">💡 玩法灵感池</a>
+      <a href="#cards">🃏 交互卡片</a>
+    </nav>
+
+    <section id="community">
+      <h2>🐳 社区在玩的 DSH 插件(桌宠 / 美化 / 终端 / 生产力)</h2>
+      <div class="grid">
+        <a class="item" href="https://github.com/1190fasheqi/dafeiyu-pet" target="_blank" rel="noopener">
+          <h3>鲸鱼娘·大肥鱼 (dafeiyu-pet)</h3>
+          <p>透明桌面宠物:三视图行走、拖拽、喂食、互动、思维链心声。</p>
+          <span class="tag">桌宠</span>
+        </a>
+        <a class="item" href="https://github.com/YunYueSama/codex-deepseek-pet" target="_blank" rel="noopener">
+          <h3>蓝色大肥鱼 (codex-deepseek-pet)</h3>
+          <p>"你这只吃白饭的蓝色大肥鱼.jpg"——会吃饭的鲸鱼桌宠。</p>
+          <span class="tag">桌宠</span>
+        </a>
+        <a class="item" href="https://github.com/2048Nemo/DeskPet" target="_blank" rel="noopener">
+          <h3>DeskPet · deepseek 娘</h3>
+          <p>住在 MacBook 刘海里的 deepseek 娘桌宠。</p>
+          <span class="tag">桌宠</span>
+        </a>
+        <a class="item" href="https://github.com/Egger0/desk-pet" target="_blank" rel="noopener">
+          <h3>desk-pet</h3>
+          <p>透明动画桌宠:自定义 GIF 动画 + DeepSeek 余额显示。</p>
+          <span class="tag">桌宠</span>
+        </a>
+        <a class="item" href="https://www.npmjs.com/package/@linxin666/dsh-pet" target="_blank" rel="noopener">
+          <h3>@linxin666/dsh-pet</h3>
+          <p>直接跑在 DSH 页面里的宠物插件(和我们的小金鱼同类)。</p>
+          <span class="tag">页内宠物</span>
+        </a>
+        <a class="item" href="https://github.com/KinGao294/dsh-skin" target="_blank" rel="noopener">
+          <h3>dsh-skin</h3>
+          <p>换皮肤 + 自定义壁纸:调色板、半透明壁纸、透明度/模糊调节。</p>
+          <span class="tag">美化</span>
+        </a>
+        <a class="item" href="https://github.com/ccch1mneyyy/dsh-cc-tui" target="_blank" rel="noopener">
+          <h3>dsh-cc-tui</h3>
+          <p>Claude Code 风格全屏终端:像素鲸鱼顶栏、状态行、上下文进度条 + TPS 仪表。</p>
+          <span class="tag">终端</span>
+        </a>
+        <a class="item" href="https://github.com/Nagi-ovo/dsh-visualize" target="_blank" rel="noopener">
+          <h3>dsh-visualize</h3>
+          <p>对话内生成式 UI:模型把交互式 HTML 卡片直接画进会话流(本仓库已部署)。</p>
+          <span class="tag">生成式 UI</span>
+        </a>
+        <a class="item" href="https://www.npmjs.com/package/@huanlin/dsh-plugin-aigc-canvas" target="_blank" rel="noopener">
+          <h3>dsh-plugin-aigc-canvas</h3>
+          <p>AIGC 画布插件。</p>
+          <span class="tag">创作</span>
+        </a>
+        <a class="item" href="https://www.npmjs.com/package/@chushixixin/dsh-harness-mcp-server" target="_blank" rel="noopener">
+          <h3>dsh-harness-mcp-server</h3>
+          <p>为 DSH 提供 MCP server 接入。</p>
+          <span class="tag">扩展</span>
+        </a>
+        <a class="item" href="https://github.com/awesome-dsh-plugin/awesome-dsh-plugin" target="_blank" rel="noopener">
+          <h3>awesome-dsh-plugin</h3>
+          <p>DSH 插件精选列表(有中文版),找灵感的地方。</p>
+          <span class="tag">精选列表</span>
+        </a>
+        <a class="item" href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md" target="_blank" rel="noopener">
+          <h3>官方文档 · Cordis Primer</h3>
+          <p>官方插件开发入门与教程,想自己写插件从这里开始。</p>
+          <span class="tag">开发文档</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="fish">
+      <h2>🐟 我们的小金鱼 · 已实现</h2>
+      <div class="chips">
+        <span class="chip done">三种运动模式(漫游 / 右下角常驻 / 自由拖动)</span>
+        <span class="chip done">换肤换色(金鱼橙 / 深海蓝 / 樱花粉 / 彩虹)</span>
+        <span class="chip done">心情与瞌睡(开心 / 好奇 / 犯困 / 睡着 Zzz)</span>
+        <span class="chip done">点击互动(蹦跳 + 气泡 + 俏皮话)</span>
+        <span class="chip done">小蓝鲸 🐋 作伴</span>
+        <span class="chip done">右键菜单(切模式 / 换装)</span>
+      </div>
+    </section>
+
+    <section id="ideas">
+      <h2>💡 玩法灵感池(还没做的)</h2>
+      <div class="chips">
+        <span class="chip todo">投喂养成:鱼食、吃饱打嗝、越长越大、喂食计数</span>
+        <span class="chip todo">跟随鼠标:第 4 种模式,慢悠悠跟着光标游</span>
+        <span class="chip todo">点泡泡小游戏:吐带分数的小泡泡,点掉得分</span>
+        <span class="chip todo">多只宠物:加水母 / 螃蟹,迷你水族馆</span>
+        <span class="chip todo">泡泡雨特效:双击屏幕撒彩色泡泡</span>
+        <span class="chip todo">打字机气泡:说话逐字打出</span>
+        <span class="chip todo">思维链心声:模型思考实时念出来(社区同款,试过已撤销)</span>
+      </div>
+    </section>
+
+    <section id="cards">
+      <h2>🃏 交互卡片 · 可以做什么</h2>
+      <div class="two-col">
+        <div class="cat">
+          <h3>📊 数据与图表</h3>
+          <p>折线 / 柱状 / 饼图、K 线、热力图、趋势对比。</p>
+        </div>
+        <div class="cat">
+          <h3>🔬 模拟与演示</h3>
+          <p>排序 / 搜索 / 图算法、物理模拟、概率实验。</p>
+        </div>
+        <div class="cat">
+          <h3>🧮 可调参工具</h3>
+          <p>复利 / 贷款计算器、单位换算、汇率、决策器。</p>
+        </div>
+        <div class="cat">
+          <h3>🎨 产品原型</h3>
+          <p>登录页、仪表盘、设置页、移动端界面 mockup。</p>
+        </div>
+        <div class="cat">
+          <h3>⚖️ 对比面板</h3>
+          <p>方案 A/B、版本差异、价格套餐并排对比(wide)。</p>
+        </div>
+        <div class="cat">
+          <h3>📚 教学解释</h3>
+          <p>代码逐步执行、交互式教程、递归树展开。</p>
+        </div>
+        <div class="cat">
+          <h3>🎮 小游戏</h3>
+          <p>反应测试、记忆配对、打字练习、抽签。</p>
+        </div>
+        <div class="cat">
+          <h3>🗂 日常工具</h3>
+          <p>番茄钟、任务看板、灵感生成器。</p>
+        </div>
+      </div>
+      <div class="demo-links">
+        <a href="../cards/sorting.html">已部署演示:排序算法可视化 →</a>
+        <a href="../cards/binary-search.html">已部署演示:二分查找逐步执行 →</a>
+        <a href="../cards/reaction.html">已部署演示:反应速度测试 →</a>
+      </div>
+    </section>
+
+    <footer class="foot">
+      收集自 DeepSeek Harness 会话 · 仓库 <a href="https://github.com/DearPeter/deepseek-harness-html" target="_blank" rel="noopener">deepseek-harness-html</a>
+    </footer>
+  </div>
+</body>
+</html>
