@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Token 价格对比 · 2026-08</title>
+<meta name="description" content="DeepSeek 涨价后，各家 LLM API 价格与 Coding Plan / Token Plan 订阅全面对比（2026-08）+ 成本计算器。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+  :root{
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,24,50,.05),0 10px 30px -18px rgba(20,24,50,.25);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --accent-soft:color-mix(in srgb,var(--primary) 12%,transparent);
+    --peak:var(--viz-series-4); --peak-soft:color-mix(in srgb,var(--viz-series-4) 14%,transparent);
+    --off:var(--viz-series-2); --off-soft:color-mix(in srgb,var(--viz-series-2) 14%,transparent);
+    --gold:var(--viz-series-3); --gold-soft:color-mix(in srgb,var(--viz-series-3) 16%,transparent);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{padding-bottom:60px}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+  header.hero{background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 80%,#1a1f3a) 0%,var(--primary) 55%,color-mix(in srgb,var(--primary) 65%,#fff) 100%);color:#fff;padding:56px 0 48px;position:relative;overflow:hidden}
+  header.hero::after{content:"";position:absolute;right:-80px;top:-80px;width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .hero .wrap{position:relative;z-index:1}
+  .kicker{display:inline-block;font-size:13px;letter-spacing:.12em;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:999px;margin-bottom:16px}
+  h1{font-size:clamp(26px,4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.25;margin:0}
+  .hero p.sub{margin-top:12px;font-size:16px;color:rgba(255,255,255,.88);max-width:680px}
+  .hero .meta{margin-top:18px;font-size:13px;color:rgba(255,255,255,.75)}
+  nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--background) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  nav .wrap{display:flex;gap:4px;overflow-x:auto}
+  nav a{color:var(--muted-foreground);text-decoration:none;font-size:14px;padding:13px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:.2s}
+  nav a:hover{color:var(--primary)}
+  section{padding:44px 0 8px}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--foreground)}
+  h2 .no{font-size:13px;font-weight:700;color:var(--primary);background:var(--accent-soft);border-radius:8px;padding:3px 9px;letter-spacing:.02em}
+  h3{color:var(--foreground)}
+  .lead{color:var(--muted-foreground);font-size:14.5px;margin-bottom:20px;max-width:880px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin:14px 0}
+  .cards{display:grid;gap:14px}
+  @media(min-width:760px){.cards.two{grid-template-columns:1fr 1fr}.cards.four{grid-template-columns:repeat(4,1fr)}}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--foreground)}
+  th{font-size:12.5px;color:var(--muted-foreground);font-weight:600;background:color-mix(in srgb,var(--card) 92%,var(--primary) 8%);white-space:nowrap}
+  tbody tr:hover{background:color-mix(in srgb,var(--card) 96%,var(--primary) 4%)}
+  td.num{font-family:var(--mono);font-size:13px;white-space:nowrap}
+  .badge{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap}
+  .b-peak{background:var(--peak-soft);color:var(--peak)}
+  .b-off{background:var(--off-soft);color:var(--off)}
+  .b-accent{background:var(--accent-soft);color:var(--primary)}
+  .b-gold{background:var(--gold-soft);color:var(--gold)}
+  .tbl-scroll{overflow-x:auto}
+  .grid24{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin:14px 0 6px}
+  .h24{height:26px;border-radius:5px;background:var(--off-soft);position:relative}
+  .h24.on{background:var(--peak-soft);border:1px solid var(--peak)}
+  .grid24-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted-foreground)}
+  .bar-row{display:grid;grid-template-columns:180px 1fr 84px;gap:12px;align-items:center;margin:11px 0}
+  .bar-label{font-size:13.5px;color:var(--foreground);font-weight:500}
+  .bar-track{background:color-mix(in srgb,var(--card) 60%,var(--border) 40%);border-radius:8px;height:26px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:12px;font-weight:700;color:#fff;min-width:0}
+  .bar-val{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap;color:var(--foreground)}
+  .rec{display:flex;flex-direction:column;gap:8px;padding:18px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow)}
+  .rec .t{font-size:15px;font-weight:800;color:var(--foreground)}
+  .rec .p{font-size:13px;color:var(--primary);font-weight:700}
+  .rec .d{font-size:13px;color:var(--muted-foreground)}
+  .rec.hot{border-color:var(--primary);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}
+  .verdict{background:linear-gradient(135deg,var(--accent-soft),transparent);border:1px solid var(--primary)}
+  .verdict .big{font-size:18px;font-weight:800;margin-bottom:6px;color:var(--foreground)}
+  .foot{color:var(--muted-foreground);font-size:12.5px;margin-top:30px}
+  .srcs{display:grid;gap:6px;font-size:12.5px}
+  .srcs a{color:var(--primary);word-break:break-all}
+  .calc{display:grid;gap:14px}
+  @media(min-width:760px){.calc{grid-template-columns:1fr 1fr}}
+  .calc label{font-size:13px;color:var(--muted-foreground);display:block;margin-bottom:6px}
+  .calc input[type=range]{width:100%;accent-color:var(--primary)}
+  .calc .out{font-family:var(--mono);font-size:15px;color:var(--foreground)}
+  .calc .out b{color:var(--primary)}
+  .note{font-size:12px;color:var(--muted-foreground)}
+  ul.points{margin:10px 0 0 18px;font-size:14px;color:var(--muted-foreground)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">2026-08 · 调研快报</span>
+    <h1>LLM Token 价格对比与性价比分析</h1>
+    <p class="sub">DeepSeek 于 2026-08-17 实施峰谷定价、最高涨幅 1100%。本页汇总各厂商最新 API 按量价与 Coding Plan / Token Plan 订阅价，并用同一口径折算"每 1 亿 token 成本"，帮你找到性价比最高的方案。</p>
+    <div class="meta">数据截至 2026-08-19 ｜ 汇率参考 1 USD ≈ 6.79 CNY ｜ 全部价格标注来源，下单前请以官网为准</div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a href="#ds">DeepSeek 涨价</a>
+    <a href="#api">API 按量价</a>
+    <a href="#plans">订阅套餐</a>
+    <a href="#rank">成本排行</a>
+    <a href="#calc">成本计算器</a>
+    <a href="#rec">结论推荐</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section id="ds">
+    <h2><span class="no">01</span>DeepSeek 涨价详情（2026-08-17 生效）</h2>
+    <p class="lead">新价格采用 <b>峰谷定价</b>：高峰时段为北京时间 <b>9:00–12:00、14:00–18:00</b>（共 7 小时），其余 17 小时为空闲时段，价格为高峰的 <b>50%</b>。本次调价仅针对 API 按量计费，网页端 / App 免费使用不受影响；DeepSeek 官方<b>没有</b>按月 Token 套餐，只能按量充值。</p>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <span class="badge b-peak">高峰 9–12 / 14–18 点</span>
+        <span class="badge b-off">空闲（17 小时）半价</span>
+      </div>
+      <div class="grid24">
+        <div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div>
+      </div>
+      <div class="grid24-label"><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      <div class="note" style="margin-top:6px">绿色 = 空闲时段 ｜ 红色 = 高峰时段（9–12、14–18 点）</div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>模型</th><th>计费项</th><th>涨价前（元/百万 tokens）</th><th>高峰价</th><th>空闲价</th><th>高峰涨幅</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3"><b>V4-Flash</b><br><span class="note">1M 上下文</span></td><td>输入 · 缓存命中</td><td class="num">0.02</td><td class="num"><b>0.10</b></td><td class="num">0.05</td><td><span class="badge b-peak">+400%</span></td></tr>
+            <tr><td>输入 · 缓存未命中</td><td class="num">1</td><td class="num"><b>3</b></td><td class="num">1.5</td><td><span class="badge b-peak">+200%</span></td></tr>
+            <tr><td>输出</td><td class="num">2</td><td class="num"><b>9</b></td><td class="num">4.5</td><td><span class="badge b-peak">+350%</span></td></tr>
+            <tr><td rowspan="3"><b>V4-Pro</b><br><span class="note">1M 上下文</span></td><td>输入 · 缓存命中</td><td class="num">0.025</td><td class="num"><b>0.30</b></td><td class="num">0.15</td><td><span class="badge b-peak">+1100%</span></td></tr>
+            <tr><td>输入 · 缓存未命中</td><td class="num">3</td><td class="num"><b>9</b></td><td class="num">4.5</td><td><span class="badge b-peak">+200%</span></td></tr>
+            <tr><td>输出</td><td class="num">6</td><td class="num"><b>27</b></td><td class="num">13.5</td><td><span class="badge b-peak">+350%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:10px">单位：人民币元 / 每百万 tokens。背景：4 月起 V4-Pro 曾 2.5 折促销，5-31 后恢复原价 1/4；本次为正式版全系调价，取消低价补贴。</p>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <b>实测账单影响</b>（《财经》同一 1 亿 token 智能体任务，缓存命中占比 ~96%）
+        <div class="tbl-scroll" style="margin-top:10px">
+          <table>
+            <thead><tr><th>模型</th><th>涨价前</th><th>空闲</th><th>高峰</th><th>实际涨幅</th></tr></thead>
+            <tbody>
+              <tr><td>V4-Pro</td><td class="num">17.5 元</td><td class="num">50.1 元</td><td class="num">102.2 元</td><td>2.9–5.8×</td></tr>
+              <tr><td>V4-Flash</td><td class="num">6.4 元</td><td class="num">13.1 元</td><td class="num">25.7 元</td><td>2.0–4.0×</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:8px">缓存命中 token 占智能体消耗的 90%+，这是"标称 +1100% 但账单只翻 3–6 倍"的原因。</p>
+      </div>
+      <div class="card">
+        <b>关键结论</b>
+        <ul class="points">
+          <li>V4-Pro 的缓存命中价涨了 <b>11 倍</b>，低价旗舰的标签基本失效</li>
+          <li>V4-Flash 空闲价仍是主流模型里最便宜档之一</li>
+          <li>把批量任务排到 18 点后，DeepSeek 账单直接<b>减半</b></li>
+          <li>没有官方月套餐；充值按量使用</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="api">
+    <h2><span class="no">02</span>API 按量价格对比（每百万 tokens）</h2>
+    <p class="lead">国际厂商为官方 / OpenRouter 公开价（2026-08-19 快照）；国产为官方人民币价（括号为按 6.79 折算美元）。国际厂商模型版本迭代快，下单前以各官网为准。</p>
+    <div class="card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>厂商</th><th>模型</th><th>输入 $/M</th><th>输出 $/M</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="4">OpenAI</td><td>GPT-5.6 Luna</td><td class="num">0.20</td><td class="num">1.20</td><td><span class="badge b-off">高性价比档</span></td></tr>
+            <tr><td>GPT-5.6 Terra(-Pro)</td><td class="num">2.00</td><td class="num">12.00</td><td></td></tr>
+            <tr><td>GPT-5.6 Sol(-Pro)</td><td class="num">2.50</td><td class="num">15.00</td><td class="note">个别来源报 5/30，以官网为准</td></tr>
+            <tr><td>GPT-5.5</td><td class="num">5.00</td><td class="num">30.00</td><td></td></tr>
+            <tr><td rowspan="2">Anthropic</td><td>Claude Sonnet 5</td><td class="num">2.00</td><td class="num">10.00</td><td class="note">缓存读取省 90%</td></tr>
+            <tr><td>Claude Opus 5</td><td class="num">5.00</td><td class="num">25.00</td><td>旗舰</td></tr>
+            <tr><td rowspan="2">Google</td><td>Gemini 3.7 Flash</td><td class="num">0.375</td><td class="num">1.875</td><td></td></tr>
+            <tr><td>Gemini 3.1 Pro</td><td class="num">2.00</td><td class="num">12.00</td><td></td></tr>
+            <tr><td rowspan="4"><b>DeepSeek</b></td><td>V4-Flash · 高峰</td><td class="num">¥3 ≈ 0.44</td><td class="num">¥9 ≈ 1.33</td><td><span class="badge b-peak">高峰</span></td></tr>
+            <tr><td>V4-Flash · 空闲</td><td class="num">¥1.5 ≈ 0.22</td><td class="num">¥4.5 ≈ 0.66</td><td><span class="badge b-off">空闲半价</span></td></tr>
+            <tr><td>V4-Pro · 高峰</td><td class="num">¥9 ≈ 1.33</td><td class="num">¥27 ≈ 3.98</td><td><span class="badge b-peak">高峰</span></td></tr>
+            <tr><td>V4-Pro · 空闲</td><td class="num">¥4.5 ≈ 0.66</td><td class="num">¥13.5 ≈ 1.99</td><td><span class="badge b-off">空闲半价</span></td></tr>
+            <tr><td rowspan="2">智谱</td><td>GLM-5.3</td><td class="num">1.40</td><td class="num">4.40</td><td></td></tr>
+            <tr><td>GLM-5.2</td><td class="num">≈0.97</td><td class="num">≈3.04</td><td></td></tr>
+            <tr><td rowspan="3">阿里云</td><td>Qwen3.7-Max</td><td class="num">2.50</td><td class="num">7.50</td><td class="note">限时 5 折</td></tr>
+            <tr><td>Qwen3.7-Plus</td><td class="num">0.40</td><td class="num">1.60</td><td class="note">限时 8 折</td></tr>
+            <tr><td>Qwen3.6-Flash</td><td class="num">0.25</td><td class="num">1.50</td><td class="note">国内区更低</td></tr>
+            <tr><td>Kimi</td><td>K3</td><td class="num">¥20（缓存 ¥2）</td><td class="num">¥100</td><td class="note">输出很贵</td></tr>
+            <tr><td>MiniMax</td><td>M3</td><td class="num">0.30</td><td class="num">1.20</td><td></td></tr>
+            <tr><td>阶跃</td><td>Step-3.7-Flash</td><td class="num">0.20</td><td class="num">1.15</td><td></td></tr>
+            <tr><td>火山引擎</td><td>Doubao-Pro</td><td class="num">¥4 / ¥6</td><td class="num">¥18 / ¥22</td><td class="note">Lite 档 ¥0.8/¥2</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:8px">按量 API 中，<b>Qwen3.6-Flash、MiniMax M3、GPT-5.6 Luna、Step-3.7-Flash</b> 与 DeepSeek V4-Flash 空闲价处于最便宜梯队；旗舰档中 Claude Opus 5 / GPT-5.6 Sol 输出明显贵于国产旗舰。</p>
+    </div>
+  </section>
+
+  <section id="plans">
+    <h2><span class="no">03</span>Coding Plan / Token Plan 订阅对比</h2>
+    <p class="lead">海外普遍已转向 token / credits 计费（Codex 2026-04、Copilot 2026-06、Cursor 2025-06）；国产则分化出"积分制 / AFP / Credits / request"等不同计量单位。月费只是入口，<b>额度机制和超额方式</b>才决定真实成本。</p>
+
+    <h3 style="margin:8px 0 2px;font-size:16px">海外</h3>
+    <div class="card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>产品</th><th>档位</th><th>月价</th><th>计费 / 额度方式</th><th>特点</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="4">ChatGPT / Codex</td><td>Go / Plus</td><td class="num">$8 / $20</td><td>2026-04 起 token 积分制，5h 滚动窗口</td><td>Codex 已包含在 ChatGPT 订阅中</td></tr>
+            <tr><td>Pro 5x</td><td class="num">$100</td><td>同上，5×</td><td></td></tr>
+            <tr><td><b>Pro 20x</b></td><td class="num"><b>$200</b></td><td>同上，20×</td><td><span class="badge b-gold">实测成本最低</span></td></tr>
+            <tr><td>Business</td><td class="num">$20/席位</td><td>共享 credit 池</td><td>年付价</td></tr>
+            <tr><td rowspan="3">Claude<br>(含 Claude Code)</td><td>Pro</td><td class="num">$20（年付 $17）</td><td>5h 窗口次数制</td><td></td></tr>
+            <tr><td>Max 5x</td><td class="num">$100</td><td>5× 用量</td><td></td></tr>
+            <tr><td>Max 20x</td><td class="num">$200</td><td>20× 用量</td><td>终端 agent 体验最好</td></tr>
+            <tr><td rowspan="3">Cursor</td><td>Pro</td><td class="num">$20</td><td>$20 credit 池，超额按 API 计费</td><td>Auto 模式不耗池子</td></tr>
+            <tr><td>Pro+</td><td class="num">$60</td><td>3× 用量</td><td></td></tr>
+            <tr><td>Ultra</td><td class="num">$200</td><td>20× 用量</td><td></td></tr>
+            <tr><td rowspan="2">Windsurf</td><td>Pro</td><td class="num">$20</td><td>日/周配额制</td><td>2026-03 从 $15 涨价</td></tr>
+            <tr><td>Max</td><td class="num">$200</td><td>高额配额</td><td>自研 SWE-1.5 省三方 token</td></tr>
+            <tr><td rowspan="2">GitHub Copilot</td><td>Pro / Pro+</td><td class="num">$10 / $39</td><td>2026-06-01 起 AI Credits 按量</td><td>补全免费无限，Agent 吃 credits</td></tr>
+            <tr><td>Business / Enterprise</td><td class="num">$19 / $39·席位</td><td>同上 + 管理功能</td><td></td></tr>
+            <tr><td rowspan="2">Google AI</td><td>AI Plus / AI Pro</td><td class="num">$7.99 / $19.99</td><td>用量档</td><td></td></tr>
+            <tr><td>AI Ultra</td><td class="num">$99.99</td><td>5× 用量 + Antigravity + 20TB</td><td></td></tr>
+            <tr><td>Gemini Code Assist</td><td>Standard / Enterprise</td><td class="num">$22.8 / $54</td><td>席位订阅（年付 $19/$45）</td><td>免费个人档 2026-06 停用</td></tr>
+            <tr><td>OpenCode GO</td><td>全平台</td><td class="num">$10</td><td>DeepSeek 等模型额度</td><td class="note">涨价后 Flash 额度 18900→3800 次/月</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3 style="margin:8px 0 2px;font-size:16px">国产</h3>
+    <div class="card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>产品</th><th>档位</th><th>月价（元）</th><th>计费 / 额度方式</th><th>模型</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3">智谱 GLM Coding Plan</td><td>Lite</td><td class="num">118</td><td rowspan="3">积分制（5h + 周双额度）；工作日 14–18 时 100% 消耗，其余 50%</td><td rowspan="3">GLM-5.2 / 5.3</td></tr>
+            <tr><td>Pro</td><td class="num">538</td></tr>
+            <tr><td>Max</td><td class="num">1078</td></tr>
+            <tr><td rowspan="4">火山方舟 Agent Plan</td><td>Small</td><td class="num">40</td><td rowspan="4">AFP 积分；&gt;128k 上下文 7.5× 倍率</td><td rowspan="4">Doubao-Seed + GLM-5.1 + Kimi-K2.6 等</td></tr>
+            <tr><td>Medium</td><td class="num">200</td></tr>
+            <tr><td>Large</td><td class="num">500</td></tr>
+            <tr><td>Max</td><td class="num">1000</td></tr>
+            <tr><td rowspan="4">MiniMax Token Plan</td><td>Starter</td><td class="num">29</td><td rowspan="4">按 request（5h 窗口）+ 多模态日额度</td><td rowspan="4">MiniMax-M2.7 / M3 全模态</td></tr>
+            <tr><td>Plus</td><td class="num">49</td></tr>
+            <tr><td>Max</td><td class="num">119</td></tr>
+            <tr><td>Ultra</td><td class="num">899</td></tr>
+            <tr><td rowspan="2">阿里云百炼 Token Plan</td><td>个人版 Lite/Std/Pro</td><td class="num">39 / 139 / 499</td><td>Credits，每 7 天 2.5k/10k/40k；用量包 100 元/2 万</td><td>Qwen3.8/3.7 全系 + <b>DeepSeek V4</b>（夜间五折）+ 三方</td></tr>
+            <tr><td>团队版坐席</td><td class="num">198 / 698 / 1398</td><td>Credits 自然月总额，共享包</td><td>14 款模型聚合</td></tr>
+            <tr><td rowspan="4">Kimi 会员</td><td>Andante</td><td class="num">39</td><td rowspan="4">次数/时段额度；Allegro 解锁 1M 上下文（年付折算价，月付 +10 元）</td><td rowspan="4">Kimi K3</td></tr>
+            <tr><td>Moderato</td><td class="num">79</td></tr>
+            <tr><td>Allegretto</td><td class="num">159</td></tr>
+            <tr><td>Allegro</td><td class="num">559</td></tr>
+            <tr><td>腾讯混元</td><td>基础档</td><td class="num">28 起</td><td>约 3500 万 token</td><td>混元</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:8px">Kimi K3 API 官方价：输入 ¥20/百万（缓存命中 ¥2）、输出 ¥100/百万 —— 输出单价最贵。DeepSeek 无官方月套餐。</p>
+    </div>
+  </section>
+
+  <section id="rank">
+    <h2><span class="no">04</span>归一化成本排行（元 / 每 1 亿 token）</h2>
+    <p class="lead">同一 1 亿 token 智能体任务（缓存命中 ~96%）口径折算。绿色为《财经》实测各平台套餐；蓝色为按官方价折算的 DeepSeek API。数值越低越划算。</p>
+    <div class="card">
+      <div class="bar-row"><div class="bar-label">ChatGPT/Codex $200/月</div><div class="bar-track"><div class="bar-fill" style="width:12.2%;background:var(--viz-series-2)">🥇</div></div><div class="bar-val">≈12.5 元</div></div>
+      <div class="bar-row"><div class="bar-label">DeepSeek V4-Flash · 空闲</div><div class="bar-track"><div class="bar-fill" style="width:16.4%;background:var(--viz-series-1)">16.8</div></div><div class="bar-val">≈16.8 元</div></div>
+      <div class="bar-row"><div class="bar-label">智谱 GLM Coding Plan</div><div class="bar-track"><div class="bar-fill" style="width:24.6%;background:var(--viz-series-2)">25.1</div></div><div class="bar-val">≈25.1 元</div></div>
+      <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 空闲</div><div class="bar-track"><div class="bar-fill" style="width:49.3%;background:var(--viz-series-1)">50.4</div></div><div class="bar-val">≈50.4 元</div></div>
+      <div class="bar-row"><div class="bar-label">火山引擎 Agent Plan</div><div class="bar-track"><div class="bar-fill" style="width:49.1%;background:var(--viz-series-2)">50.2</div></div><div class="bar-val">≈50.2 元</div></div>
+      <div class="bar-row"><div class="bar-label">Kimi Allegro</div><div class="bar-track"><div class="bar-fill" style="width:93.3%;background:var(--viz-series-3)">95.4</div></div><div class="bar-val">≈95.4 元</div></div>
+      <div class="bar-row"><div class="bar-label">阿里云 Token Plan</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元</div></div>
+      <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 高峰</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--viz-series-4)">102.2</div></div><div class="bar-val">≈102.2 元</div></div>
+      <p class="note" style="margin-top:8px">条形宽度按最大值归一。DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算，与《财经》实测口径一致。</p>
+    </div>
+  </section>
+
+  <section id="calc">
+    <h2><span class="no">05</span>DeepSeek 成本计算器</h2>
+    <p class="lead">输入你每月的 token 用量与高峰占比，对比 V4-Flash / V4-Pro 的月成本，直观看到"错峰"能省多少。</p>
+    <div class="card">
+      <div class="calc">
+        <div>
+          <label>每月总消耗（亿 tokens） = <b id="v-tok">10</b></label>
+          <input type="range" id="tok" min="1" max="100" value="10" step="1">
+          <label style="margin-top:12px">高峰时段占比（%） = <b id="v-peak">30</b></label>
+          <input type="range" id="peak" min="0" max="100" value="30" step="5">
+        </div>
+        <div>
+          <div class="out">V4-Flash：<b id="o-flash">—</b> 元/月</div>
+          <div class="out" style="margin-top:8px">V4-Pro：<b id="o-pro">—</b> 元/月</div>
+          <div class="out" style="margin-top:8px">错峰（0% 高峰）对比：<b id="o-save">—</b></div>
+          <p class="note" style="margin-top:10px">按 96% 缓存命中折算，未计充值优惠与量级折扣。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rec">
+    <h2><span class="no">06</span>结论：按场景怎么选</h2>
+    <div class="cards four">
+      <div class="rec hot">
+        <div class="t">🏆 重度编程 Agent</div>
+        <div class="p">ChatGPT / Codex Pro 20x · $200/月</div>
+        <div class="d">折算成本全市场最低（≈12.5 元/亿）。适合每天数小时、整仓上下文的 agent 工作流。需代理 + 外币卡。</div>
+      </div>
+      <div class="rec">
+        <div class="t">🇨🇳 国内综合性价比</div>
+        <div class="p">火山方舟 Agent Plan · ¥40 起</div>
+        <div class="d">人民币直连，聚合豆包 / GLM / Kimi 多模型，门槛最低；重度再升 Medium ¥200 档。</div>
+      </div>
+      <div class="rec">
+        <div class="t">⚡ 纯 API 按量最低价</div>
+        <div class="p">DeepSeek V4-Flash 空闲时段</div>
+        <div class="d">批量任务排到 18 点后或凌晨，成本减半；或走百炼用 DeepSeek V4（夜间五折）。</div>
+      </div>
+      <div class="rec">
+        <div class="t">💬 轻度使用 / 补全</div>
+        <div class="p">Copilot Free/Pro $10 · Trae CN 免费</div>
+        <div class="d">月费最低，代码补全不消耗 credits；够用就行，别为用不满的订阅买单。</div>
+      </div>
+    </div>
+
+    <div class="card verdict" style="margin-top:16px">
+      <div class="big">一句话结论</div>
+      个人重度跑 Agent 选 <b>Codex $200</b>（折算最便宜）；国内直连选 <b>方舟 ¥40</b> 起步；纯按量选 <b>DeepSeek V4-Flash 空闲时段</b>。DeepSeek 官方 API 现在只有错峰用 Flash 才算便宜 —— V4-Pro 缓存命中价已涨 11 倍，性价比优势被抹平。
+    </div>
+  </section>
+
+  <footer class="foot">
+    <h3 style="font-size:14px;margin-bottom:8px;color:var(--foreground)">主要数据来源</h3>
+    <div class="srcs">
+      <span>DeepSeek 调价：<a href="https://finance.eastmoney.com/a/202608173843080573.html">东方财富/中国证券报</a> · <a href="https://www.sohu.com/a/1063821337_114960">央视财经</a> · <a href="https://www.mycaijing.com/article/detail/578141?source_id=40">《财经》实测</a></span>
+      <span>海外套餐：<a href="https://www.taskade.com/blog/codex-pricing-explained">Taskade（Codex）</a> · <a href="https://www.cloudzero.com/blog/claude-pricing/">CloudZero（Claude/Cursor/Windsurf/Copilot）</a> · <a href="https://mashable.com/article/google-io-2026-gemini-ultra-ai-subscription-tiers">Mashable（Google I/O 2026）</a> · <a href="https://www.vibecodedthis.com/pricing/gemini-code-assist-pricing/">VibecodedThis（Gemini Code Assist）</a></span>
+      <span>国产套餐：<a href="https://www.kimi.com/zh-cn/resources/kimi-k3-pricing">Kimi 官方定价页</a> · <a href="https://finance.sina.com.cn/stock/t/2026-07-31/doc-iniksxpi1210399.shtml">新浪财经（GLM Coding Plan）</a> · <a href="https://m.ithome.com/html/948912.htm">IT之家（火山方舟 Agent Plan）</a> · <a href="https://help.aliyun.com/zh/model-studio/token-plan-personal-overview">阿里云官方</a> · <a href="https://codepick.dev/zh/compare/coding-plan-vs-agent-plan-vs-token-plan/">CodePick 横评</a></span>
+      <span>API 单价：<a href="https://openrouter.ai/api/v1/models">OpenRouter models API（2026-08-19）</a> · <a href="https://help.aliyun.com/zh/model-studio/model-pricing">阿里云百炼官方价目</a> · 各厂商官方价目页</span>
+    </div>
+    <p style="margin-top:16px">汇率参考 1 USD ≈ 6.79 CNY（2026-08-19 央行中间价）。套餐额度与促销变化频繁，购买前请以各厂商官网实时页面为准。本页由 AI 调研生成，仅供选型参考。</p>
+    <p style="margin-top:6px">生成日期：2026-08-19</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  var tok=document.getElementById('tok'),peak=document.getElementById('peak');
+  var vTok=document.getElementById('v-tok'),vPeak=document.getElementById('v-peak');
+  var outF=document.getElementById('o-flash'),outP=document.getElementById('o-pro'),outS=document.getElementById('o-save');
+  var flashPeak=0.96*0.10+0.02*3+0.02*9, flashOff=0.96*0.05+0.02*1.5+0.02*4.5;
+  var proPeak=0.96*0.30+0.02*9+0.02*27,  proOff=0.96*0.15+0.02*4.5+0.02*13.5;
+  function calc(){
+    var t=+tok.value, p=+peak.value/100;
+    var f=(flashPeak*p+flashOff*(1-p))*t*100;
+    var pr=(proPeak*p+proOff*(1-p))*t*100;
+    var fOff=flashOff*t*100;
+    outF.textContent=f.toFixed(0);
+    outP.textContent=pr.toFixed(0);
+    outS.textContent='Flash '+(f-fOff>=0?'省 '+(f-fOff).toFixed(0):'多 '+(fOff-f).toFixed(0))+' 元（'+Math.round((1-fOff/Math.max(f,0.001))*100)+'%）';
+    vTok.textContent=t; vPeak.textContent=+peak.value;
+  }
+  tok.addEventListener('input',calc); peak.addEventListener('input',calc); calc();
+})();
+</script>
+
+</body>
+</html>
