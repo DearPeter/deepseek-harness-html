@@ -112,10 +112,7 @@
         <span class="badge b-peak">高峰 9–12 / 14–18 点</span>
         <span class="badge b-off">空闲（17 小时）半价</span>
       </div>
-      <div class="grid24">
-        <div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div>
-      </div>
-      <div class="grid24-label"><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      <div class="grid24"><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24 on"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div><div class="h24"></div></div><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
       <div class="note" style="margin-top:6px">绿色 = 空闲时段 ｜ 红色 = 高峰时段（9–12、14–18 点）</div>
     </div>
 
@@ -259,7 +256,7 @@
         </table>
       </div>
       <p class="note" style="margin-top:8px">Kimi K3 API 官方价：输入 ¥20/百万（缓存命中 ¥2）、输出 ¥100/百万 —— 输出单价最贵。DeepSeek 无官方月套餐。</p>
-      <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>官方明确"<b>不同模型的单位 Token 消耗 Credits 不同</b>，且不公开精确比率表"。官方示例 qwen3.6-plus：输入 ≈200 Credits/百万、缓存命中 ≈20/百万（省 90%）、输出 ≈1,204/百万。按典型智能体 96% 缓存命中折算约 <b>15–18 元/亿</b>（Lite/Standard 档）；完全不命中缓存约 65–73 元/亿；旗舰模型（如 qwen3.7-max）系数更高，《财经》的 ≈101 元/亿 与"旗舰模型 + ~80% 缓存"场景吻合。实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
+      <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>官方明确"<b>不同模型的单位 Token 消耗 Credits 不同</b>，且不公开精确比率表"。官方示例 qwen3.6-plus：输入 ≈200 Credits/百万、缓存命中 ≈20/百万（省 90%）、输出 ≈1,204/百万。按典型智能体 96% 缓存命中折算约 <b>15–18 元/亿</b>（Standard 套餐内分摊口径；按 100 元用量包口径见下方排名，约 14–24 元/亿）；完全不命中缓存约 65–73 元/亿；旗舰模型（如 qwen3.7-max）系数更高，《财经》的 ≈101 元/亿 与"旗舰模型 + 较低缓存命中"场景吻合。实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
     </div>
 
     <div class="card">
@@ -267,7 +264,7 @@
       <span class="note" style="margin-left:8px">逻辑：①折算规则 → ②智能体混合口径 → ③每 100 元可用 Token → ④排名</span>
 
       <div style="margin-top:10px"><b>① 折算规则：各模型 Credits ↔ Token</b>（独立计算）</div>
-      <p class="note" style="margin-top:4px">官方只公布 qwen3.6-plus 一个换算示例（输入/缓存/输出 ≈200/20/1,204 Credits 每百万，对应其按量价 2/12 元）→ 锚定 <b>≈100 Credits/元</b>；官方口径为"Credits = Token 数 × 模型单价"，故其余模型按其按量目录价（华北2北京）<b>各自独立折算</b>，缓存命中按输入 10%（官方 90% 缓存折扣）。</p>
+      <p class="note" style="margin-top:4px">官方只公布 qwen3.6-plus 一个换算示例（输入/缓存/输出 ≈200/20/1,204 Credits 每百万，对应其按量价 2/12 元）→ 锚定 <b>≈100 Credits/元</b>；官方口径为"Credits = Token 数 × 模型单价"，故其余模型按其按量目录价（华北2北京）<b>各自独立折算</b>，缓存命中按输入 10%（官方 90% 缓存折扣）。<b>注意：Kimi / MiniMax 目前确认在团队版模型清单；个人版白名单以官方"支持模型"页为准，白名单外模型（如 Qwen3-VL 系列）调用不会抵扣套餐额度、会走按量计费。</b></p>
       <div class="tbl-scroll">
         <table>
           <thead><tr><th>模型</th><th>按量输入<br>元/M</th><th>按量输出<br>元/M</th><th>输入<br>Credits/M</th><th>缓存命中<br>Credits/M</th><th>输出<br>Credits/M</th></tr></thead>
@@ -328,8 +325,8 @@
       <div class="bar-row"><div class="bar-label">Kimi Allegro</div><div class="bar-track"><div class="bar-fill" style="width:93.3%;background:var(--viz-series-3)">95.4</div></div><div class="bar-val">≈95.4 元</div></div>
       <div class="bar-row"><div class="bar-label">阿里云 Token Plan · 实测*</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元*</div></div>
       <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 高峰</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--viz-series-4)">102.2</div></div><div class="bar-val">≈102.2 元</div></div>
-      <p class="note" style="margin-top:8px">条形宽度按最大值归一。DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算，与《财经》实测口径一致。</p>
-      <p class="note" style="margin-top:4px">* 阿里云 Token Plan：不同模型抵扣系数不同（官方不公开精确比率）。官方示例 qwen3.6-plus：输入/缓存/输出 ≈200/20/1,204 Credits 每百万；高缓存命中场景约 15–18 元/亿；101 元/亿 是《财经》用旗舰模型（约 80% 缓存）的实测值。</p>
+      <p class="note" style="margin-top:8px">条形宽度按最大值归一。DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算（与 05 节计算器一致）；《财经》实测 V4-Flash 账单更低（空闲 13.1 元/亿）因其任务缓存命中略高于 96%，V4-Pro 两口径基本一致（50.1 vs 50.4）。</p>
+      <p class="note" style="margin-top:4px">* 阿里云 Token Plan：不同模型抵扣系数不同（官方不公开精确比率）。101 元/亿 是《财经》旗舰模型（约 80% 缓存）实测值；按 03 节排名，100 元用量包口径下轻量模型仅约 13–24 元/亿（deepseek-v4-flash 闲时 ≈13、qwen3.6-flash ≈14、qwen3.6-plus ≈24），旗舰 qwen3.7/3.8-max ≈105 元/亿 —— 选模型差 8 倍。</p>
     </div>
   </section>
 
