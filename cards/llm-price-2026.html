@@ -248,7 +248,7 @@
             <tr><td>Plus</td><td class="num">49</td></tr>
             <tr><td>Max</td><td class="num">119</td></tr>
             <tr><td>Ultra</td><td class="num">899</td></tr>
-            <tr><td rowspan="2">阿里云百炼 Token Plan</td><td>个人版 Lite/Std/Pro</td><td class="num">39 / 139 / 499</td><td>Credits，每 7 天 2.5k/10k/40k；用量包 100 元/2 万</td><td>Qwen3.8/3.7 全系 + <b>DeepSeek V4</b>（夜间五折）+ 三方</td></tr>
+            <tr><td rowspan="2">阿里云百炼 Token Plan</td><td>个人版 Lite/Std/Pro</td><td class="num">39 / 139 / 499</td><td>Credits 与 token <b>无固定比例</b>；每 7 天 2.5k/10k/40k + 每 5h 窗口；用量包 100 元/2 万</td><td>Qwen3.8/3.7 全系 + <b>DeepSeek V4</b>（夜间五折）+ 三方</td></tr>
             <tr><td>团队版坐席</td><td class="num">198 / 698 / 1398</td><td>Credits 自然月总额，共享包</td><td>14 款模型聚合</td></tr>
             <tr><td rowspan="4">Kimi 会员</td><td>Andante</td><td class="num">39</td><td rowspan="4">次数/时段额度；Allegro 解锁 1M 上下文（年付折算价，月付 +10 元）</td><td rowspan="4">Kimi K3</td></tr>
             <tr><td>Moderato</td><td class="num">79</td></tr>
@@ -259,6 +259,7 @@
         </table>
       </div>
       <p class="note" style="margin-top:8px">Kimi K3 API 官方价：输入 ¥20/百万（缓存命中 ¥2）、输出 ¥100/百万 —— 输出单价最贵。DeepSeek 无官方月套餐。</p>
+      <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>Credits 与 token 无固定换算比例（官方原话："系统根据实际输入/输出 Token 数 × 模型单价折算为 Credits"），因此"每 1 亿 token 成本"不是一个固定数：便宜模型 + 高缓存命中时约 <b>20–30 元/亿</b>（官方示例 qwen3.6-plus 约 5 万 token 仅耗 3–4 Credits），旗舰模型 + 低缓存 + 思考/工具调用时可达 <b>100 元+/亿</b>。网上流传的"≈101 元/亿"是《财经》特定场景实测值，不能代表普遍成本，实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
     </div>
   </section>
 
@@ -272,9 +273,10 @@
       <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 空闲</div><div class="bar-track"><div class="bar-fill" style="width:49.3%;background:var(--viz-series-1)">50.4</div></div><div class="bar-val">≈50.4 元</div></div>
       <div class="bar-row"><div class="bar-label">火山引擎 Agent Plan</div><div class="bar-track"><div class="bar-fill" style="width:49.1%;background:var(--viz-series-2)">50.2</div></div><div class="bar-val">≈50.2 元</div></div>
       <div class="bar-row"><div class="bar-label">Kimi Allegro</div><div class="bar-track"><div class="bar-fill" style="width:93.3%;background:var(--viz-series-3)">95.4</div></div><div class="bar-val">≈95.4 元</div></div>
-      <div class="bar-row"><div class="bar-label">阿里云 Token Plan</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元</div></div>
+      <div class="bar-row"><div class="bar-label">阿里云 Token Plan · 实测*</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元*</div></div>
       <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 高峰</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--viz-series-4)">102.2</div></div><div class="bar-val">≈102.2 元</div></div>
       <p class="note" style="margin-top:8px">条形宽度按最大值归一。DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算，与《财经》实测口径一致。</p>
+      <p class="note" style="margin-top:4px">* 阿里云 Token Plan 的 Credits 无固定 token 比例：官方示例 qwen3.6-plus 约 5 万 token 仅耗 3–4 Credits（约 20–30 元/亿）；101 元/亿 是《财经》用旗舰模型、低缓存命中场景的实测值，实际成本视模型与用量结构而定。</p>
     </div>
   </section>
 
