@@ -285,15 +285,15 @@
       </div>
 
       <div style="margin-top:14px"><b>②③ 每 100 元（20,000 Credits）可用 Token 排名</b>
-      <span class="note">（② 口径 = 典型智能体混合：96% 缓存命中 + 2% 未命中 + 2% 输出；③ = 20,000 Credits ÷ 每百万混合消耗；DeepSeek 行随"计价时段"筛选在忙/闲间切换并自动重排）</span></div>
+      <span class="note">（② 口径 = 典型智能体混合：96% 缓存命中 + 2% 未命中 + 2% 输出；③ = 20,000 Credits ÷ 每百万混合消耗；<b>每 1,000 Credits ≈ 排名值 ÷ 20</b>（即"每 100 元"的 1/20）；DeepSeek 行随"计价时段"筛选在忙/闲间切换并自动重排）</span></div>
       <div class="tbl-scroll" style="margin-top:10px">
         <table>
-          <thead><tr><th>排名</th><th>模型</th><th>典型混合<br>亿 tokens / 100 元</th><th>纯输入<br>万 / 100 元</th><th>纯输出<br>万 / 100 元</th></tr></thead>
+          <thead><tr><th>排名</th><th>模型</th><th>典型混合<br>亿 tokens / 100 元</th><th>每 1,000 Credits 混合<br>万 tokens</th><th>纯输入<br>万 / 100 元</th><th>纯输出<br>万 / 100 元</th></tr></thead>
           <tbody id="tp-tbl2"></tbody>
         </table>
       </div>
 
-      <p class="note" style="margin-top:10px">④ 折算到你的套餐：Standard 139 元/月 = 每 7 天 10,000 Credits → 每 7 天可用 ≈ <b>排名值 ÷ 2</b>；整月 42,857 Credits ≈ 排名值 × 2.14。100 元用量包 = 20,000 Credits = 排名值本身（且不受 7 天窗口限制）。另：qwen3.8-max 与 deepseek-v4-pro-0813 夜间 22:00–08:00 消耗五折（Token 数翻倍）；DeepSeek 忙/闲价差 2 倍 —— 用上方"计价时段"筛选可对比忙/闲两套排名（04 节 DeepSeek 排行条同步切换）。<b>本排名为估算：官方不公开各模型精确系数，实际以控制台账单为准。</b></p>
+      <p class="note" style="margin-top:10px">④ 折算到你的套餐：Standard 139 元/月 = 每 7 天 10,000 Credits = <b>10 × "每 1,000 Credits"列</b>（≈ 排名值 ÷ 2）；整月 42,857 Credits ≈ 排名值 × 2.14。100 元用量包 = 20,000 Credits = 排名值本身（且不受 7 天窗口限制）。另：qwen3.8-max 与 deepseek-v4-pro-0813 夜间 22:00–08:00 消耗五折（Token 数翻倍）；DeepSeek 忙/闲价差 2 倍 —— 用上方"计价时段"筛选可对比忙/闲两套排名（04 节 DeepSeek 排行条同步切换）。<b>本排名为估算：官方不公开各模型精确系数，实际以控制台账单为准。</b></p>
     </div>
   </section>
 
@@ -409,14 +409,15 @@
       var ic=Math.round(i*100), cc=Math.round(ic*0.1), oc=m.oCr||Math.round(o*100);
       var mix=0.96*cc+0.02*ic+0.02*oc;
       var yb=Math.round(200/mix*100)/100, yi=Math.round(2000000/ic), yo=Math.round(2000000/oc);
-      arr.push({n:m.n,off:m.off,note:m.note,ds:m.ds,p:p,i:i,o:o,ic:ic,cc:cc,oc:oc,yb:yb,yi:yi,yo:yo});
+      arr.push({n:m.n,off:m.off,note:m.note,ds:m.ds,p:p,i:i,o:o,ic:ic,cc:cc,oc:oc,mix:mix,yb:yb,yi:yi,yo:yo});
       html1+='<tr><td>'+m.n+(m.ds?' <span class="badge '+(p?'b-peak':'b-off')+'">'+(p?'忙':'闲')+'</span>':'')+(m.off?' <span class="badge b-accent">'+m.off+'</span>':'')+(m.note?' <span class="note">('+m.note+')</span>':'')+'</td><td class="num">'+i+'</td><td class="num">'+o+'</td><td class="num">'+ic+'</td><td class="num">'+cc+'</td><td class="num">'+oc+'</td></tr>';
     });
     document.getElementById('tp-tbl1').innerHTML=html1;
     arr.sort(function(a,b){return b.yb-a.yb;});
     var html2='';
     arr.forEach(function(m,k){
-      html2+='<tr><td class="num"><b>'+(medals[k]||'')+' '+ (k+1)+'</b></td><td>'+m.n+'</td><td class="num"><b>≈'+m.yb.toFixed(2)+' 亿</b></td><td class="num">'+m.yi.toLocaleString()+'</td><td class="num">'+m.yo.toLocaleString()+'</td></tr>';
+      var tk1000=Math.round(100000/m.mix);
+      html2+='<tr><td class="num"><b>'+(medals[k]||'')+' '+ (k+1)+'</b></td><td>'+m.n+'</td><td class="num"><b>≈'+m.yb.toFixed(2)+' 亿</b></td><td class="num"><b>≈'+tk1000.toLocaleString()+' 万</b></td><td class="num">'+m.yi.toLocaleString()+'</td><td class="num">'+m.yo.toLocaleString()+'</td></tr>';
     });
     document.getElementById('tp-tbl2').innerHTML=html2;
     var flash=document.getElementById('bar-flash'), pro=document.getElementById('bar-pro');
