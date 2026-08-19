@@ -261,6 +261,33 @@
       <p class="note" style="margin-top:8px">Kimi K3 API 官方价：输入 ¥20/百万（缓存命中 ¥2）、输出 ¥100/百万 —— 输出单价最贵。DeepSeek 无官方月套餐。</p>
       <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>官方明确"<b>不同模型的单位 Token 消耗 Credits 不同</b>，且不公开精确比率表"。官方示例 qwen3.6-plus：输入 ≈200 Credits/百万、缓存命中 ≈20/百万（省 90%）、输出 ≈1,204/百万。按典型智能体 96% 缓存命中折算约 <b>15–18 元/亿</b>（Lite/Standard 档）；完全不命中缓存约 65–73 元/亿；旗舰模型（如 qwen3.7-max）系数更高，《财经》的 ≈101 元/亿 与"旗舰模型 + ~80% 缓存"场景吻合。实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
     </div>
+
+    <div class="card">
+      <b>阿里云 Token Plan · 各模型 Credits 消耗对比</b>
+      <span class="note" style="margin-left:8px">（按量目录价 × 官方示例锚定 ≈100 Credits/元，估算值，按华北2北京价）</span>
+      <div class="tbl-scroll" style="margin-top:10px">
+        <table>
+          <thead><tr><th>模型</th><th>按量输入<br>元/M</th><th>按量输出<br>元/M</th><th>输入<br>Credits/M</th><th>缓存命中<br>Credits/M</th><th>输出<br>Credits/M</th><th>典型智能体成本<br>元/1亿（Standard 档）</th></tr></thead>
+          <tbody>
+            <tr><td>deepseek-v4-flash-0731 · 闲时</td><td class="num">1.5</td><td class="num">4.5</td><td class="num">150</td><td class="num">15</td><td class="num">450</td><td class="num"><b>≈8.6</b></td></tr>
+            <tr><td>qwen3.6-flash</td><td class="num">1.2</td><td class="num">7.2</td><td class="num">120</td><td class="num">12</td><td class="num">720</td><td class="num"><b>≈9.2</b></td></tr>
+            <tr><td>qwen3.7-plus</td><td class="num">2</td><td class="num">8</td><td class="num">200</td><td class="num">20</td><td class="num">800</td><td class="num">≈12.7</td></tr>
+            <tr><td>MiniMax-M2.5</td><td class="num">2.1</td><td class="num">8.4</td><td class="num">210</td><td class="num">21</td><td class="num">840</td><td class="num">≈13.3</td></tr>
+            <tr><td>qwen3.6-plus <span class="badge b-accent">官方示例</span></td><td class="num">2</td><td class="num">12</td><td class="num">200</td><td class="num">20</td><td class="num">1,204</td><td class="num">≈15.3</td></tr>
+            <tr><td>deepseek-v4-flash-0731 · 忙时</td><td class="num">3</td><td class="num">9</td><td class="num">300</td><td class="num">30</td><td class="num">900</td><td class="num">≈17.1</td></tr>
+            <tr><td>deepseek-v4-pro-0813 · 闲时</td><td class="num">4.5</td><td class="num">13.5</td><td class="num">450</td><td class="num">45</td><td class="num">1,350</td><td class="num">≈25.7</td></tr>
+            <tr><td>kimi-k2.5</td><td class="num">4</td><td class="num">21</td><td class="num">400</td><td class="num">40</td><td class="num">2,100</td><td class="num">≈28.7</td></tr>
+            <tr><td>kimi-k2.6</td><td class="num">6.5</td><td class="num">27</td><td class="num">650</td><td class="num">65</td><td class="num">2,700</td><td class="num">≈42.0</td></tr>
+            <tr><td>glm-5.2</td><td class="num">8</td><td class="num">28</td><td class="num">800</td><td class="num">80</td><td class="num">2,800</td><td class="num">≈48.3</td></tr>
+            <tr><td>deepseek-v4-pro-0813 · 忙时</td><td class="num">9</td><td class="num">27</td><td class="num">900</td><td class="num">90</td><td class="num">2,700</td><td class="num">≈51.4</td></tr>
+            <tr><td>deepseek-v4-pro</td><td class="num">12</td><td class="num">24</td><td class="num">1,200</td><td class="num">120</td><td class="num">2,400</td><td class="num">≈60.7</td></tr>
+            <tr><td>qwen3.7-max</td><td class="num">12</td><td class="num">36</td><td class="num">1,200</td><td class="num">120</td><td class="num">3,600</td><td class="num">≈68.5</td></tr>
+            <tr><td>qwen3.8-max</td><td class="num">12</td><td class="num">36</td><td class="num">1,200</td><td class="num">120</td><td class="num">3,600</td><td class="num">≈68.5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:10px">计算说明：① 官方只公布 qwen3.6-plus 示例（输入/缓存/输出 ≈200/20/1,204 Credits 每百万，对应按量价 2/12 元），锚定换算系数 <b>≈100 Credits/元</b>；其余模型按其按量目录价（华北2北京）线性估算，缓存命中按输入的 10% 计（官方 90% 缓存折扣）。② 典型智能体成本 = 96% 缓存命中 + 2% 未命中 + 2% 输出，按 Standard 档（139 元 / 月均 42,857 Credits）折算。③ DeepSeek 系列在阿里云同样有忙/闲峰谷价；qwen3.8-max 与 deepseek-v4-pro-0813 夜间 22:00–08:00 消耗五折。④ <b>官方不公开各模型精确系数，实际消耗以控制台账单为准，本表为估算参考。</b></p>
+    </div>
   </section>
 
   <section id="rank">
