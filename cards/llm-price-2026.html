@@ -89,23 +89,115 @@
   <div class="wrap">
     <span class="kicker">2026-08 · 调研快报</span>
     <h1>LLM Token 价格对比与性价比分析</h1>
-    <p class="sub">DeepSeek 于 2026-08-17 实施峰谷定价、最高涨幅 1100%。本页汇总各厂商最新 API 按量价与 Coding Plan / Token Plan 订阅价，并用同一口径折算"每 1 亿 token 成本"，帮你找到性价比最高的方案。</p>
+    <p class="sub">DeepSeek 于 2026-08-17 实施峰谷定价、最高涨幅 1100%。统一口径：<b>100 元人民币能买到多少 token</b>（典型智能体混合 96% 缓存 + 2% 未命中 + 2% 输出）。涵盖 DeepSeek、阿里、智谱、OpenAI、Kimi、火山、混元等全部主流 API 与 Token/Coding Plan，谁最划算一眼看清，每种方案附计算方法。</p>
     <div class="meta">数据截至 2026-08-19 ｜ 汇率参考 1 USD ≈ 6.79 CNY ｜ 全部价格标注来源，下单前请以官网为准</div>
   </div>
 </header>
 
 <nav>
   <div class="wrap">
-    <a href="#ds">DeepSeek 涨价</a>
-    <a href="#api">API 按量价</a>
-    <a href="#plans">订阅套餐</a>
-    <a href="#rank">成本排行</a>
-    <a href="#calc">成本计算器</a>
-    <a href="#rec">结论推荐</a>
+    <a href="#top">💰 100 元性价比榜</a>
+    <a href="#how">📐 计算方法</a>
+    <a href="#appendix">📁 附录细节</a>
   </div>
 </nav>
 
 <main class="wrap">
+
+  <section id="top">
+    <h2><span class="no">01</span>💰 100 元性价比榜（全方案统一口径）</h2>
+    <p class="lead">所有方案统一折算成 <b>100 元人民币能买到多少 token</b>，口径 = 典型智能体混合（96% 缓存命中 + 2% 未命中 + 2% 输出）。<b>这一节即可回答"100 块钱买哪种最划算"</b>。徽章：<span class="badge b-accent">实测</span>=《财经》实测折算，<span class="badge b-off">官方价</span>=按官方单价公式折算，<span class="badge b-gold">估算</span>=按官方额度系数估算。</p>
+
+    <div class="card verdict">
+      <div class="big">一句话结论：100 块钱买 token 最多的是「阿里 Token Plan + 轻量模型」（Standard 档 11–12 亿 / 用量包 7 亿），其次 Codex Pro 20x（≈8 亿）、DeepSeek V4-Flash API 空闲（≈6 亿）</div>
+      国内直连最划算：阿里 Token Plan 用 DeepSeek V4-Flash / qwen3.6-flash（闲时）；海外选 Codex Pro 20x。纯 API 错峰：DeepSeek V4-Flash 空闲。避坑：Kimi K3 API、Claude API 按 token 买最贵（每 100 元只有 0.2–0.3 亿 token）。
+    </div>
+
+    <div class="card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>#</th><th>方案</th><th>100 元可用 token</th><th>口径</th></tr></thead>
+          <tbody>
+            <tr><td class="num"><b>1</b></td><td>阿里 Token Plan Standard + DeepSeek V4-Flash(闲)</td><td class="num"><b>≈11.7 亿</b></td><td><span class="badge b-gold 估算">139元/月=42,857 Credits 折算100元</span></td></tr>
+            <tr><td class="num"><b>2</b></td><td>阿里 Token Plan Standard + qwen3.6-flash</td><td class="num"><b>≈10.9 亿</b></td><td><span class="badge b-gold 估算">同上</span></td></tr>
+            <tr><td class="num"><b>3</b></td><td>OpenAI Codex Pro 20x（$200）</td><td class="num"><b>≈8.0 亿</b></td><td><span class="badge b-accent 实测">《财经》实测 12.5 元/亿</span></td></tr>
+            <tr><td class="num"><b>4</b></td><td>阿里 Token Plan 用量包 + DeepSeek V4-Flash(闲)</td><td class="num"><b>≈7.6 亿</b></td><td><span class="badge b-gold 估算">100元=20,000 Credits</span></td></tr>
+            <tr><td class="num"><b>5</b></td><td>阿里 Token Plan 用量包 + qwen3.6-flash</td><td class="num"><b>≈7.1 亿</b></td><td><span class="badge b-gold 估算">100元=20,000 Credits</span></td></tr>
+            <tr><td class="num"><b>6</b></td><td>阿里 Token Plan Standard + qwen3.6-plus</td><td class="num"><b>≈6.5 亿</b></td><td><span class="badge b-gold 估算">139元/月折算</span></td></tr>
+            <tr><td class="num"><b>7</b></td><td>DeepSeek V4-Flash · API 空闲</td><td class="num"><b>≈6.0 亿</b></td><td><span class="badge b-off 官方价">0.168 元/M（混合）</span></td></tr>
+            <tr><td class="num"><b>8</b></td><td>阿里 Token Plan 用量包 + qwen3.6-plus</td><td class="num"><b>≈4.2 亿</b></td><td><span class="badge b-gold 估算">100元=20,000 Credits</span></td></tr>
+            <tr><td class="num"><b>9</b></td><td>智谱 GLM Coding Plan Lite（118元）</td><td class="num"><b>≈4.0 亿</b></td><td><span class="badge b-accent 实测">《财经》实测 25.1 元/亿</span></td></tr>
+            <tr><td class="num"><b>10</b></td><td>Qwen3.6-Flash · API（阿里云）</td><td class="num"><b>≈3.5 亿</b></td><td><span class="badge b-off 官方价">0.283 元/M（混合）</span></td></tr>
+            
+          </tbody>
+        </table>
+      </div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-size:13.5px;color:var(--primary)">▸ 展开完整榜单（第 11 名以后，共 15 项）</summary>
+        <div class="tbl-scroll" style="margin-top:8px">
+          <table>
+            <thead><tr><th>#</th><th>方案</th><th>100 元可用 token</th><th>口径</th></tr></thead>
+            <tbody>
+              <tr><td class="num"><b>11</b></td><td>DeepSeek V4-Flash · API 高峰</td><td class="num"><b>≈3.0 亿</b></td><td><span class="badge b-off 官方价">0.336 元/M</span></td></tr>
+            <tr><td class="num"><b>12</b></td><td>Qwen3.7-Plus · API（阿里云）</td><td class="num"><b>≈2.6 亿</b></td><td><span class="badge b-off 官方价">0.392 元/M</span></td></tr>
+            <tr><td class="num"><b>13</b></td><td>MiniMax M3 / GPT-5.6 Luna（API）</td><td class="num"><b>≈2.5 亿</b></td><td><span class="badge b-off 官方价">约 0.40 元/M</span></td></tr>
+            <tr><td class="num"><b>14</b></td><td>火山方舟 Agent Plan（40元档）</td><td class="num"><b>≈2.0 亿</b></td><td><span class="badge b-accent 实测">《财经》实测 50.2 元/亿</span></td></tr>
+            <tr><td class="num"><b>15</b></td><td>DeepSeek V4-Pro · API 空闲</td><td class="num"><b>≈2.0 亿</b></td><td><span class="badge b-off 官方价">0.504 元/M</span></td></tr>
+            <tr><td class="num"><b>16</b></td><td>阿里 Token Plan Standard + qwen3.8-max</td><td class="num"><b>≈1.5 亿</b></td><td><span class="badge b-gold 估算">旗舰模型</span></td></tr>
+            <tr><td class="num"><b>17</b></td><td>腾讯混元（28元起）</td><td class="num"><b>≈1.3 亿</b></td><td><span class="badge b-off 官方价">28元≈3,500 万token</span></td></tr>
+            <tr><td class="num"><b>18</b></td><td>Doubao-Pro · API（火山）</td><td class="num"><b>≈1.2 亿</b></td><td><span class="badge b-off 官方价">0.824 元/M</span></td></tr>
+            <tr><td class="num"><b>19</b></td><td>Kimi Allegro（559元/月）</td><td class="num"><b>≈1.1 亿</b></td><td><span class="badge b-accent 实测">《财经》实测 95.4 元/亿</span></td></tr>
+            <tr><td class="num"><b>20</b></td><td>DeepSeek V4-Pro · API 高峰</td><td class="num"><b>≈1.0 亿</b></td><td><span class="badge b-off 官方价">1.008 元/M</span></td></tr>
+            <tr><td class="num"><b>21</b></td><td>Qwen3.7-Max · API（限时5折）</td><td class="num"><b>≈1.0 亿</b></td><td><span class="badge b-off 官方价">1.06 元/M</span></td></tr>
+            <tr><td class="num"><b>22</b></td><td>阿里 Token Plan 用量包 + qwen3.8-max</td><td class="num"><b>≈1.0 亿</b></td><td><span class="badge b-gold 估算">旗舰模型</span></td></tr>
+            <tr><td class="num"><b>23</b></td><td>GLM-5.2 · API（智谱）</td><td class="num"><b>≈0.7 亿</b></td><td><span class="badge b-off 官方价">1.49 元/M</span></td></tr>
+            <tr><td class="num"><b>24</b></td><td>Claude Sonnet 5（API）</td><td class="num"><b>≈0.3 亿</b></td><td><span class="badge b-off 官方价">2.93 元/M</span></td></tr>
+            <tr><td class="num"><b>25</b></td><td>Kimi K3 · API</td><td class="num"><b>≈0.2 亿</b></td><td><span class="badge b-off 官方价">4.32 元/M</span></td></tr>
+            
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <p class="note" style="margin-top:8px">海外订阅（Claude / Cursor / Copilot / Windsurf）为 5h 窗口 / 次数制，官方不提供 token 折算，未纳入本榜（Kimi 会员同理，仅以《财经》实测入榜）。汇率 1 USD≈6.79；DeepSeek 缓存命中价为官方 0.05/0.10 元·百万。阿里 Token Plan 为估算口径，详见 02 节。</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2><span class="no">02</span>📐 每种方案是怎么算的</h2>
+    <div class="card">
+      <b>A. API 按量（所有模型统一公式）</b>
+      <p class="note" style="margin-top:4px">混合单价（元/M）= 0.96 × 缓存命中输入价 + 0.02 × 未命中输入价 + 0.02 × 输出价　→　<b>100 元 token = 100 ÷ 混合单价 × 100 万</b>（单位：token，再 ÷1 亿得"亿"）。缓存价取模型官方折扣（DeepSeek 缓存 0.05/0.10 元，其余约输入价 10%）。</p>
+      <ul class="points">
+        <li>DeepSeek V4-Flash 空闲：0.96×0.05+0.02×1.5+0.02×4.5 = 0.168 元/M → 100÷0.168×100万 ≈ <b>6.0 亿</b></li>
+        <li>Qwen3.6-Flash（阿里云）：0.96×0.12+0.02×1.2+0.02×7.2 = 0.283 元/M → ≈ <b>3.5 亿</b></li>
+        <li>Claude Sonnet 5：0.96×$0.2+0.02×$2+0.02×$10 = $0.432/M ≈ 2.93 元 → ≈ <b>0.34 亿</b></li>
+      </ul>
+
+      <b style="margin-top:14px;display:block">B. Token / Credits 套餐（阿里 Token Plan、Codex）</b>
+      <p class="note" style="margin-top:4px">官方只公开 qwen3.6-plus 示例（输入/缓存/输出 ≈200/20/1,204 Credits 每百万，对应按量价 2/12 元）→ 锚定 <b>≈100 Credits/元</b>，各模型按按量目录价独立折算，缓存=输入 10%。混合口径每百万消耗 26–211 Credits。</p>
+      <ul class="points">
+        <li>阿里 Standard（139元/月=42,857Cr）：100 元≈30,831Cr → ds-flash(闲) 30,831÷26.4×100万 ≈ <b>11.7 亿</b></li>
+        <li>阿里用量包（100元=20,000Cr）：20,000÷26.4×100万 ≈ <b>7.6 亿</b>（不计 7 天窗口限制）</li>
+        <li>Codex（credits，1cr≈$0.04，GPT-5.5 输入125/缓存12.5/输出750 cr/M）：《财经》实测 ≈<b>8 亿</b>（5h 滚动窗口内）</li>
+      </ul>
+
+      <b style="margin-top:14px;display:block">C. 积分制 / 次数制（GLM、方舟、Kimi、混元）</b>
+      <ul class="points">
+        <li>GLM Coding Plan：官方积分制，Lite 1万积分/周；GLM-5.2 系数 输入6.9/缓存1.7/输出24 积分/M，低谷时段 50% → 积分×系数折算；《财经》实测 ≈<b>4 亿</b>（25.1 元/亿）</li>
+        <li>方舟 Agent Plan：AFP 积分制（&gt;128k 上下文 7.5×），额度未公开 → 以《财经》实测 ≈<b>2 亿</b>（50.2 元/亿）</li>
+        <li>Kimi 会员：次数/时段制 → 以《财经》实测 Allegro ≈<b>1.05 亿</b>（95.4 元/亿）</li>
+        <li>腾讯混元：官方 28 元 ≈3,500 万 token → 100 元 ≈<b>1.25 亿</b></li>
+      </ul>
+
+      <b style="margin-top:14px;display:block">D. 无法按 token 折算</b>
+      <p class="note" style="margin-top:4px">Claude Pro/Max、Cursor、GitHub Copilot、Windsurf 为 5h 窗口 / 任务 / 次数制，官方不提供 tokens↔额度换算，未入榜（月费制选型请参考附录订阅表）。阿里 Token Plan 各模型废旧榜单已并入 01 节，详情见附录。</p>
+    </div>
+  </section>
+
+  <details id="appendix" style="margin-top:30px">
+    <summary style="cursor:pointer;font-size:15px;font-weight:700;color:var(--foreground);padding:10px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border)">📁 附录：细节数据（DeepSeek 调价 · API 价目表 · 订阅对比 · 成本计算器）— 点击展开</summary>
+    <div style="margin-top:6px">
+
 
   <section id="ds">
     <h2><span class="no">01</span>DeepSeek 涨价详情（2026-08-17 生效）</h2>
@@ -297,22 +389,6 @@
     </div>
   </section>
 
-  <section id="rank">
-    <h2><span class="no">04</span>归一化成本排行（元 / 每 1 亿 token）</h2>
-    <p class="lead">同一 1 亿 token 智能体任务（缓存命中 ~96%）口径折算。绿色为《财经》实测各平台套餐；蓝色为按官方价折算的 DeepSeek API。数值越低越划算。</p>
-    <div class="card">
-      <div class="bar-row"><div class="bar-label">ChatGPT/Codex $200/月</div><div class="bar-track"><div class="bar-fill" style="width:12.2%;background:var(--viz-series-2)">🥇</div></div><div class="bar-val">≈12.5 元</div></div>
-      <div class="bar-row" id="bar-flash"></div>
-      <div class="bar-row"><div class="bar-label">智谱 GLM Coding Plan</div><div class="bar-track"><div class="bar-fill" style="width:24.6%;background:var(--viz-series-2)">25.1</div></div><div class="bar-val">≈25.1 元</div></div>
-      <div class="bar-row" id="bar-pro"></div>
-      <div class="bar-row"><div class="bar-label">火山引擎 Agent Plan</div><div class="bar-track"><div class="bar-fill" style="width:49.1%;background:var(--viz-series-2)">50.2</div></div><div class="bar-val">≈50.2 元</div></div>
-      <div class="bar-row"><div class="bar-label">Kimi Allegro</div><div class="bar-track"><div class="bar-fill" style="width:93.3%;background:var(--viz-series-3)">95.4</div></div><div class="bar-val">≈95.4 元</div></div>
-      <div class="bar-row"><div class="bar-label">阿里云 Token Plan · 实测*</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元*</div></div>
-      <p class="note" style="margin-top:8px">条形宽度按最大值归一。<b>DeepSeek 两条数据条随 03 节"计价时段"筛选切换忙/闲。</b>DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算（与 05 节计算器一致）；《财经》实测 V4-Flash 账单更低（空闲 13.1 元/亿）因其任务缓存命中略高于 96%，V4-Pro 两口径基本一致（50.1 vs 50.4）。</p>
-      <p class="note" style="margin-top:4px">* 阿里云 Token Plan：不同模型抵扣系数不同（官方不公开精确比率）。101 元/亿 是《财经》旗舰模型（约 80% 缓存）实测值；按 03 节排名，100 元用量包口径下轻量模型仅约 13–24 元/亿（deepseek-v4-flash 闲时 ≈13、qwen3.6-flash ≈14、qwen3.6-plus ≈24），旗舰 qwen3.7/3.8-max ≈105 元/亿 —— 选模型差 8 倍。</p>
-    </div>
-  </section>
-
   <section id="calc">
     <h2><span class="no">05</span>DeepSeek 成本计算器</h2>
     <p class="lead">输入你每月的 token 用量与高峰占比，对比 V4-Flash / V4-Pro 的月成本，直观看到"错峰"能省多少。</p>
@@ -377,6 +453,21 @@
     <p style="margin-top:6px">生成日期：2026-08-19</p>
   </footer>
 
+
+    </div>
+  </details>
+
+    <footer class="foot">
+    <h3 style="font-size:14px;margin-bottom:8px;color:var(--foreground)">主要数据来源</h3>
+    <div class="srcs">
+      <span>DeepSeek 调价：<a href="https://finance.eastmoney.com/a/202608173843080573.html">东方财富/中国证券报</a> · <a href="https://www.sohu.com/a/1063821337_114960">央视财经</a> · <a href="https://www.mycaijing.com/article/detail/578141?source_id=40">《财经》实测</a></span>
+      <span>海外套餐：<a href="https://www.taskade.com/blog/codex-pricing-explained">Taskade（Codex）</a> · <a href="https://www.cloudzero.com/blog/claude-pricing/">CloudZero（Claude/Cursor/Windsurf/Copilot）</a> · <a href="https://mashable.com/article/google-io-2026-gemini-ultra-ai-subscription-tiers">Mashable（Google I/O 2026）</a></span>
+      <span>国产套餐：<a href="https://www.kimi.com/zh-cn/resources/kimi-k3-pricing">Kimi 官方定价页</a> · <a href="https://finance.sina.com.cn/stock/t/2026-07-31/doc-iniksxpi1210399.shtml">新浪财经（GLM Coding Plan）</a> · <a href="https://m.ithome.com/html/948912.htm">IT之家（火山方舟 Agent Plan）</a> · <a href="https://help.aliyun.com/zh/model-studio/token-plan-personal-overview">阿里云官方</a> · <a href="https://help.aliyun.com/zh/model-studio/token-plan-personal-faq">阿里云 FAQ</a> · <a href="https://developer.aliyun.com/ask/704714">阿里官方问答（qwen3.6-plus 示例）</a></span>
+      <span>API 单价：<a href="https://openrouter.ai/api/v1/models">OpenRouter models API（2026-08-19）</a> · <a href="https://help.aliyun.com/zh/model-studio/model-pricing">阿里云百炼官方价目</a> · 各厂商官方价目页</span>
+    </div>
+    <p style="margin-top:16px">汇率参考 1 USD ≈ 6.79 CNY（2026-08-19 央行中间价）。套餐额度与促销变化频繁，购买前请以各厂商官网实时页面为准。本页由 AI 调研生成，仅供选型参考；"估算"口径依据官方公开系数，不代表官方承诺。</p>
+    <p style="margin-top:6px">生成日期：2026-08-19</p>
+  </footer>
 </main>
 
 
@@ -420,11 +511,6 @@
       html2+='<tr><td class="num"><b>'+(medals[k]||'')+' '+ (k+1)+'</b></td><td>'+m.n+'</td><td class="num"><b>≈'+m.yb.toFixed(2)+' 亿</b></td><td class="num"><b>≈'+tk1000.toLocaleString()+' 万</b></td><td class="num">'+m.yi.toLocaleString()+'</td><td class="num">'+m.yo.toLocaleString()+'</td></tr>';
     });
     document.getElementById('tp-tbl2').innerHTML=html2;
-    var flash=document.getElementById('bar-flash'), pro=document.getElementById('bar-pro');
-    if(flash){ var fw=p?32.9:16.4, fv=p?33.6:16.8, fl=p?'DeepSeek V4-Flash · 高峰':'DeepSeek V4-Flash · 空闲';
-      flash.innerHTML='<div class="bar-label">'+fl+'</div><div class="bar-track"><div class="bar-fill" style="width:'+fw+'%;background:var(--viz-series-1)">'+fv+'</div></div><div class="bar-val">≈'+fv+' 元</div>'; }
-    if(pro){ var pw=p?100:49.3, pv=p?102.2:50.4, pl=p?'DeepSeek V4-Pro · 高峰':'DeepSeek V4-Pro · 空闲';
-      pro.innerHTML='<div class="bar-label">'+pl+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pw+'%;background:var(--viz-series-1)">'+pv+'</div></div><div class="bar-val">≈'+pv+' 元</div>'; }
   }
   window.TPset=function(p){ renderTP(p); };
   renderTP(0);
