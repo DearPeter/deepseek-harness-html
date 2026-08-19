@@ -259,7 +259,7 @@
         </table>
       </div>
       <p class="note" style="margin-top:8px">Kimi K3 API 官方价：输入 ¥20/百万（缓存命中 ¥2）、输出 ¥100/百万 —— 输出单价最贵。DeepSeek 无官方月套餐。</p>
-      <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>Credits 与 token 无固定换算比例（官方原话："系统根据实际输入/输出 Token 数 × 模型单价折算为 Credits"），因此"每 1 亿 token 成本"不是一个固定数：便宜模型 + 高缓存命中时约 <b>20–30 元/亿</b>（官方示例 qwen3.6-plus 约 5 万 token 仅耗 3–4 Credits），旗舰模型 + 低缓存 + 思考/工具调用时可达 <b>100 元+/亿</b>。网上流传的"≈101 元/亿"是《财经》特定场景实测值，不能代表普遍成本，实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
+      <p class="note" style="margin-top:6px"><b>阿里云 Token Plan 重新核算：</b>官方明确"<b>不同模型的单位 Token 消耗 Credits 不同</b>，且不公开精确比率表"。官方示例 qwen3.6-plus：输入 ≈200 Credits/百万、缓存命中 ≈20/百万（省 90%）、输出 ≈1,204/百万。按典型智能体 96% 缓存命中折算约 <b>15–18 元/亿</b>（Lite/Standard 档）；完全不命中缓存约 65–73 元/亿；旗舰模型（如 qwen3.7-max）系数更高，《财经》的 ≈101 元/亿 与"旗舰模型 + ~80% 缓存"场景吻合。实际以控制台"用量详情"（抵扣 Credits ÷ 消耗 Token）为准。</p>
     </div>
   </section>
 
@@ -276,7 +276,7 @@
       <div class="bar-row"><div class="bar-label">阿里云 Token Plan · 实测*</div><div class="bar-track"><div class="bar-fill" style="width:98.8%;background:var(--viz-series-3)">101</div></div><div class="bar-val">≈101 元*</div></div>
       <div class="bar-row"><div class="bar-label">DeepSeek V4-Pro · 高峰</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--viz-series-4)">102.2</div></div><div class="bar-val">≈102.2 元</div></div>
       <p class="note" style="margin-top:8px">条形宽度按最大值归一。DeepSeek API 数值为按官方峰谷价 × (96% 缓存命中 + 2% 未命中 + 2% 输出) 折算，与《财经》实测口径一致。</p>
-      <p class="note" style="margin-top:4px">* 阿里云 Token Plan 的 Credits 无固定 token 比例：官方示例 qwen3.6-plus 约 5 万 token 仅耗 3–4 Credits（约 20–30 元/亿）；101 元/亿 是《财经》用旗舰模型、低缓存命中场景的实测值，实际成本视模型与用量结构而定。</p>
+      <p class="note" style="margin-top:4px">* 阿里云 Token Plan：不同模型抵扣系数不同（官方不公开精确比率）。官方示例 qwen3.6-plus：输入/缓存/输出 ≈200/20/1,204 Credits 每百万；高缓存命中场景约 15–18 元/亿；101 元/亿 是《财经》用旗舰模型（约 80% 缓存）的实测值。</p>
     </div>
   </section>
 
