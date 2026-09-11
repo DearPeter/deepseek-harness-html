@@ -1,47 +1,279 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DeepSeek Harness HTML 卡片集</title>
-  <link rel="stylesheet" href="assets/frame.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P哥 · 已部署 HTML 页面总登记表</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2d3646;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#58a6ff; --green:#3fb950;
+    --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f8fa; --panel:#fff; --panel2:#f0f3f7; --border:#d8dee6;
+      --text:#1f2328; --muted:#59636e; --accent:#0969da; --green:#1a7f37;
+      --amber:#9a6700; --red:#cf222e; --purple:#8250df; }
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; padding:32px 20px 80px;}
+  .wrap{max-width:1180px; margin:0 auto;}
+  header{display:flex; flex-wrap:wrap; align-items:baseline; gap:12px; margin-bottom:6px;}
+  h1{font-size:26px; letter-spacing:.5px;}
+  .sub{color:var(--muted); font-size:13px;}
+  code{background:var(--panel2); padding:1px 6px; border-radius:5px; font-size:12px;}
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin:20px 0;}
+  .stat{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .stat b{font-size:26px; display:block;}
+  .stat span{color:var(--muted); font-size:12px;}
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:8px 0 10px;}
+  .toolbar input[type=search]{flex:1; min-width:220px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 12px; font-size:14px; outline:none;}
+  .toolbar input[type=search]:focus{border-color:var(--accent);}
+  button.btn{background:var(--panel2); border:1px solid var(--border); color:var(--text); padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;}
+  button.btn:hover{border-color:var(--accent); color:var(--accent);}
+  button.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .filterrow{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .chips .lab{font-size:12px; color:var(--muted); margin-right:2px;}
+  .chip{background:var(--panel); border:1px solid var(--border); color:var(--muted); padding:5px 11px; border-radius:99px; font-size:12px; cursor:pointer; user-select:none; transition:.15s;}
+  .chip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tablebox{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:900px;}
+  th{position:sticky; top:0; background:var(--panel2); color:var(--muted); font-weight:600; text-align:left; padding:10px 14px; border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer;}
+  td{padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(88,166,255,.06);}
+  tr.dead{opacity:.55;}
+  a.title{color:var(--text); font-weight:600; text-decoration:none;}
+  a.title:hover{color:var(--accent);}
+  .url{color:var(--muted); font-size:11.5px; word-break:break-all;}
+  .desc{color:var(--muted); font-size:12px; margin-top:2px;}
+  .tag{display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; border:1px solid; white-space:nowrap;}
+  .status{display:inline-flex; align-items:center; gap:5px; font-size:12px; white-space:nowrap;}
+  .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+  .dot.live{background:var(--green);} .dot.draft{background:var(--amber);} .dot.dead{background:var(--red);}
+  .copy{background:none; border:none; cursor:pointer; font-size:14px; opacity:.45; padding:2px 4px;}
+  .copy:hover{opacity:1;}
+  .repo{color:var(--muted); font-size:12px; white-space:nowrap;}
+  details.form{background:var(--panel); border:1px solid var(--border); border-radius:12px; margin-top:22px; padding:0 18px;}
+  details.form summary{cursor:pointer; padding:14px 0; font-weight:600; color:var(--accent); font-size:14px; list-style:none;}
+  details.form summary::before{content:"＋ ";}
+  .formgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; padding-bottom:14px;}
+  .formgrid label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
+  .formgrid input,.formgrid select,.formgrid textarea{width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit;}
+  .actions{display:flex; gap:10px; padding-bottom:18px;}
+  pre.out{background:var(--bg); border:1px dashed var(--border); border-radius:8px; padding:12px; font-size:12px; overflow:auto; margin-bottom:18px; display:none; color:var(--green);}
+  .empty{text-align:center; color:var(--muted); padding:40px; display:none;}
+  footer{margin-top:24px; color:var(--muted); font-size:12px; line-height:1.8;}
+</style>
 </head>
 <body>
-  <div class="page">
-    <header class="page-head">
-      <h1>DeepSeek Harness 卡片集</h1>
-      <a href="https://github.com/DearPeter/deepseek-harness-html">GitHub</a>
-    </header>
-    <div class="gallery">
-      <a href="geo-guide.html">
-        <h2>GEO 生成式引擎优化完全指南</h2>
-        <p>什么是 GEO？如何让品牌被 ChatGPT、Perplexity、Kimi、豆包等 AI 引擎引用与推荐？从原理到落地的完整指南。</p>
-      </a>
-      <a href="creative-mode.html">
-        <h2>创造模式 · 好玩的玩法索引</h2>
-        <p>社区 DSH 插件玩法、小金鱼已实现功能、玩法灵感池与交互卡片玩法合集。</p>
-      </a>
-      <a href="cards/sorting.html">
-        <h2>排序算法可视化</h2>
-        <p>冒泡 / 选择 / 插入 / 快速排序,可调规模与速度,实时统计比较与交换次数。</p>
-      </a>
-      <a href="cards/binary-search.html">
-        <h2>二分查找 · 逐步执行</h2>
-        <p>代码逐行高亮演示,lo / hi / mid 变量实时变化,支持单步、回退与自动播放。</p>
-      </a>
-      <a href="cards/reaction.html">
-        <h2>反应速度测试</h2>
-        <p>等变绿立刻点击,测反应时间,记录本次 / 最快 / 次数。</p>
-      </a>
-      <a href="cards/whisky-l-guide.html">
-        <h2>🥃 Whisky L 活动实操攻略</h2>
-        <p>物料领取清单 / 逛展动线 / 装杯话术 / 防坑检查单,一份能带走的现场攻略。</p>
-      </a>
-      <a href="cards/llm-price-2026.html">
-        <h2>💰 LLM Token 价格对比 · 2026-08</h2>
-        <p>DeepSeek 峰谷定价涨价后,各厂商 API 与 Coding/Token 套餐横向对比 + 成本计算器。</p>
-      </a>
-    </div>
+<div class="wrap">
+  <header>
+    <h1>🗂️ 已部署 HTML 页面总登记表</h1>
+    <span class="sub">DearPeter · 全平台 — 链接核实于 <b id="verifiedAt"></b></span>
+  </header>
+  <div class="sub">数据来源：GitHub Pages 实测 + Obsidian《[[HTML页面部署记录]]》合并整理。覆盖 Cloudflare Pages / GitHub Pages / mcode.cn / CloudStudio / CloudBase / Netlify。</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="搜索名称 / 描述 / 项目名 / 平台 …">
+    <button class="btn" id="btnExport">导出 CSV</button>
+    <button class="btn" id="btnJson">导出 JSON</button>
   </div>
+  <div class="filterrow">
+    <div class="chips"><span class="lab">平台</span><span id="chipsPlat"></span></div>
+    <div class="chips"><span class="lab">分类</span><span id="chipsCat"></span></div>
+    <div class="chips"><span class="lab">状态</span><span id="chipsSt"></span></div>
+  </div>
+
+  <div class="tablebox">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="name">页面名称</th>
+        <th data-k="platform">平台</th>
+        <th data-k="category">分类</th>
+        <th data-k="date">部署日期</th>
+        <th data-k="status">状态</th>
+        <th>操作</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty">没有匹配的页面</div>
+  </div>
+
+  <details class="form">
+    <summary>登记新部署（本地暂存，确认后复制 JSON 回写源码）</summary>
+    <div class="formgrid">
+      <div><label>页面名称 *</label><input id="f_name" placeholder="例如：XX 介绍页"></div>
+      <div><label>访问 URL *</label><input id="f_url" placeholder="https://xxx.pages.dev/"></div>
+      <div><label>平台</label><select id="f_plat">
+        <option>Cloudflare Pages</option><option>GitHub Pages</option><option>CloudStudio</option>
+        <option>CloudBase</option><option>mcode.cn</option><option>Netlify</option><option>其他</option>
+      </select></div>
+      <div><label>项目名 / 仓库</label><input id="f_repo" placeholder="项目名或仓库名"></div>
+      <div><label>分类</label><select id="f_cat">
+        <option>网站主页</option><option>介绍页</option><option>文档站</option><option>内容创作</option>
+        <option>交互卡片</option><option>工具应用</option><option>报告分析</option><option>简报</option><option>生活攻略</option><option>技术图解</option>
+      </select></div>
+      <div><label>部署日期</label><input id="f_date" type="date"></div>
+      <div style="grid-column:1/-1"><label>描述</label><textarea id="f_desc" rows="2" placeholder="一句话说明这个页面是干什么的"></textarea></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="f_add">添加到登记表</button>
+      <button class="btn" id="f_gen">生成回写 JSON 片段</button>
+    </div>
+    <pre class="out" id="f_out"></pre>
+  </details>
+
+  <footer>
+    📌 维护方式：新页面部署后先登记进 Obsidian《HTML页面部署记录.md》（长期规则），再用本页表单同步登记并「生成回写 JSON 片段」追加进本文件 <code>const DATA</code> 永久归档。<br>
+    状态：<span class="status"><span class="dot live"></span>在线</span> = 2026-09-11 HTTP 探测 200；<span class="status"><span class="dot dead"></span>已失效</span>；<span class="status"><span class="dot draft"></span>待核实</span> = 新登记未探测。
+  </footer>
+</div>
+
+<script>
+// ============ 登记表数据（永久归档区，往 DATA 追加即可） ============
+const DATA = [
+  // —— Cloudflare Pages（源自 Obsidian《HTML页面部署记录》）——
+  {name:"DeepSeek V4 Flash 最新动态", url:"https://deepseek-v4-flash-news.pages.dev/", platform:"Cloudflare Pages", project:"deepseek-v4-flash-news", category:"报告分析", date:"2026-08-04", desc:"AI 新闻专题页：时间线/定价对比/调用量/来源链接", status:"在线"},
+  {name:"日账单 vs 月账单对账报告", url:"https://cmb-reconcile-2026-06.pages.dev/", platform:"Cloudflare Pages", project:"cmb-reconcile-2026-06", category:"报告分析", date:"2026-07-31", desc:"招行账单对账报告 · 2026-06", status:"在线"},
+  {name:"招行账单分析 · 系统蓝图", url:"https://cmb-bill-blueprint.pages.dev/", platform:"Cloudflare Pages", project:"cmb-bill-blueprint", category:"技术图解", date:"2026-07-31", desc:"招行账单分析系统架构蓝图", status:"在线"},
+  {name:"平安喜乐 · 全集阅读器", url:"https://pingan-full.pages.dev/", platform:"Cloudflare Pages", project:"pingan-full", category:"内容创作", date:"2026-07-30", desc:"原作+外传合并阅读器，主题/字号/目录/进度记忆", status:"在线"},
+  {name:"平安喜乐 · 外传", url:"https://pingan-xile.pages.dev/", platform:"Cloudflare Pages", project:"pingan-xile", category:"内容创作", date:"2026-07-30", desc:"小说续写阅读页，宣纸风格", status:"在线"},
+  {name:"日咖夜酒 · 东兰 酒吧网站", url:"https://daycoffee-nightbar.pages.dev/", platform:"Cloudflare Pages", project:"daycoffee-nightbar", category:"介绍页", date:"2026-07-29", desc:"酒吧介绍页，日咖夜酒主题，含 SVG 地图", status:"在线"},
+  {name:"千问 Qwen 介绍页（CF）", url:"https://qwen-intro.pages.dev/", platform:"Cloudflare Pages", project:"qwen-intro", category:"介绍页", date:"2026-07-28", desc:"单文件深色科技风介绍页（后同步 GitHub Pages）", status:"在线"},
+  {name:"蛙泳完全指南", url:"https://breaststroke-guide.pages.dev/", platform:"Cloudflare Pages", project:"breaststroke-guide", category:"生活攻略", date:"2026-07-28", desc:"从 0 到独立游 50 米教程页", status:"在线"},
+  {name:"韩寒小说解读", url:"https://hanhan-novels.pages.dev/", platform:"Cloudflare Pages", project:"hanhan-novels", category:"内容创作", date:"2026-07-28", desc:"韩寒小说解读 · 2000—2013，含多张配图", status:"在线"},
+  {name:"OpenClaw 介绍页", url:"https://openclaw-intro-cs5.pages.dev/", platform:"Cloudflare Pages", project:"openclaw-intro", category:"介绍页", date:"2026-07-21", desc:"OpenClaw 私人 AI 助手介绍", status:"在线"},
+  {name:"OpenClaw 模型性价比对比", url:"https://openclaw-models.pages.dev/", platform:"Cloudflare Pages", project:"openclaw-models", category:"报告分析", date:"2026-07-21", desc:"模型性价比对比 · 2026-07", status:"在线"},
+  {name:"OSS 文件管理器", url:"https://oss-manager.pages.dev/", platform:"Cloudflare Pages", project:"oss-manager", category:"工具应用", date:"2026-07-21", desc:"OSS 文件管理器工具页", status:"在线"},
+  {name:"中国制造业韧性分析", url:"https://china-mfg-resilience-2026.pages.dev/", platform:"Cloudflare Pages", project:"china-mfg-resilience-2026", category:"报告分析", date:"2026-07-21", desc:"制造业外流分析报告页", status:"在线"},
+  {name:"中国劳动力成本 vs 制造业外流", url:"https://china-mfg-analysis.pages.dev/", platform:"Cloudflare Pages", project:"china-mfg-analysis", category:"报告分析", date:"2026-07-21", desc:"深度分析报告页", status:"在线"},
+  {name:"百炼 Token Plan 模型手册", url:"https://bailian-token-plan-models.pages.dev/", platform:"Cloudflare Pages", project:"bailian-token-plan-models", category:"报告分析", date:"2026-07-21", desc:"模型全景与折扣手册", status:"在线"},
+  {name:"Tailscale × OpenClaw 架构（v2）", url:"https://tailscale-arch-v2.pages.dev/", platform:"Cloudflare Pages", project:"tailscale-arch-v2", category:"技术图解", date:"2026-07-21", desc:"移动配对架构图页面", status:"在线"},
+  {name:"Tailscale × OpenClaw 架构（v2 别名）", url:"https://tailscale-openclaw-architecture-v2.pages.dev/", platform:"Cloudflare Pages", project:"tailscale-openclaw-architecture-v2", category:"技术图解", date:"2026-07-21", desc:"同上内容，另一项目名部署", status:"在线"},
+  {name:"IT Data Team Bi-weekly Sync", url:"https://biweekly-sync-2026-07.pages.dev/", platform:"Cloudflare Pages", project:"biweekly-sync-2026-07", category:"简报", date:"2026-07-14", desc:"双周会同步页 · 2026-07-10", status:"在线"},
+  {name:"台风巴威实时路径", url:"https://typhoon-bavi-2609.pages.dev/", platform:"Cloudflare Pages", project:"typhoon-bavi-2609", category:"工具应用", date:"2026-07-14", desc:"台风 BAVI 实时路径页", status:"在线"},
+  {name:"上海乐高乐园一日游攻略", url:"https://kids-weekend-lego.pages.dev/", platform:"Cloudflare Pages", project:"kids-weekend-lego", category:"生活攻略", date:"2026-07-14", desc:"三口之家版攻略页", status:"在线"},
+  {name:"周末上海亲子游计划 v4", url:"https://kids-weekend-v4.pages.dev/", platform:"Cloudflare Pages", project:"kids-weekend-v4", category:"生活攻略", date:"2026-07-14", desc:"v4 模板 · 2026.7.11–12", status:"在线"},
+  // —— mcode.cn ——
+  {name:"平安喜乐（第一部+后传）", url:"https://4tv3nw5pxl3l4.space.mcode.cn", platform:"mcode.cn", project:"-", category:"内容创作", date:"2026-07", desc:"用户原创小说", status:"在线"},
+  {name:"平安喜乐（正文阅读）", url:"https://0t8w05dgjo0bt.space.mcode.cn", platform:"mcode.cn", project:"-", category:"内容创作", date:"2026-07", desc:"同一小说另一部署（含韩寒序言引用）", status:"在线"},
+  // —— CloudStudio ——
+  {name:"每日简报 · 2026-08-04", url:"https://af2d658f6a85449584f3d263bb0027c3.bj8.agentos-app.net", platform:"CloudStudio", project:"-", category:"简报", date:"2026-08-04", desc:"Jira DPM/DJ2 Open Tasks + Groceries + Calendar + AI热点 + 天气", status:"在线"},
+  {name:"每日简报 · 2026-08-05", url:"https://35b01eaf91cc436a9fa2225b429ba758.gz3.agentos-app.net", platform:"CloudStudio", project:"-", category:"简报", date:"2026-08-05", desc:"Jira工单 + Groceries + Calendar + 消费 + AI热点 + 天气", status:"在线"},
+  {name:"AI Agent 概念辨析", url:"https://5faf7bce0b1c487ca020e2aa915eb7ac.gz4.agentos-app.net", platform:"CloudStudio", project:"-", category:"技术图解", date:"2026-08-05", desc:"OpenClaw/WorkBuddy/Qoder 定位辨析 + 五层结构 + 判定清单", status:"在线"},
+  {name:"力量任务看板", url:"https://49faab47971a4f96b8f9e56171a2d027.gz1.agentos-app.net", platform:"CloudStudio", project:"-", category:"工具应用", date:"2026-08-05", desc:"移动端暗色看板，3列任务流，localStorage 持久化", status:"在线"},
+  {name:"ACP 与 OpenClaw 集成架构讲解", url:"https://014d5da2e3794add8452a01f77dfa903.app.workbuddy.link", platform:"CloudStudio", project:"-", category:"技术图解", date:"2026-08-14", desc:"暗色单文件、手写内联 SVG 架构图，可离线", status:"在线"},
+  // —— CloudBase ——
+  {name:"长安乱有声书 · 完整版", url:"https://changanluan-audiobook-workbuddy-html-d2g4eqb5m1a1e7819.webapps.tcloudbase.com", platform:"CloudBase", project:"changanluan-audiobook", category:"内容创作", date:"2026-08-06", desc:"v3 极简杂志风：10章41节连播、目录/进度记忆/倍速/快捷键", status:"在线"},
+  {name:"个人智能助理 · 小程序预览", url:"https://workbuddy-html-d2g4eqb5m1a1e7819-1309688996.tcloudbaseapp.com/mini-assistant-preview/index.html", platform:"CloudBase", project:"mini-assistant-preview", category:"工具应用", date:"2026-08-06", desc:"微信小程序「今日简报」页视觉预览（375px 模拟）", status:"在线"},
+  // —— GitHub Pages ——
+  {name:"PiDan 个人网站", url:"https://dearpeter.github.io/personal-website/", platform:"GitHub Pages", project:"personal-website", category:"网站主页", date:"2025-03-27", desc:"P哥的个人网站（注意国内访问 GitHub Pages 不稳定）", status:"在线"},
+  {name:"OpenClaw 文档中文站", url:"https://dearpeter.github.io/openclaw-docs-cn/", platform:"GitHub Pages", project:"openclaw-docs-cn", category:"文档站", date:"2026-02-16", desc:"OpenClaw 官方文档完整中文翻译", status:"在线"},
+  {name:"Qwen 模型介绍页（GH）", url:"https://dearpeter.github.io/qwen-intro/", platform:"GitHub Pages", project:"qwen-intro", category:"介绍页", date:"2026-07-28", desc:"通义千问模型介绍（CF 版的 GitHub 同步）", status:"在线"},
+  {name:"《山海错》小说站", url:"https://dearpeter.github.io/shanhai-cuo/", platform:"GitHub Pages", project:"shanhai-cuo", category:"内容创作", date:"2026-08-14", desc:"仿韩寒《长安乱》风格中篇小说", status:"在线"},
+  {name:"DSH 交互卡片归档站", url:"https://dearpeter.github.io/deepseek-harness-html/", platform:"GitHub Pages", project:"deepseek-harness-html", category:"文档站", date:"2026-08-23", desc:"DSH 生成的 HTML/卡片默认部署仓库（含下方 7 张卡片）", status:"在线"},
+  {name:"LiteLLM 网关介绍页", url:"https://dearpeter.github.io/litellm-intro/", platform:"GitHub Pages", project:"litellm-intro", category:"介绍页", date:"2026-08-25", desc:"LiteLLM 开源 AI Gateway：统一调用 100+ 大模型，零依赖单文件", status:"在线"},
+  {name:"liudan 有声书站", url:"https://dearpeter.github.io/liudan-audiobook/", platform:"GitHub Pages", project:"liudan-audiobook", category:"内容创作", date:"2026-09-10", desc:"刘丹有声书页面", status:"在线"},
+  {name:"折半查找演示", url:"https://dearpeter.github.io/deepseek-harness-html/cards/binary-search.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"二分查找算法交互演示", status:"在线"},
+  {name:"排序算法演示", url:"https://dearpeter.github.io/deepseek-harness-html/cards/sorting.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"排序算法可视化", status:"在线"},
+  {name:"反应速度测试", url:"https://dearpeter.github.io/deepseek-harness-html/cards/reaction.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"反应速度小游戏", status:"在线"},
+  {name:"2026 大模型价格对比", url:"https://dearpeter.github.io/deepseek-harness-html/cards/llm-price-2026.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"主流大模型 API 价格图表", status:"在线"},
+  {name:"威士忌 L 指南", url:"https://dearpeter.github.io/deepseek-harness-html/cards/whisky-l-guide.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"威士忌 L 款指南卡片", status:"在线"},
+  {name:"Creative Mode", url:"https://dearpeter.github.io/deepseek-harness-html/creative-mode.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"创意模式功能页（仓库根目录）", status:"在线"},
+  {name:"GEO 指南", url:"https://dearpeter.github.io/deepseek-harness-html/geo-guide.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"交互卡片", date:"2026-08-23", desc:"GEO 生成式引擎优化指南（仓库根目录）", status:"在线"},
+  // —— 已失效 ——
+  {name:"（旧 session 临时部署）", url:"https://sprightly-faun-75ba74.netlify.app", platform:"Netlify", project:"netlify-drop", category:"其他", date:"2026-07-10", desc:"Netlify Drop 临时部署，现已无法访问（404）", status:"已失效"},
+];
+const VERIFIED_AT = "2026-09-11 22:35";
+const LS_KEY = "dsh-…eview";
+
+const CATS = ["网站主页","介绍页","文档站","内容创作","交互卡片","工具应用","报告分析","简报","生活攻略","技术图解","其他"];
+const PLATS = ["Cloudflare Pages","GitHub Pages","CloudStudio","CloudBase","mcode.cn","Netlify"];
+const PLAT_COLOR = {"Cloudflare Pages":"#f68121","GitHub Pages":"#8b98a9","CloudStudio":"#58a6ff","CloudBase":"#0a7ec2","mcode.cn":"#bc8cff","Netlify":"#0ad7bd"};
+const $ = s => document.querySelector(s);
+$("#verifiedAt").textContent = VERIFIED_AT;
+
+let drafts = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+let fPlat = "全部", fCat = "全部", fSt = "全部", keyword = "", sortKey = "date", sortAsc = false;
+
+function allRows(){ return [...DATA, ...drafts.map(d => ({...d, _draft:true}))]; }
+function esc(s){ return String(s??"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+function stOf(r){ return r._draft ? "待核实" : r.status; }
+
+function chips(el, items, cur, set){
+  el.innerHTML = items.map(c => `<span class="chip ${c===cur?"on":""}" onclick="${set}('${encodeURIComponent(c)}');render()">${c}</span>`).join("");
+}
+function pick(v){ return decodeURIComponent(v); }
+
+function render(){
+  const rows = allRows()
+    .filter(r => fPlat==="全部" || r.platform===fPlat)
+    .filter(r => fCat==="全部" || r.category===fCat)
+    .filter(r => fSt==="全部" || stOf(r)===fSt)
+    .filter(r => !keyword || (r.name+r.desc+r.project+r.platform+r.category+r.url).toLowerCase().includes(keyword))
+    .sort((a,b) => { const x=a[sortKey]||"", y=b[sortKey]||""; return (x<y?-1:x>y?1:0)*(sortAsc?1:-1); });
+
+  $("#rows").innerHTML = rows.map((r,i) => `
+    <tr class="${stOf(r)==="已失效"?"dead":""}">
+      <td><a class="title" href="${r.url}" target="_blank">${r._draft?"🆕 ":""}${esc(r.name)}</a>
+          <div class="url">${esc(r.url)}</div>
+          ${r.desc?`<div class="desc">${esc(r.desc)}</div>`:""}</td>
+      <td><span class="tag" style="color:${PLAT_COLOR[r.platform]||"#8b98a9"};border-color:${PLAT_COLOR[r.platform]||"#8b98a9"}">${esc(r.platform)}</span>
+          <div class="repo">${esc(r.project||"-")}</div></td>
+      <td class="repo">${esc(r.category)}</td>
+      <td class="repo">${esc(r.date||"-")}</td>
+      <td><span class="status"><span class="dot ${stOf(r)==="在线"?"live":stOf(r)==="已失效"?"dead":"draft"}"></span>${esc(stOf(r))}</span></td>
+      <td><button class="copy" title="复制链接" onclick="navigator.clipboard.writeText('${r.url}')">📋</button>
+          ${r._draft?`<button class="copy" title="移除" onclick="delDraft(${encodeURIComponent(JSON.stringify(r.name))})">🗑️</button>`:""}</td>
+    </tr>`).join("");
+  $("#empty").style.display = rows.length ? "none" : "block";
+  $("#rows").innerHTML = $("#rows").innerHTML.replace(/onclick="delDraft\(([^)]+)\)"/g, (m,a)=>`onclick='delDraft(${a})'`);
+
+  const live = allRows().filter(r=>stOf(r)==="在线").length;
+  const dead = allRows().filter(r=>stOf(r)==="已失效").length;
+  const draft = allRows().filter(r=>stOf(r)==="待核实").length;
+  $("#stats").innerHTML = `
+    <div class="stat"><b>${live+dead+draft}</b><span>已登记页面</span></div>
+    <div class="stat"><b style="color:var(--green)">${live}</b><span>在线（已核实）</span></div>
+    <div class="stat"><b style="color:var(--red)">${dead}</b><span>已失效</span></div>
+    <div class="stat"><b style="color:var(--amber)">${draft}</b><span>本地待归档</span></div>
+    <div class="stat"><b>${PLATS.length}</b><span>部署平台</span></div>`;
+
+  chips($("#chipsPlat"), ["全部",...PLATS], fPlat, "fPlat=pick");
+  chips($("#chipsCat"),  ["全部",...CATS],  fCat,  "fCat=pick");
+  chips($("#chipsSt"),   ["全部","在线","已失效","待核实"], fSt, "fSt=pick");
+}
+function delDraft(name){ drafts = drafts.filter(d => d.name !== name); save(); render(); }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(drafts)); }
+
+$("#q").addEventListener("input", e => { keyword = e.target.value.trim().toLowerCase(); render(); });
+document.querySelectorAll("th[data-k]").forEach(th => th.addEventListener("click", () => {
+  const k = th.dataset.k; if (sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=true; } render();
+}));
+
+$("#f_add").addEventListener("click", () => {
+  const name=$("#f_name").value.trim(), url=$("#f_url").value.trim();
+  if(!name||!url) return alert("页面名称和 URL 必填");
+  drafts.push({name, url, platform:$("#f_plat").value, project:$("#f_repo").value.trim(),
+    category:$("#f_cat").value, date:$("#f_date").value||new Date().toISOString().slice(0,10),
+    desc:$("#f_desc").value.trim(), status:"待核实"});
+  save(); ["f_name","f_url","f_repo","f_desc"].forEach(id=>$("#"+id).value=""); render();
+});
+$("#f_gen").addEventListener("click", () => {
+  const out = $("#f_out");
+  out.textContent = drafts.map(d => "  " + JSON.stringify({name:d.name,url:d.url,platform:d.platform,project:d.project,category:d.category,date:d.date,desc:d.desc,status:"在线"})).join(",\n");
+  out.style.display = drafts.length ? "block" : "none";
+});
+$("#btnExport").addEventListener("click", () => download("deployed-pages.csv",
+  "\ufeff名称,URL,平台,项目/仓库,分类,部署日期,状态,描述\n" + allRows().map(r=>[r.name,r.url,r.platform,r.project,r.category,r.date,stOf(r),r.desc].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n")));
+$("#btnJson").addEventListener("click", () => download("deployed-pages.json", JSON.stringify(allRows(),null,2)));
+function download(name, text){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"})); a.download=name; a.click(); }
+
+render();
+</script>
 </body>
 </html>
