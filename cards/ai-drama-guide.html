@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 AI 拍一部网剧 · 制作通告手册</title>
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+:root{
+  --paper:#f4f4f2;
+  --paper-deep:#ececea;
+  --ink:#17181a;
+  --ink-soft:#55575b;
+  --line:#c9cac6;
+  --rec:#c9252d;
+  --white:#fdfdfc;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+body{font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px 72px}
+
+/* ── 打板器页首（全页唯一的大胆处）── */
+.slate{margin:34px 0 0;background:var(--ink);color:var(--white);position:relative}
+.slate .stripe{height:26px;background:repeating-linear-gradient(115deg,var(--ink) 0 16px,var(--white) 16px 32px)}
+.slate-body{padding:22px 26px 24px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+.slate h1{font-size:30px;font-weight:900;letter-spacing:.04em;margin:0;line-height:1.3}
+.slate .sub{font-size:15px;color:#cfd0cf;margin:0}
+.slate .rec{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:#e8e8e6}
+.slate .rec i{width:9px;height:9px;border-radius:50%;background:var(--rec);display:inline-block}
+.slate .slate-meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:#9a9b99;border-top:1px solid #3a3b3d;margin:0 26px;padding:10px 0 16px;display:flex;flex-wrap:wrap;gap:4px 22px}
+
+/* ── 工具栏 ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.toolbar button{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:7px 13px;background:var(--white);color:var(--ink);border:1.5px solid var(--ink);border-radius:0;cursor:pointer}
+.toolbar button:hover{background:var(--ink);color:var(--white)}
+.toolbar button:focus-visible{outline:2px solid var(--rec);outline-offset:2px}
+.toolbar button.on{background:var(--rec);border-color:var(--rec);color:var(--white)}
+.toolbar .state{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);align-self:center;margin-left:4px}
+
+/* ── 正文章节 ── */
+#doc{margin-top:26px}
+.sec-title{font-size:21px;font-weight:900;letter-spacing:.03em;margin:44px 0 6px;display:flex;align-items:baseline;gap:12px}
+.sec-title::before{content:attr(data-tag);font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.12em;color:var(--white);background:var(--ink);padding:3px 8px;align-self:center}
+.sec-note{color:var(--ink-soft);margin:0 0 18px;font-size:14.5px}
+
+.readme{border:2px solid var(--ink);background:var(--white);padding:22px 26px;margin-top:6px}
+.readme p{margin:0 0 10px}
+.readme p:last-child{margin:0}
+.readme strong{border-bottom:3px solid var(--rec)}
+
+/* 剧组参数条 */
+.callmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));border:2px solid var(--ink);margin:20px 0 0;background:var(--white)}
+.callmeta div{padding:13px 18px;border-right:1px solid var(--line)}
+.callmeta div:last-child{border-right:none}
+.callmeta dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--ink-soft);margin:0}
+.callmeta dd{margin:3px 0 0;font-size:14.5px;font-weight:700}
+
+/* 场戏卡 */
+.scene{border:2px solid var(--ink);background:var(--white);margin:20px 0;page-break-inside:avoid}
+.scene-head{display:flex;align-items:stretch;border-bottom:2px solid var(--ink)}
+.scene-no{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--white);background:var(--rec);padding:10px 14px;display:flex;align-items:center}
+.scene-head h3{font-size:17.5px;font-weight:900;margin:0;padding:8px 16px;display:flex;align-items:center;letter-spacing:.02em}
+.scene-head .en{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-soft);padding:8px 16px;display:flex;align-items:center;border-left:1px solid var(--line)}
+.scene dl{margin:0;padding:6px 22px 16px}
+.scene dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--rec);margin-top:13px;font-weight:700}
+.scene dd{margin:2px 0 0;font-size:14.8px}
+.scene ul{margin:2px 0 0;padding-left:20px}
+.scene li{margin:3px 0}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tools span{font-family:var(--mono);font-size:12px;border:1px solid var(--ink);padding:2px 9px;background:var(--paper)}
+.fail{background:var(--paper-deep);border-left:4px solid var(--rec);padding:8px 14px;margin-top:3px;font-size:14.3px}
+.fail b{font-weight:900}
+code.tmpl{display:block;font-family:var(--mono);font-size:12.5px;line-height:1.7;background:var(--ink);color:#e8e8e6;padding:10px 14px;margin:6px 0 0;white-space:pre-wrap;word-break:break-all}
+code.tmpl em{color:#e8b64c;font-style:normal}
+
+/* 特辑 */
+.feature{border:2px solid var(--ink);background:var(--white);padding:22px 26px;margin:20px 0;page-break-inside:avoid}
+.feature h4{font-size:16.5px;font-weight:900;margin:0 0 4px}
+.feature .how{margin:14px 0 0}
+.feature .how dt{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink);font-weight:700;border-bottom:1.5px solid var(--rec);display:inline-block;padding-bottom:2px;margin-top:12px}
+.feature .how dd{margin:4px 0 0;font-size:14.6px}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;background:var(--white);border:2px solid var(--ink);font-size:14px;margin-top:14px}
+th{background:var(--ink);color:var(--white);font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;font-weight:700;padding:9px 12px;text-align:left}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--mono);white-space:nowrap}
+tfoot td{background:var(--paper-deep);font-weight:700}
+
+/* 检查清单 */
+ol.check{list-style:none;margin:14px 0 0;padding:0;counter-reset:ck}
+ol.check li{counter-increment:ck;border:1.5px solid var(--line);background:var(--white);padding:10px 16px 10px 52px;margin-bottom:8px;position:relative;font-size:14.6px}
+ol.check li::before{content:counter(ck,decimal-leading-zero);position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--rec)}
+ol.check li b{font-weight:900}
+
+footer.end{margin-top:56px;border-top:2px solid var(--ink);padding-top:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px}
+
+/* 编辑态 */
+#doc [contenteditable]{outline:1.5px dashed var(--rec);outline-offset:3px}
+#doc:focus-within{outline:none}
+
+@media (max-width:640px){
+  .slate h1{font-size:23px}
+  .scene-head .en{display:none}
+  .wrap{padding:0 12px 56px}
+}
+@media print{
+  .toolbar,.no-print{display:none!important}
+  .slate{display:none}
+  body{background:#fff}
+  .scene,.feature{border-color:#000}
+}
+@media (prefers-reduced-motion:no-preference){
+  .slate .rec i{animation:blink 1.6s step-end infinite}
+  @keyframes blink{50%{opacity:.15}}
+}
+</style>
+</head>
+<body>
+<header class="slate">
+  <div class="stripe" aria-hidden="true"></div>
+  <div class="slate-body">
+    <h1>用 AI 拍一部网剧</h1>
+    <span class="rec"><i></i>REC</span>
+  </div>
+  <p class="slate-body sub" style="padding-top:0">从一句话点子到成片上线：一个人、一套流程、七个机位。</p>
+  <div class="slate-meta">
+    <span>PROD. NO. DR-2026-009</span><span>EDITION 2026-09-12</span><span>DIRECTED BY YOU + AI CREW</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="toolbar no-print" id="toolbar">
+    <button id="btn-edit" type="button">✎ 开启编辑</button>
+    <button id="btn-reset" type="button">恢复原稿</button>
+    <button id="btn-save" type="button">下载当前版</button>
+    <button id="btn-print" type="button">打印 PDF</button>
+    <span class="state" id="edit-state"></span>
+  </div>
+
+  <article id="doc">
+    <h2 class="sec-title" data-tag="SC.00">读我 · 这本手册管什么</h2>
+    <div class="readme">
+      <p>这里说的"网剧"，是当下 AI 真正能做好的形态：<strong>1–3 分钟一集的竖屏微短剧</strong>——悬疑钩子、爽点密集、场景少、角色少。好莱坞级长镜头暂不现实，但"日更两集"完全可能。</p>
+      <p>全流程七场戏：剧本 → 分镜脚本 → 角色场景定妆 → 首帧生视频 → 配音口型 → 剪辑包装 → 发行迭代。每场戏给足：目标、工具、关键动作、交付物、常见翻车。照着走，第一支样片 3–5 天出。</p>
+    </div>
+    <dl class="callmeta">
+      <div><dt>FORM 形态</dt><dd>竖屏 9:16 · 单集 1–3 min</dd></div>
+      <div><dt>CREW 编制</dt><dd>1 人导演 + AI 剧组</dd></div>
+      <div><dt>PIPELINE 流程</dt><dd>七场戏 · 场场有交付</dd></div>
+      <div><dt>PLATFORM 发行</dt><dd>抖音 / 快手 / B站 / 视频号</dd></div>
+    </dl>
+
+    <h2 class="sec-title" data-tag="ROLL 1">七场戏 · 生产流水线</h2>
+    <p class="sec-note">顺序不可乱：每场戏的交付物，是下一场戏的输入。跳过定妆直接生视频，等于没有演员就开机。</p>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.01</span><h3>剧本：先钩子，后情节</h3><span class="en">SCRIPT ROOM</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>写出"前 3 秒锁人、每 15 秒一个小钩子、每集结尾吊下一集"的短剧剧本。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>DeepSeek</span><span>Claude</span><span>Kimi</span><span>豆包</span></dd>
+        <dt>关键动作</dt>
+        <dd>不要让 AI 一步写成品——分三步喂：
+          <ul>
+            <li><b>点子变设定：</b>一句话灵感 → AI 扩成世界观 + 人物小传（每人：欲望、秘密、口头禅）；</li>
+            <li><b>设定变大纲：</b>先要"每集一句话钩子"的 20 集大纲，砍掉没有钩子的集；</li>
+            <li><b>大纲变台词：</b>逐场生成，要求"只写台词和动作提示，不写心理描写"（画面拍不出内心）。</li>
+          </ul>
+        </dd>
+        <dt>提示词模板</dt>
+        <dd><code class="tmpl">你是短剧编剧。为《<em>剧名</em>》写第<em>N</em>集，1分钟。
+要求：开场3秒内出现冲突画面；每15秒一个反转或钩子；
+结尾留悬念。输出格式：场号｜场景｜人物｜台词｜动作提示。</code></dd>
+        <dt>交付物</dt>
+        <dd>分集大纲（钩子表）+ 逐集台词本。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>一次生成整部剧本：</b>AI 越写越平，第 3 集起全员失忆。永远逐场生成、逐场改。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.02</span><h3>分镜脚本：把文字翻译成机位</h3><span class="en">STORYBOARD</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>每集拆成 20–40 个 5 秒左右的可拍镜头——这是 AI 视频生成的原子单位。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>聊天模型</span><span>表格 / Notion</span></dd>
+        <dt>关键动作</dt>
+        <dd>让 AI 把台词本转成标准分镜表，每行一个镜头，字段固定：
+          <ul>
+            <li>镜号｜景别（远全中近特）｜画面描述（谁在哪做什么）｜时长｜台词/音效｜运镜（固定/轻推/横移）；</li>
+            <li>对话戏用"正反打"拆镜：A 说完切 B，避免单镜头 30 秒；</li>
+            <li>一个镜头只写<b>一个动作</b>——AI 生成超过一个动作就开始崩。</li>
+          </ul>
+        </dd>
+        <dt>交付物</dt>
+        <dd>逐镜头清单（shot list），它就是后面的生成任务队列。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>镜头超 10 秒或含多人复杂调度：</b>当前图生视频 5 秒最稳，长镜头后期缝。别跟物理过不去。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.03</span><h3>定妆：先有演员，再谈开机</h3><span class="en">CASTING &amp; ART</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>为主角画出<b>角色卡</b>（三视图 + 表情包），为常去场景画出<b>场景卡</b>，全剧复用。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>即梦 Seedream</span><span>Midjourney</span><span>万相 Wan</span><span>qwen-image</span></dd>
+        <dt>关键动作</dt>
+        <dd>
+          <ul>
+            <li>角色描述<b>模板化锁死</b>：发型、脸型、瞳色、服装、画风词，一字不改地复用到每个镜头；</li>
+            <li>用参考图能力续命：Midjourney <code>--cref</code>、即梦"角色一致性"、或直接图生图改表情；</li>
+            <li>画风第一集就定死（如"电影感实拍风 + 冷色调"），中途换画风 = 观众弃剧。</li>
+          </ul>
+        </dd>
+        <dt>提示词模板</dt>
+        <dd><code class="tmpl">角色卡：25岁女性，黑色齐肩直发，右泪痣，军绿色冲锋衣，
+电影质感，冷灰调色，三视图（正/侧/背），白底，全身。</code></dd>
+        <dt>交付物</dt>
+        <dd>资产库：每角色一套定妆图 + 每个场景一张空镜图 + 锁定的画风描述。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>跳过定妆直接生成剧情画面：</b>同一个人每镜换脸，观众 10 秒出戏。定妆时间永远值得。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.04</span><h3>生视频：首帧定生死</h3><span class="en">PRODUCTION</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>按 shot list 逐镜产出 5 秒动态片段，构图与角色从首帧图就锁住。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>可灵 Kling</span><span>即梦</span><span>Vidu</span><span>海螺 Hailuo</span><span>Wan</span></dd>
+        <dt>关键动作</dt>
+        <dd>
+          <ul>
+            <li><b>图生视频为主，文生视频为辅：</b>先出首帧静帧（构图/角色/光线全对），再让它动；</li>
+            <li>运镜提示词克制："缓慢推近""固定机位"优先；大运动 = 崩坏率飙升；</li>
+            <li>每镜头抽卡 2–3 次取最好，废卡当天重抽，别攒到最后；</li>
+            <li>动作幅度写小："她转头看向窗外" 优于 "她冲出去跳上车"。</li>
+          </ul>
+        </dd>
+        <dt>交付物</dt>
+        <dd>按镜号归档的视频片段库（建议文件名 <code>SC02-EP01-SH13-v2.mp4</code>）。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>手部、文字、镜面：</b>手指、招牌、玻璃反射仍是重灾区——用景别躲（特写改中景）、用剪辑藏、用静帧转场替。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.05</span><h3>配音口型：让角色开口</h3><span class="en">SOUND STAGE</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>角色各有其声、情绪到位、口型对上，声音设计铺满。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>MiniMax 语音</span><span>CosyVoice</span><span>剪映朗读</span><span>即梦对口型</span><span>Suno</span></dd>
+        <dt>关键动作</dt>
+        <dd>
+          <ul>
+            <li>先配音、后修视频：以音频时长决定镜头剪多长，节奏才像"戏"不像"PPT"；</li>
+            <li>TTS 提示情绪与停顿（"压低声音，句尾发抖"），逐句生成便于对轨；</li>
+            <li>近景台词镜头走一次口型驱动；中远景直接盖过即可，别浪费算力；</li>
+            <li>音效层别省：环境底噪、脚步、衣料摩擦——AI 视频最大的"假"是静音世界。</li>
+          </ul>
+        </dd>
+        <dt>交付物</dt>
+        <dd>逐句音频轨 + BGM/音效包（商用授权留好凭证）。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>AI 朗诵腔：</b>全员一个声线匀速念稿。给每个角色固定声线 + 在台词里加口语碎词（"啧""不是——"）。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.06</span><h3>剪辑包装：缝合痕迹交给节奏</h3><span class="en">POST</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>把碎片段接成有呼吸的一集，统一色调，藏住 AI 的漂移。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>剪映 / CapCut</span><span>达芬奇</span></dd>
+        <dt>关键动作</dt>
+        <dd>
+          <ul>
+            <li>全片套同一 LUT/滤镜：AI 片段色温逐镜漂移，统一调色是最便宜的"质感税"减免；</li>
+            <li>节奏公式：钩子冷开场（3s）→ 片头（≤2s）→ 正片 → 结尾悬念卡；</li>
+            <li>崩帧用 0.2s 静帧 + 音效盖过，观众的记忆只跟着节奏走；</li>
+            <li>字幕上大字安全区（竖屏底部 1/5 留给平台 UI），关键台词描边。</li>
+          </ul>
+        </dd>
+        <dt>交付物</dt>
+        <dd>成片 + 封面图 + 前 3 秒备用切片（投流素材）。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>舍不得删：</b>微短剧每一秒都要付房租。剪完砍 15%，通常没人发现少了什么。</dd>
+      </dl>
+    </section>
+
+    <section class="scene">
+      <div class="scene-head"><span class="scene-no">SC.07</span><h3>发行迭代：数据是下一集的编剧</h3><span class="en">RELEASE</span></div>
+      <dl>
+        <dt>目标</dt>
+        <dd>上线、看数、改后面剧本——短剧是连载产品，不是一次性作品。</dd>
+        <dt>工具</dt>
+        <dd class="tools"><span>抖音</span><span>快手</span><span>视频号</span><span>B站</span></dd>
+        <dt>关键动作</dt>
+        <dd>
+          <ul>
+            <li>标题/封面 A/B：同集发两版，一小时后留完播高的；</li>
+            <li>盯两条曲线：<b>3 秒跳出率</b>（开场钩子问题）与 <b>集尾留存</b>（悬念问题）；</li>
+            <li>回 SC.01 改大纲：把观众快进掉的情节类型，从后续剧本里永久删除；</li>
+            <li>固定更新时间形成追剧惯性，前 10 集攒够再放。</li>
+          </ul>
+        </dd>
+        <dt>交付物</dt>
+        <dd>上线排期表 + 每集数据复盘一行。</dd>
+        <dt>常见翻车</dt>
+        <dd class="fail"><b>裸发不投流：</b>冷启动期用小额 DOU+/粉条测素材，跑得动再加码，跑不动回炉 SC.01。</dd>
+      </dl>
+    </section>
+
+    <h2 class="sec-title" data-tag="SPECIAL">两个特辑 · 决定成败的细节</h2>
+
+    <section class="feature">
+      <h4>特辑 A ｜ 角色一致性：AI 剧组的头号难题</h4>
+      <p style="margin:4px 0 0;color:var(--ink-soft);font-size:14.5px">观众可以容忍塑料的手指，不能容忍女主第 8 集换了张脸。三根柱子，按成本从低到高：</p>
+      <dl class="how">
+        <dt>01 文字锁</dt>
+        <dd>角色描述模板一字不改（SC.03 的角色卡文案），每次生成都整段贴入。成本零，能挡住 60% 漂移。</dd>
+        <dt>02 图像锁</dt>
+        <dd>定妆图当参考图：MJ <code>--cref</code>、即梦角色一致性、图生图垫图。当前性价比最高的主力手段。</dd>
+        <dt>03 模型锁</dt>
+        <dd>主角单独训练 LoRA / 数字分身，跨集跨剧复用。前期投入以天计，适合打算连载整季的团队。</dd>
+      </dl>
+    </section>
+
+    <section class="feature">
+      <h4>特辑 B ｜ 抽卡经济学：算力花在刀刃上</h4>
+      <p style="margin:4px 0 0;color:var(--ink-soft);font-size:14.5px">视频生成按次计费，"每条抽十次"是预算黑洞。三条纪律：</p>
+      <dl class="how">
+        <dt>01 静帧先行</dt>
+        <dd>首帧图不烧视频额度，抽到满意才进 SC.04——把便宜环节当草稿纸，贵环节只出正稿。</dd>
+        <dt>02 分级抽卡</dt>
+        <dd>主角近景抽 3 次，全景过场 1 次即可；废卡率高的写法（大动作、多人）在分镜阶段就改掉。</dd>
+        <dt>03 资产复用</dt>
+        <dd>同一场景卡可以垫图生成任意角度的空镜，常用场景画 3 张（日/夜/雨）够吃 20 集。</dd>
+      </dl>
+    </section>
+
+    <h2 class="sec-title" data-tag="BUDGET">预算与排期 · 一个人的剧组</h2>
+    <p class="sec-note">按"1 人全职、竖屏微短剧、首季 10 集（每集 2 分钟）"估算，价格为 2026-09 常见量级，签约前以官网为准。</p>
+    <table>
+      <thead><tr><th>项目</th><th>方案</th><th>月成本量级</th><th>备注</th></tr></thead>
+      <tbody>
+        <tr><td>剧本 / 分镜</td><td>DeepSeek 等 API</td><td class="num">¥20 – 100</td><td>文字环节最便宜，可放开迭代</td></tr>
+        <tr><td>图像生成</td><td>即梦 / MJ 会员</td><td class="num">¥70 – 200</td><td>定妆 + 每镜首帧</td></tr>
+        <tr><td>视频生成</td><td>可灵 / 即梦积分包</td><td class="num">¥300 – 1500</td><td>大头；一集成片约 30–60 镜，抽卡 1.5–2 倍量</td></tr>
+        <tr><td>配音 / 音乐</td><td>MiniMax / 剪映会员</td><td class="num">¥0 – 150</td><td>商用授权按平台条款确认</td></tr>
+        <tr><td>剪辑</td><td>剪映免费 / 达芬奇</td><td class="num">¥0</td><td>免费档完全够用</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">合计 · 首季 10 集</td><td class="num">约 ¥700 – 3500 / 月</td><td>另计时间：样片 3–5 天，跑顺后 1–2 集/天</td></tr></tfoot>
+    </table>
+
+    <h2 class="sec-title" data-tag="QC">交片前检查单 · 一集过一遍</h2>
+    <ol class="check">
+      <li><b>前 3 秒</b>有冲突或悬念画面，没有片头曲挡路。</li>
+      <li>主角在<b>每个出场镜头</b>里是同一张脸、同一套衣服。</li>
+      <li>无肉眼可见的<b>崩坏帧</b>（手指、文字、镜面反射逐镜放大检查）。</li>
+      <li>全片<b>色调统一</b>，相邻镜头色温无跳变。</li>
+      <li>台词<b>口型</b>近景对上，中远景无露馅。</li>
+      <li><b>音效层</b>存在：环境底噪 + 关键动效，不是静音世界。</li>
+      <li>字幕在<b>安全区</b>内，无错别字，关键句有强调。</li>
+      <li>结尾<b>悬念卡</b>指向下一集，且下一集已排期。</li>
+      <li>BGM / 素材<b>商用授权</b>凭证已归档。</li>
+      <li>竖屏 9:16、1080p、封面与前 3 秒切片已备。</li>
+    </ol>
+  </article>
+
+  <footer class="end">
+    <span>AI DRAMA PRODUCTION CALL SHEET</span>
+    <span>EDITION 2026-09-12 · EDITABLE COPY</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var KEY='ai-drama-guide-edits-v1';
+  var doc=document.getElementById('doc');
+  var btnEdit=document.getElementById('btn-edit');
+  var btnReset=document.getElementById('btn-reset');
+  var btnDownload=document.getElementById('btn-save');
+  var btnPrint=document.getElementById('btn-print');
+  var state=document.getElementById('edit-state');
+  var pristine=doc.innerHTML;
+  var timer=null;
+
+  try{
+    var saved=localStorage.getItem(KEY);
+    if(saved){doc.innerHTML=saved;state.textContent='已从本地恢复你的编辑稿';}
+  }catch(e){}
+
+  function setEditing(on){
+    doc.contentEditable=on?'true':'false';
+    btnEdit.classList.toggle('on',on);
+    btnEdit.textContent=on?'■ 退出编辑':'✎ 开启编辑';
+    if(on)state.textContent='编辑中 · 改动自动保存在本机';
+  }
+  btnEdit.addEventListener('click',function(){
+    setEditing(doc.getAttribute('contenteditable')!=='true');
+  });
+  doc.addEventListener('input',function(){
+    if(doc.getAttribute('contenteditable')!=='true')return;
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      try{localStorage.setItem(KEY,doc.innerHTML);state.textContent='已保存 · '+new Date().toLocaleTimeString();}catch(e){}
+    },500);
+  });
+  btnReset.addEventListener('click',function(){
+    if(!confirm('放弃本地修改，恢复原始稿件？'))return;
+    try{localStorage.removeItem(KEY);}catch(e){}
+    doc.innerHTML=pristine;setEditing(false);state.textContent='已恢复原稿';
+  });
+  btnDownload.addEventListener('click',function(){
+    var clone=document.documentElement.cloneNode(true);
+    var d=clone.querySelector('#doc');
+    if(d)d.removeAttribute('contenteditable');
+    var t=clone.querySelector('#toolbar');if(t)t.remove();
+    var blob=new Blob(['<!doctype html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='ai-drama-guide-当前版.html';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  });
+  btnPrint.addEventListener('click',function(){window.print();});
+})();
+</script>
+</body>
+</html>
