@@ -201,7 +201,8 @@ $("#verifiedAt").textContent = VERIFIED_AT;
 let drafts = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
 let fPlat = "全部", fCat = "全部", fSt = "全部", keyword = "", sortKey = "date", sortAsc = false;
 
-function allRows(){ return [...DATA, ...drafts.map(d => ({...d, _draft:true}))]; }
+function allRows(){ return [...DATA, ...drafts.map(d => ({...d, _draft:true}))  {name:"《失而复得》剧本 v2 · 可编辑稿", url:"https://dearpeter.github.io/deepseek-harness-html/cards/mug-script-v2.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"内容创作", date:"2026-09-11", desc:"60 秒 AI 动画剧本修订稿,页面支持在线编辑+本地自动保存+导出", status:"待核实"},
+]; }
 function esc(s){ return String(s??"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
 function stOf(r){ return r._draft ? "待核实" : r.status; }
 
