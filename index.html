@@ -247,14 +247,26 @@ function render(){
   chips($("#chipsPlat"), ["全部",...PLATS], fPlat, "fPlat=pick");
   chips($("#chipsCat"),  ["全部",...CATS],  fCat,  "fCat=pick");
   chips($("#chipsSt"),   ["全部","在线","已失效","待核实"], fSt, "fSt=pick");
+  markSort();
 }
 function delDraft(name){ drafts = drafts.filter(d => d.name !== name); save(); render(); }
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(drafts)); }
 
 $("#q").addEventListener("input", e => { keyword = e.target.value.trim().toLowerCase(); render(); });
 document.querySelectorAll("th[data-k]").forEach(th => th.addEventListener("click", () => {
-  const k = th.dataset.k; if (sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=true; } render();
+  const k = th.dataset.k;
+  if (sortKey===k) sortAsc=!sortAsc;
+  else { sortKey=k; sortAsc = (k!=="date"); }  // 日期列默认从新到旧（▼），其余列默认升序
+  render();
 }));
+// 表头排序方向指示
+function markSort(){
+  document.querySelectorAll("th[data-k]").forEach(th => {
+    const base = th.textContent.replace(/[ ▲▼]/g,"");
+    th.textContent = th.dataset.k===sortKey ? base+(sortAsc?" ▲":" ▼") : base;
+    th.title = "点击切换排序方向";
+  });
+}
 
 $("#f_add").addEventListener("click", () => {
   const name=$("#f_name").value.trim(), url=$("#f_url").value.trim();
