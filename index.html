@@ -136,7 +136,7 @@
 <script>
 // ============ 登记表数据（永久归档区，往 DATA 追加即可） ============
 const DATA = [
-  {name:"用 AI 拍一部网剧 · 制作通告手册", url:"https://dearpeter.github.io/deepseek-harness-html/cards/ai-drama-guide.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"内容创作", date:"2026-09-12", desc:"竖屏微短剧 AI 工作流手册：七场戏流水线（剧本→分镜→定妆→生视频→配音→剪辑→发行）+ 角色一致性/抽卡经济学特辑 + 预算表与交片检查单，可编辑稿", status:"待核实"},
+  {name:"用 AI 拍一部网剧 · 制作通告手册", url:"https://dearpeter.github.io/deepseek-harness-html/cards/ai-drama-guide.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"内容创作", date:"2026-09-12", desc:"竖屏微短剧 AI 工作流手册：七场戏流水线（剧本→分镜→定妆→生视频→配音→剪辑→发行）+ 角色一致性/抽卡经济学特辑 + 预算表与交片检查单，可编辑稿", status:"在线"},
   // —— Cloudflare Pages（源自 Obsidian《HTML页面部署记录》）——
   {name:"DeepSeek V4 Flash 最新动态", url:"https://deepseek-v4-flash-news.pages.dev/", platform:"Cloudflare Pages", project:"deepseek-v4-flash-news", category:"报告分析", date:"2026-08-04", desc:"AI 新闻专题页：时间线/定价对比/调用量/来源链接", status:"在线"},
   {name:"日账单 vs 月账单对账报告", url:"https://cmb-reconcile-2026-06.pages.dev/", platform:"Cloudflare Pages", project:"cmb-reconcile-2026-06", category:"报告分析", date:"2026-07-31", desc:"招行账单对账报告 · 2026-06", status:"在线"},
@@ -189,6 +189,7 @@ const DATA = [
   {name:"DSH 卡片集画廊（旧版索引）", url:"https://dearpeter.github.io/deepseek-harness-html/gallery.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"文档站", date:"2026-09-11", desc:"原 index.html 卡片画廊，2026-09-11 起由本登记表接管首页后存档于此", status:"在线"},
   // —— 已失效 ——
   {name:"（旧 session 临时部署）", url:"https://sprightly-faun-75ba74.netlify.app", platform:"Netlify", project:"netlify-drop", category:"其他", date:"2026-07-10", desc:"Netlify Drop 临时部署，现已无法访问（404）", status:"已失效"},
+  {name:"《失而复得》剧本 v2 · 可编辑稿", url:"https://dearpeter.github.io/deepseek-harness-html/cards/mug-script-v2.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"内容创作", date:"2026-09-11", desc:"60 秒 AI 动画短片剧本修订稿（金缮杯/红绳/相框暗线），可编辑：localStorage 自动保存 + 恢复原稿/下载/打印", status:"在线"},
 ];
 const VERIFIED_AT = "2026-09-12 01:06";
 const LS_KEY = "dsh-…eview";
@@ -202,8 +203,7 @@ $("#verifiedAt").textContent = VERIFIED_AT;
 let drafts = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
 let fPlat = "全部", fCat = "全部", fSt = "全部", keyword = "", sortKey = "date", sortAsc = false;
 
-function allRows(){ return [...DATA, ...drafts.map(d => ({...d, _draft:true}))  {name:"《失而复得》剧本 v2 · 可编辑稿", url:"https://dearpeter.github.io/deepseek-harness-html/cards/mug-script-v2.html", platform:"GitHub Pages", project:"deepseek-harness-html", category:"内容创作", date:"2026-09-11", desc:"60 秒 AI 动画剧本修订稿,页面支持在线编辑+本地自动保存+导出", status:"待核实"},
-]; }
+function allRows(){ return [...DATA, ...drafts.map(d => ({...d, _draft:true}))]; }
 function esc(s){ return String(s??"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
 function stOf(r){ return r._draft ? "待核实" : r.status; }
 
