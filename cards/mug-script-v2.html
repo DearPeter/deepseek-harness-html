@@ -4,279 +4,466 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>《失而复得》剧本 v2 · 可编辑稿</title>
+  <meta name="color-scheme" content="dark">
   <link rel="stylesheet" href="../assets/frame.css">
   <style>
-    /* ---- 页面专属样式(基于 frame.css 主题令牌) ---- */
-    .toolbar {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-      padding: 10px 14px; margin: 0 -14px 20px;
-      background: color-mix(in srgb, var(--card) 88%, transparent);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border); border-radius: 10px;
+    /* ============================================================
+       夜航放映室 · 金缮  —— 基于 anthropics/skills frontend-design
+       设计原则:单一强调色(金缮线)/ 结构即信息 / 一处大胆其余克制
+       ============================================================ */
+    :root{
+      --ink:#14151a; --ink2:#191b22; --panel:#20232c; --panel-hi:#262a35;
+      --line:#2d313c; --paper:#eae5da; --dim:#b8b3a8; --muted:#8b8f99;
+      --gold:#cfa14d; --gold-hi:#e9c67b; --ash:#565f70; --ember:#a4756a;
+      --serif:"Noto Serif SC","Songti SC","STSongti-SC","STSong",serif;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
     }
-    .toolbar .status { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
-    .btn.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
-    body.editing [contenteditable] :is(h1,h2,h3,h4,p,li,td,th,summary,code,pre,blockquote) {
-      outline: 1px dashed color-mix(in srgb, var(--primary) 55%, transparent);
-      outline-offset: 2px; border-radius: 3px;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{background:var(--ink);color:var(--paper);font-family:var(--sans);
+      font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased;margin:0}
+    a{color:var(--gold-hi);text-decoration:none}
+    ::selection{background:rgba(207,161,77,.35)}
+
+    /* ---------- 顶部场记条(工具栏) ---------- */
+    .slatebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
+      padding:9px 18px;border-bottom:1px solid var(--line);
+      background:rgba(20,21,26,.82);backdrop-filter:blur(12px);flex-wrap:wrap}
+    .slatebar .mark{font:600 12px/1 var(--mono);letter-spacing:.08em;color:var(--muted);
+      border:1px solid var(--line);border-radius:4px;padding:6px 9px;background:repeating-linear-gradient(135deg,var(--panel) 0 10px,transparent 10px 20px)}
+    .slatebar .btn{font-size:12.5px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);
+      background:transparent;color:var(--dim);cursor:pointer;transition:all .2s ease-out}
+    .slatebar .btn:hover{border-color:var(--gold);color:var(--paper);transform:scale(1.02)}
+    .slatebar .btn.active{background:var(--gold);border-color:var(--gold);color:#191511;font-weight:600}
+    .slatebar .status{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--muted)}
+
+    .wrap{max-width:920px;margin:0 auto;padding:0 22px 90px}
+
+    /* ---------- HERO:片头卡 + 情绪弧线缎带(全片唯一的大胆处) ---------- */
+    .hero{position:relative;padding:88px 0 30px;text-align:center;overflow:hidden}
+    .hero::before{content:"";position:absolute;inset:-40% -20% auto;height:130%;
+      background:radial-gradient(60% 42% at 50% 22%,rgba(207,161,77,.09),transparent 70%);pointer-events:none}
+    .seam{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+    .hero > *{position:relative;z-index:2}
+    .hero .seam{position:absolute;z-index:1;opacity:.7}
+    .hero .seam .glow{display:none}
+    .studio{font:11.5px/1 var(--mono);letter-spacing:.22em;color:var(--muted);margin:0 0 26px}
+    h1.title{font-family:var(--serif);font-weight:900;letter-spacing:.04em;
+      font-size:clamp(46px,9vw,84px);line-height:1.15;margin:0;color:var(--paper);
+      text-shadow:0 2px 30px rgba(207,161,77,.18)}
+    h1.title .rev{font-size:.28em;font-weight:600;color:var(--gold);vertical-align:.9em;letter-spacing:.1em}
+    .subtitle{font-family:var(--serif);font-size:17px;color:var(--dim);margin:14px 0 4px;letter-spacing:.06em}
+    .specs{font:12px/1 var(--mono);color:var(--muted);margin:20px 0 0;letter-spacing:.05em}
+    .specs b{color:var(--gold-hi);font-weight:600}
+
+    .ribbon-wrap{margin:52px auto 0;max-width:820px;text-align:left}
+    .ribbon-label{display:flex;justify-content:space-between;font:11px/1 var(--mono);
+      color:var(--muted);margin-bottom:9px;letter-spacing:.06em}
+    .ribbon{display:flex;gap:2px;height:46px}
+    .seg{flex-basis:0;min-width:0;border-radius:4px;position:relative;display:flex;align-items:center;
+      justify-content:center;font:10.5px/1 var(--mono);color:rgba(238,233,224,.75);
+      border:1px solid transparent;transition:transform .2s ease-out,border-color .2s,filter .2s;cursor:pointer}
+    .seg:hover{transform:translateY(-4px);border-color:var(--gold-hi);filter:brightness(1.25);z-index:3}
+    .seg.act-edge{margin-left:6px}
+    .tc-scale{display:flex;margin-top:6px;font:10px/1 var(--mono);color:var(--muted)}
+    .tc-scale span{flex-basis:0;border-left:1px solid var(--line);padding:4px 0 0 5px;white-space:nowrap}
+    .tc-scale span:first-child{border-left-color:transparent}
+    .legend{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:18px;font-size:12px;color:var(--muted)}
+    .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0}
+
+    /* ---------- 章节骨架 ---------- */
+    section{margin-top:74px}
+    .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:26px}
+    .sec-no{font:600 11px/1 var(--mono);color:var(--gold);letter-spacing:.14em;white-space:nowrap}
+    .sec-head h2{font-family:var(--serif);font-size:26px;font-weight:800;margin:0;letter-spacing:.04em}
+    .sec-head .en{margin-left:auto;font:11px/1 var(--mono);color:var(--muted);letter-spacing:.1em;white-space:nowrap}
+
+    /* 档案卡(内核四格) */
+    .dossier{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .dossier > div{background:var(--ink2);border:1px solid var(--line);border-left:2px solid var(--gold);
+      border-radius:0 10px 10px 0;padding:16px 18px;font-size:14.5px}
+    .dossier b{display:block;font:600 11px/1 var(--mono);color:var(--gold);letter-spacing:.12em;margin-bottom:9px}
+
+    /* 对照表 */
+    details.compare{border:1px solid var(--line);border-radius:10px;background:var(--ink2);padding:14px 18px}
+    details.compare summary{cursor:pointer;font-family:var(--serif);font-size:16.5px;font-weight:700;letter-spacing:.03em}
+    details.compare[open] summary{margin-bottom:14px;border-bottom:1px dashed var(--line);padding-bottom:10px}
+    table{border-collapse:collapse;width:100%;font-size:13.5px}
+    th,td{border-bottom:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+    th{font:600 11px/1.4 var(--mono);color:var(--gold);letter-spacing:.1em}
+    tr:last-child td{border-bottom:none}
+    td:first-child{color:var(--muted);width:38%}
+
+    /* 视觉锚点 */
+    .anchor{margin-bottom:26px}
+    .anchor h3{font-family:var(--serif);font-size:17px;margin:0 0 6px;letter-spacing:.03em}
+    .anchor h3 .mono{font-size:11px;color:var(--muted);margin-left:10px;font-family:var(--mono);letter-spacing:.08em}
+    .anchor p{margin:0 0 10px;color:var(--dim);font-size:14.5px}
+    .anchor p strong,.shot strong{color:var(--paper)}
+    .anchor em,.shot em{font-style:normal;color:var(--gold-hi);font-weight:600}
+    .prompt{position:relative}
+    .prompt pre{margin:0;background:#101218;border:1px solid var(--line);border-radius:8px;
+      padding:13px 15px;font:12.5px/1.7 var(--mono);color:#c5ccd8;overflow-x:auto;white-space:pre-wrap}
+    .copy-btn{position:absolute;top:9px;right:9px;font:11px/1 var(--mono);padding:5px 10px;border-radius:999px;
+      border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
+    .copy-btn:hover{color:var(--gold-hi);border-color:var(--gold)}
+
+    /* ---------- 分镜 ---------- */
+    .flow{font:11.5px/1.8 var(--mono);color:var(--muted);margin:0 0 8px;letter-spacing:.02em}
+    .act-head{margin:44px 0 14px;padding-top:18px;border-top:1px solid var(--line)}
+    .act-head:first-of-type{margin-top:18px}
+    .act-head .reel{font:600 10.5px/1 var(--mono);color:var(--gold);letter-spacing:.18em}
+    .act-head h3{font-family:var(--serif);font-size:19.5px;font-weight:800;margin:8px 0 2px;letter-spacing:.03em}
+    .act-head .mood{font-size:13px;color:var(--muted);margin:0}
+
+    .shot{display:flex;gap:0;background:var(--ink2);border:1px solid var(--line);border-radius:12px;
+      margin:14px 0;overflow:hidden;transition:border-color .25s}
+    .shot:hover{border-color:#3a4050}
+    .shot:target{border-color:var(--gold)}
+    .shot .rail{flex:0 0 74px;display:flex;flex-direction:column;align-items:center;gap:6px;
+      padding:16px 0;border-right:1px solid var(--line);background:var(--panel)}
+    .rail .no{font:700 15px/1 var(--mono);color:var(--gold)}
+    .rail .tc{font:10px/1.5 var(--mono);color:var(--muted);text-align:center}
+    .rail .tempo{font:600 10px/1 var(--mono);color:var(--ink);background:var(--muted);
+      border-radius:3px;padding:3px 6px;margin-top:auto}
+    .rail .tempo.S{background:#7f8ea6}.rail .tempo.M{background:#b09878}.rail .tempo.Q{background:var(--ember)}
+    .shot .body{flex:1;padding:15px 20px 16px;min-width:0}
+    .shot h4{margin:0 0 8px;font-family:var(--serif);font-size:16.5px;letter-spacing:.02em}
+    .shot .scene{margin:0 0 10px;font-size:14.5px;color:var(--paper)}
+    .shot .meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 22px;font-size:13px;color:var(--dim);
+      border-top:1px dashed var(--line);padding-top:9px}
+    .shot .meta span{display:block}
+    .shot .meta i{font-style:normal;color:var(--muted)}
+    .shot .tip{margin:10px 0 0;font-size:13px;color:var(--gold-hi);padding-left:12px;position:relative}
+    .shot .tip::before{content:"";position:absolute;left:0;top:.5em;bottom:.3em;width:2px;background:var(--gold);border-radius:2px}
+
+    /* checklist / 避坑 */
+    ul.checklist{list-style:none;padding:0;margin:0}
+    ul.checklist li{padding:10px 0 10px 30px;border-bottom:1px dashed var(--line);position:relative;font-size:14.5px}
+    ul.checklist li::before{content:"☐";position:absolute;left:2px;color:var(--gold);font-size:16px}
+    ol.pitfalls{padding-left:0;counter-reset:p;list-style:none;margin:0}
+    ol.pitfalls li{counter-increment:p;padding:12px 0 12px 46px;border-bottom:1px dashed var(--line);position:relative;font-size:14.5px}
+    ol.pitfalls li::before{content:counter(p,decimal-leading-zero);position:absolute;left:2px;top:14px;
+      font:600 12px/1 var(--mono);color:var(--gold)}
+    ol.pitfalls strong,ul.checklist strong{color:var(--paper)}
+
+    footer.endnote{margin-top:70px;padding-top:18px;border-top:1px solid var(--line);
+      font-size:12.5px;color:var(--muted);text-align:center}
+    footer.endnote .seam-word{color:var(--gold);letter-spacing:.3em;font-family:var(--serif)}
+
+    /* ---------- 动效:一次性编排(载入时金缮线描出 + 缎带升起) ---------- */
+    @media (prefers-reduced-motion: no-preference){
+      .seam path{stroke-dasharray:1600;stroke-dashoffset:1600;animation:sew 1.6s ease-out .2s forwards}
+      @keyframes sew{to{stroke-dashoffset:0}}
+      .seg{animation:rise .5s ease-out both}
+      .seg:nth-child(1){animation-delay:.5s}.seg:nth-child(2){animation-delay:.58s}
+      .seg:nth-child(3){animation-delay:.66s}.seg:nth-child(4){animation-delay:.74s}
+      .seg:nth-child(5){animation-delay:.82s}.seg:nth-child(6){animation-delay:.9s}
+      .seg:nth-child(7){animation-delay:.98s}.seg:nth-child(8){animation-delay:1.06s}
+      .seg:nth-child(9){animation-delay:1.14s}.seg:nth-child(10){animation-delay:1.22s}
+      .seg:nth-child(11){animation-delay:1.3s}.seg:nth-child(12){animation-delay:1.38s}
+      @keyframes rise{from{transform:scaleY(.15);opacity:0}to{transform:scaleY(1);opacity:1}}
     }
-    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
-    .badge { font-size: 12px; padding: 2px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); }
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px; margin: 16px 0 4px; }
-    .meta-grid div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--card); }
-    .meta-grid b { display: block; font-size: 11px; color: var(--muted-foreground); font-weight: 500; margin-bottom: 3px; }
-    section { margin-top: 34px; }
-    h2 { font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-    h3 { font-size: 16px; margin-top: 22px; }
-    .shot {
-      border: 1px solid var(--border); border-radius: 12px;
-      background: var(--card); padding: 14px 16px; margin: 14px 0;
-      break-inside: avoid;
+    /* 编辑态高亮 */
+    body.editing #doc :is(h1,h2,h3,h4,p,li,td,th,summary,pre,dd,.mood,.scene){
+      outline:1px dashed rgba(207,161,77,.5);outline-offset:2px;border-radius:3px}
+    /* 响应式 */
+    @media (max-width:640px){
+      .dossier,.shot .meta{grid-template-columns:1fr}
+      .shot .rail{flex-basis:56px}
+      .seg span.num{display:none}
+      .hero{padding-top:56px}
     }
-    .shot h4 { margin: 0 0 8px; font-size: 15px; }
-    .shot .tag { font-size: 11px; font-weight: 500; color: var(--primary); margin-left: 8px; }
-    .act { font-size: 13px; color: var(--muted-foreground); border-left: 3px solid var(--primary); padding-left: 10px; margin: 22px 0 4px; }
-    .shot dl { margin: 0; }
-    .shot dt { font-size: 12px; color: var(--muted-foreground); margin-top: 8px; }
-    .shot dd { margin: 2px 0 0; font-size: 14px; }
-    .tip { font-size: 13px; color: var(--viz-series-3); }
-    .prompt { position: relative; }
-    .prompt pre {
-      background: var(--background); border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 12px; font-size: 12px; line-height: 1.55; overflow-x: auto; white-space: pre-wrap;
+    /* 打印:反转成纸面 */
+    @media print{
+      :root{--ink:#fff;--ink2:#fff;--panel:#f4f2ec;--panel-hi:#f4f2ec;--line:#c9c4b8;--paper:#22201c;--dim:#3a3833;--muted:#777;--gold:#8a6a1f;--gold-hi:#6d5417;--ember:#7a4d43}
+      .slatebar,.copy-btn{display:none!important}
+      .shot,.hero{break-inside:avoid}
+      .hero::before,.seam{display:none}
+      .seg{animation:none!important}
     }
-    .copy-btn {
-      position: absolute; top: 8px; right: 8px;
-      font-size: 11px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px;
-      background: var(--card); color: var(--muted-foreground); cursor: pointer;
-    }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { border: 1px solid var(--border); padding: 7px 9px; text-align: left; vertical-align: top; }
-    th { background: var(--background); }
-    .flow { font-size: 13px; color: var(--muted-foreground); overflow-x: auto; white-space: nowrap; }
-    details.compare { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 14px; }
-    details.compare summary { cursor: pointer; font-weight: 600; }
-    footer { margin-top: 40px; font-size: 12px; color: var(--muted-foreground); border-top: 1px solid var(--border); padding-top: 12px; }
-    @media print { .toolbar, .copy-btn { display: none !important; } .shot { break-inside: avoid; } }
-    @media (prefers-color-scheme: dark) { .tip { color: var(--viz-series-3); } }
   </style>
 </head>
 <body>
-<div class="page">
 
-  <div class="toolbar">
-    <button class="btn" id="btn-edit">✏️ 开启编辑</button>
-    <button class="btn btn-ghost" id="btn-reset">↩️ 恢复原稿</button>
-    <button class="btn btn-ghost" id="btn-download">⬇️ 下载当前版</button>
-    <button class="btn btn-ghost" id="btn-print">🖨️ 打印/PDF</button>
-    <span class="status" id="status">只读模式 · 开启编辑后自动保存到本浏览器</span>
+  <div class="slatebar">
+    <span class="mark">LOST&nbsp;&&nbsp;FOUND · v2</span>
+    <button class="btn" id="btn-edit">✎ 开启编辑</button>
+    <button class="btn" id="btn-reset">恢复原稿</button>
+    <button class="btn" id="btn-download">下载当前版</button>
+    <button class="btn" id="btn-print">打印 / PDF</button>
+    <span class="status" id="status">只读 · 开启编辑后改动自动存入本浏览器</span>
   </div>
 
-  <article id="doc">
-    <header class="page-head" style="display:block">
-      <h1>《失而复得》· 60 秒 AI 动画剧本 <span style="font-size:14px;color:var(--primary)">v2 修订稿</span></h1>
-      <div class="badges">
-        <span class="badge">60 秒</span><span class="badge">16:9 / 可裁 9:16</span><span class="badge">Pixar 半写实 3D</span><span class="badge">狸花猫 · 茶客</span><span class="badge">金缮马克杯</span>
-      </div>
-    </header>
+<article id="doc">
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <svg class="seam" viewBox="0 0 900 520" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#cfa14d" stop-opacity="0"/><stop offset=".3" stop-color="#e9c67b"/>
+        <stop offset=".7" stop-color="#cfa14d"/><stop offset="1" stop-color="#cfa14d" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="M-20,60 L140,110 L180,92 L310,168 L352,150 L470,242 L520,230 L640,318 L700,306 L920,420"
+        fill="none" stroke="url(#g)" stroke-width="2.4" stroke-linejoin="round" opacity=".85"/>
+      <path class="glow" d="M-20,60 L140,110 L180,92 L310,168 L352,150 L470,242 L520,230 L640,318 L700,306 L920,420"
+        fill="none" stroke="#e9c67b" stroke-width="7" stroke-linejoin="round" opacity=".07" style="filter:blur(4px)"/>
+    </svg>
 
-    <div class="meta-grid">
-      <div><b>表层故事</b>搬家那天,他把杯子亲手包进"送人"的纸箱。纸箱被人推走了。他翻了整个楼道,最后从一捆自己忘了扔的旧报纸里,把它挖了回来。</div>
-      <div><b>情感暗线</b>杯子是分手那年留下的唯一遗物。金色修补线是"她"的痕迹——碎过,值得留。失而复得的不是杯子,是他重新为自己斟一杯茶的能力。</div>
-      <div><b>情绪弧线</b>珍藏(有她的痕迹)→ 咎由自取的丢失 → 自责中寻找 → 低谷处记起 → 亲手重逢 → 回环与新生</div>
-      <div><b>三条视觉痕迹</b>①杯身金色修补线(kintsugi) ②"她"只以戴红绳手链的爪出现 ③虚焦相框里的巴黎双人合影。全片无字幕、无旁白解释。</div>
+    <p class="studio">AI 动画短片 · 制作文档</p>
+    <h1 class="title">《失而复得》<span class="rev">v2</span></h1>
+    <p class="subtitle">碎过,才见金线。丢过,才知端杯的手在抖。</p>
+    <p class="specs">60 秒 &nbsp;·&nbsp; 16:9 可裁竖屏 &nbsp;·&nbsp; Pixar 半写实 3D &nbsp;·&nbsp; 12 镜 &nbsp;·&nbsp; <b>可编辑稿</b></p>
+
+    <div class="ribbon-wrap" aria-label="60 秒情绪弧线时间轴">
+      <div class="ribbon-label"><span>情绪弧线 · 点击色块跳转分镜</span><span>00:00 — 01:00</span></div>
+      <div class="ribbon" id="ribbon">
+        <a class="seg" href="#s1"  style="flex-grow:4;background:linear-gradient(180deg,#a97f33,#8a6628)" title="#1 金线特写·斟茶 4s"><span class="num">1</span></a>
+        <a class="seg" href="#s2"  style="flex-grow:4;background:linear-gradient(180deg,#b08436,#8f6a2a)" title="#2 两只爪环着杯 4s"><span class="num">2</span></a>
+        <a class="seg" href="#s3"  style="flex-grow:5;background:linear-gradient(180deg,#b8893a,#95702d)" title="#3 捧杯贴胸·相框虚影 5s"><span class="num">3</span></a>
+        <a class="seg act-edge" href="#s4" style="flex-grow:6;background:linear-gradient(180deg,#6b5f4a,#57503f)" title="#4 报纸包杯入送人箱 6s"><span class="num">4</span></a>
+        <a class="seg" href="#s5"  style="flex-grow:3;background:linear-gradient(180deg,#6d4a44,#583c38)" title="#5 回头·楼道空了 3s(骤失)"><span class="num">5</span></a>
+        <a class="seg act-edge" href="#s6" style="flex-grow:6;background:linear-gradient(180deg,#454e5e,#3a4150)" title="#6 下楼疯找 6s"><span class="num">6</span></a>
+        <a class="seg" href="#s7"  style="flex-grow:5;background:linear-gradient(180deg,#414a59,#373e4c)" title="#7 储藏间 5s"><span class="num">7</span></a>
+        <a class="seg" href="#s8"  style="flex-grow:6;background:linear-gradient(180deg,#3c4452,#524542)" title="#8 深夜·记起 6s(低谷→转折)"><span class="num">8</span></a>
+        <a class="seg act-edge" href="#s9" style="flex-grow:4;background:linear-gradient(180deg,#b08436,#cfa14d)" title="#9 翻报纸·杯子滚出 4s"><span class="num">9</span></a>
+        <a class="seg" href="#s10" style="flex-grow:5;background:linear-gradient(180deg,#c99b48,#e0b765)" title="#10 招牌姿势 B 态 5s"><span class="num">10</span></a>
+        <a class="seg" href="#s11" style="flex-grow:4;background:linear-gradient(180deg,#b08436,#9d7530)" title="#11 像检查老友 4s"><span class="num">11</span></a>
+        <a class="seg act-edge" href="#s12" style="flex-grow:8;background:linear-gradient(180deg,#d4a955,#e9c67b)" title="#12 第一口茶 8s(释然)"><span class="num">12</span></a>
+      </div>
+      <div class="tc-scale" aria-hidden="true">
+        <span style="flex-grow:13">I · 珍藏</span><span style="flex-grow:9">II · 骤失</span><span style="flex-grow:17">III · 寻找</span><span style="flex-grow:13">IV · 重逢</span><span style="flex-grow:8">V · 释然</span>
+      </div>
+      <div class="legend">
+        <span><i style="background:#b8893a"></i>温暖 / 有她</span>
+        <span><i style="background:#6d4a44"></i>骤失的钝痛</span>
+        <span><i style="background:#414a59"></i>灰调寻找</span>
+        <span><i style="background:#e0b765"></i>金线复亮 · 释然</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+  <!-- ================= 对照 ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-no">REVISION</span><h2>v1 → v2:改了什么</h2><span class="en">why every cut was made</span></div>
+    <details class="compare" open>
+      <summary>针对 v1 的五个结构性问题</summary>
+      <table>
+        <thead><tr><th>v1 的问题</th><th>v2 的修法</th></tr></thead>
+        <tbody>
+          <tr><td>暗线只写在文档里,片子里看不到"她"</td><td>把暗线拍进画面:金色修补线、红绳手链、相框合影三处视觉痕迹,收尾的 "PARIS" 不再当彩蛋解释,只在热气里自然露出一次。</td></tr>
+          <tr><td>主角零弧光,重逢靠运气(阳光恰好照到)</td><td>丢失是他亲手把杯子包进"送人"箱(有自责);重逢是他记起报纸没扔、<strong>亲手翻出来</strong>(有意志)。结尾从"捧杯自保"变成"喝下这杯茶",完成人物变化。</td></tr>
+          <tr><td>丢失没有"丢失的那一刻",对焦转移是迁就 AI 缺陷</td><td>新增 Act II 两镜:报纸包杯→回头箱子没了。"消失"从此不需要任何特效,是叙事事件而不是技术问题。</td></tr>
+          <tr><td>"找不到"三个镜头说同一件事,重逢只有 4 秒</td><td>寻找压缩为两镜(楼道+储藏间),低谷与转折合并进同一个 #8;重逢给足 #9–#11 共 13 秒。</td></tr>
+          <tr><td>角色千人一面:狸花猫+米色毛衣模板</td><td>加具体性:他是茶客,只喝这只金缮杯,厨房柜里立着另一只从没碰过的杯。"习惯"即人设;招牌姿势升级为 <strong>#3 珍藏 → #10 失而复得 → #12 喝下放下</strong> 的三段闭环。</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </section>
+
+  <!-- ================= 内核 ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-no">CORE</span><h2>故事内核</h2><span class="en">text &amp; subtext</span></div>
+    <div class="dossier">
+      <div><b>表层故事 SURFACE</b>搬家那天,他把杯子亲手包进"送人"的纸箱。纸箱被人推走了。他翻了整个楼道,最后从一捆自己忘了扔的旧报纸里,把它挖了回来。</div>
+      <div><b>情感暗线 SUBTEXT</b>杯子是分手那年留下的唯一遗物。金色修补线是"她"的痕迹——碎过,值得留。失而复得的不是杯子,是他重新为自己斟一杯茶的能力。</div>
+      <div><b>情绪弧线 ARC</b>珍藏(有她的痕迹)→ 咎由自取的丢失 → 自责中寻找 → 低谷处记起 → 亲手重逢 → 回环与新生。</div>
+      <div><b>三条视觉痕迹 TRACES</b>①杯身金色修补线(kintsugi) ②"她"只以戴红绳手链的爪出现 ③虚焦相框里的巴黎双人合影。全片无字幕、无旁白解释。</div>
+    </div>
+  </section>
+
+  <!-- ================= 锚点 ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-no">ASSETS</span><h2>视觉锚点</h2><span class="en">prompt prefixes · 全片统一</span></div>
+
+    <div class="anchor">
+      <h3>杯子 · 金缮马克杯<span class="mono">PROP 01</span></h3>
+      <p>哑光白瓷圆筒杯,弧形手柄;<strong>杯身一道金色修补线斜贯黑色巴黎街景剪影</strong>——这是"她"的替身,每个杯子镜头都必须有它。杯内壁口沿印小字 "PARIS"。</p>
+      <div class="prompt"><button class="copy-btn">复制</button><pre>matte white ceramic mug with ear-shaped handle, a visible golden kintsugi repair line running diagonally across a black silhouette Paris skyline illustration on the body (Eiffel Tower, Seine river, Parisian rooftops, archways), small black "PARIS" lettering on the inner rim near the top, modern minimalist design</pre></div>
     </div>
 
-    <section>
-      <details class="compare" open>
-        <summary>v1 → v2:改了什么、为什么</summary>
-        <table>
-          <thead><tr><th>v1 的问题</th><th>v2 的修法</th></tr></thead>
-          <tbody>
-            <tr><td>暗线只写在文档里,片子里看不到"她"</td><td>把暗线拍进画面:金色修补线、红绳手链、相框合影三处视觉痕迹,收尾的 "PARIS" 不再当彩蛋解释,只在热气里自然露出一次。</td></tr>
-            <tr><td>主角零弧光,重逢靠运气(阳光恰好照到)</td><td>丢失是他亲手把杯子包进"送人"箱(有自责);重逢是他记起报纸没扔、<b>亲手翻出来</b>(有意志)。结尾他从"捧杯自保"变成"喝下这杯茶",完成人物变化。</td></tr>
-            <tr><td>丢失没有"丢失的那一刻",对焦转移是迁就 AI 缺陷</td><td>新增 Act II 两镜:报纸包杯→回头箱子没了。"消失"从此不需要任何特效,是叙事事件而不是技术问题。</td></tr>
-            <tr><td>"找不到"用了三个镜头说同一件事,重逢只有 4 秒</td><td>寻找压缩为两镜(楼道+储藏间),低谷与转折合并进同一个镜头 #8;重逢给足 #9–#11 共 15 秒。</td></tr>
-            <tr><td>角色千人一面:狸花猫+米色毛衣模板</td><td>加具体性:他是茶客,只喝这只杯子;厨房柜里立着另一只从没碰过的杯。"习惯"即人设,招牌姿势由 v1 的"捧杯贴胸"升级为 v2 的"同一姿势、两种心境"(#3 珍藏 → #12 放下)。</td></tr>
-          </tbody>
-        </table>
-      </details>
-    </section>
-
-    <section>
-      <h2>一、视觉锚点(全片统一)</h2>
-
-      <h3>1.1 杯子(金缮马克杯,全片第一道具)</h3>
-      <p>哑光白瓷圆筒马克杯,弧形手柄;<b>杯身一道金色修补线(kintsugi)斜贯黑色巴黎街景剪影</b>——这是"她"的替身,每次出现杯子的镜头都必须有它。杯内壁口沿印小字 "PARIS"。</p>
-      <div class="prompt"><button class="copy-btn">复制</button><pre>matte white ceramic mug with ear-shaped handle, a visible golden kintsugi repair line running diagonally across a black silhouette Paris skyline illustration on the body (Eiffel Tower, Seine river, Parisian rooftops, archways), small black "PARIS" lettering on the inner rim near the top, modern minimalist design</pre></div>
-
-      <h3>1.2 主角(狸花猫 · 茶客)</h3>
-      <p>拟人化成年公猫,棕黑条纹,米色针织毛衣+深色长裤;<b>标志性习惯:只喝这只金缮杯里的茶</b>。厨房柜里另一只素白杯子从未动过——不拍他"爱它",拍他"只用它"。</p>
+    <div class="anchor">
+      <h3>主角 · 狸花猫 · 茶客<span class="mono">CHAR 01</span></h3>
+      <p>拟人化成年公猫,棕黑条纹,米色针织毛衣+深色长裤;<strong>标志性习惯:只喝这只金缮杯里的茶</strong>。厨房柜里另一只素白杯子从未动过——不拍他"爱它",拍他"只用它"。</p>
       <div class="prompt"><button class="copy-btn">复制</button><pre>anthropomorphic adult tabby cat, slender build, brown-black striped fur, large expressive round eyes, wearing a beige knit sweater and dark trousers, habitual tea drinker</pre></div>
+    </div>
 
-      <h3>1.3 "她"(只出现爪,永不露脸)</h3>
-      <p>深色毛色的纤细猫爪,腕上一根<b>红绳手链</b>。只在回忆(#2)里出现一次、在相框虚焦剪影(#3/#12)里各露一次。宁少勿多。</p>
+    <div class="anchor">
+      <h3>"她" · 只出现爪<span class="mono">CHAR 02 · face never shown</span></h3>
+      <p>深色毛色的纤细猫爪,腕上一根<strong>红绳手链</strong>。只在回忆(#2)里出现一次、在相框虚焦剪影(#3/#12)里各露一次。宁少勿多。</p>
       <div class="prompt"><button class="copy-btn">复制</button><pre>a slender dark-furred cat paw wearing a thin red string bracelet, face never shown, soft nostalgic warm light</pre></div>
+    </div>
 
-      <h3>1.4 全局风格前缀</h3>
+    <div class="anchor">
+      <h3>全局风格前缀<span class="mono">STYLE · GLOBAL</span></h3>
       <div class="prompt"><button class="copy-btn">复制</button><pre>Pixar-quality 3D illustration, modern urban setting, warm cinematic lighting, soft depth of field, detailed but stylized, contemporary palette of warm amber with muted blue-grey shadows, emotional storytelling cinematography</pre></div>
-    </section>
+    </div>
+  </section>
 
-    <section>
-      <h2>二、12 镜头分镜</h2>
-      <p class="flow">[S]=舒缓 4–6s &nbsp; [M]=中速 5–6s &nbsp; [Q]=快切 3–4s &nbsp;|&nbsp; Act I 珍藏 0–13s → Act II 骤失 13–22s → Act III 寻找·低谷 22–39s → Act IV 重逢 39–49s → Act V 第一口茶 49–60s</p>
+  <!-- ================= 分镜 ================= -->
+  <section id="storyboard">
+    <div class="sec-head"><span class="sec-no">STORYBOARD</span><h2>12 镜头分镜</h2><span class="en">总时长精确 60s · 时码见每镜左轨</span></div>
+    <p class="flow">[S] 舒缓 · [M] 中速 · [Q] 快切&nbsp;&nbsp;|&nbsp;&nbsp;ACT I 0–13 → II 13–22 → III 22–39 → IV 39–52 → V 52–60</p>
 
-      <div class="act">🎬 Act I · 两只杯子(0–13s)—— 先让观众看见"金线",再看见"她"</div>
+    <div class="act-head"><span class="reel">ACT I · 00:00–00:13</span><h3>两只杯子</h3><p class="mood">先让观众看见"金线",再看见"她"。</p></div>
 
-      <div class="shot"><h4>#1 金线特写 · 晨间斟茶 <span class="tag">S · 4s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>清晨逆光特写:虎爪提起铁壶,滚水冲入金缮杯,茶叶浮起。镜头顺着升腾的热气下移,掠过杯身那道<b>金色修补线</b>——观众第一眼注意到的不是杯,是那道"碎过的痕迹"。</dd>
-          <dt>镜头 / 音效</dt><dd>微距缓推;水声、茶叶舒展的细响,一声满足的呼气。</dd>
-          <dt>情绪</dt><dd>亲密、日常。</dd>
-        </dl>
+    <article class="shot" id="s1">
+      <div class="rail"><span class="no">1</span><span class="tc">00:00<br>–04</span><span class="tempo S">S</span></div>
+      <div class="body"><h4>金线特写 · 晨间斟茶</h4>
+        <p class="scene">清晨逆光特写:虎爪提起铁壶,滚水冲入金缮杯,茶叶浮起。镜头顺着升腾的热气下移,掠过杯身那道<em>金色修补线</em>——观众第一眼注意到的不是杯,是那道"碎过的痕迹"。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;微距缓推</span><span><i>声音</i>&nbsp;水声、茶叶细响、一声满足的呼气</span><span><i>情绪</i>&nbsp;亲密、日常</span></div>
       </div>
+    </article>
 
-      <div class="shot"><h4>#2 回忆 · 两只爪环着杯 <span class="tag">S · 4s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>暖黄色调回忆:同一只杯(金线崭新发亮,刚修好),两只爪环着它——虎爪在下,一只<b>戴红绳手链的深色爪</b>覆在上面。手之外全在画外,光线柔得像旧照片。</dd>
-          <dt>镜头 / 音效</dt><dd>固定机位极缓推近;老唱机质感的钢琴单音。</dd>
-          <dt>情绪</dt><dd>温存,带一点不敢多看的小心。</dd>
-          <dt class="tip">关键:"她"全片唯一一次正面存在。之后只允许以相框剪影存在。</dt>
-        </dl>
+    <article class="shot" id="s2">
+      <div class="rail"><span class="no">2</span><span class="tc">00:04<br>–08</span><span class="tempo S">S</span></div>
+      <div class="body"><h4>回忆 · 两只爪环着杯</h4>
+        <p class="scene">暖黄色调回忆:同一只杯(金线崭新发亮,刚修好),两只爪环着它——虎爪在下,一只<em>戴红绳手链的深色爪</em>覆在上面。手之外全在画外,光线柔得像旧照片。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;固定机位极缓推近</span><span><i>声音</i>&nbsp;老唱机质感的钢琴单音</span><span><i>情绪</i>&nbsp;温存,带一点不敢多看的小心</span></div>
+        <p class="tip">"她"全片唯一一次正面存在。之后只允许以相框剪影存在。</p>
       </div>
+    </article>
 
-      <div class="shot"><h4>#3 捧杯贴胸 · 相框虚影 <span class="tag">M · 5s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>回到现在。狸花猫双手捧杯贴在胸口,闭眼微笑——<b>招牌姿势 A 态:捧的是宝贝</b>。他把杯子放回书桌,镜头焦点顺势落到旁边一只相框:两只猫的巴黎合影,虚焦,另一只爪上隐约有红绳。</dd>
-          <dt>镜头 / 音效</dt><dd>中景平视微环绕;弦乐轻铺。</dd>
-          <dt>情绪</dt><dd>幸福。观众此刻自己会拼出:金线=她修的,杯=她送的。</dd>
-        </dl>
+    <article class="shot" id="s3">
+      <div class="rail"><span class="no">3</span><span class="tc">00:08<br>–13</span><span class="tempo M">M</span></div>
+      <div class="body"><h4>捧杯贴胸 · 相框虚影</h4>
+        <p class="scene">回到现在。狸花猫双手捧杯贴在胸口,闭眼微笑——<em>招牌姿势 A 态:捧的是宝贝</em>。他把杯子放回书桌,镜头焦点顺势落到旁边一只相框:两只猫的巴黎合影,虚焦,另一只爪上隐约有红绳。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;中景平视微环绕</span><span><i>声音</i>&nbsp;弦乐轻铺</span><span><i>情绪</i>&nbsp;幸福 · 观众此刻自己会拼出:金线=她修的,杯=她送的</span></div>
       </div>
+    </article>
 
-      <div class="act">🎬 Act II · 那个早晨(13–22s)—— 丢失必须有"丢失的那一刻",且咎由自取</div>
+    <div class="act-head"><span class="reel">ACT II · 00:13–00:22</span><h3>那个早晨</h3><p class="mood">丢失必须有"丢失的那一刻",且咎由自取。</p></div>
 
-      <div class="shot"><h4>#4 搬家日 · 报纸包杯入"送人"箱 <span class="tag">M · 6s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>白天,空荡的旧居,墙上留着家具的印子。狸花猫抱着摞成塔的行李上楼,气喘吁吁。桌上只剩一只空纸箱,侧面马克笔写着"送人"。他犹豫了一下,拿起金缮杯,<b>扯下一张旧报纸三下两下裹好,放进"送人"箱</b>,抱起箱子转身走——杯子是"她"的,他没敢留在新家里。</dd>
-          <dt>镜头 / 音效</dt><dd>中景手持微晃;胶带、纸箱摩擦声,犹豫时环境音短暂抽空。</dd>
-          <dt>情绪</dt><dd>疲惫、逃避。搬家收尾的一地鸡毛,不是戏剧冲突。</dd>
-          <dt class="tip">全片因果锁死在两处:报纸裹杯(→#9 由报纸救回)、投入"送人"箱(→自责来源)。</dt>
-        </dl>
+    <article class="shot" id="s4">
+      <div class="rail"><span class="no">4</span><span class="tc">00:13<br>–19</span><span class="tempo M">M</span></div>
+      <div class="body"><h4>搬家日 · 报纸包杯入"送人"箱</h4>
+        <p class="scene">白天,空荡的旧居,墙上留着家具的印子。狸花猫抱着摞成塔的行李上楼,气喘吁吁。桌上只剩一只空纸箱,侧面马克笔写着"送人"。他犹豫了一下,拿起金缮杯,<em>扯下一张旧报纸三下两下裹好,放进"送人"箱</em>,抱起箱子转身走——杯子是"她"的,他没敢留在新家里。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;中景手持微晃</span><span><i>声音</i>&nbsp;胶带、纸箱摩擦;犹豫时环境音短暂抽空</span><span><i>情绪</i>&nbsp;疲惫、逃避 · 搬家收尾的一地鸡毛,不是戏剧冲突</span></div>
+        <p class="tip">全片因果锁死在两处:报纸裹杯(→#9 由报纸救回)、投入"送人"箱(→自责来源)。</p>
       </div>
+    </article>
 
-      <div class="shot"><h4>#5 回头 · 楼道空了 <span class="tag">Q · 3s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>他抱着大箱回到楼道想拿那箱"送人"的——<b>原地的空纸箱不见了,只剩一小块干净的地面</b>。瞳孔骤缩,抱着的大箱滑落在地。</dd>
-          <dt>镜头 / 音效</dt><dd>过肩急推空地;所有环境音瞬间抽空,一声低频嗡鸣。</dd>
-          <dt>情绪</dt><dd>大脑空白 → 惊慌。这是全片真正的"骤失",无需任何消失特效。</dd>
-        </dl>
+    <article class="shot" id="s5">
+      <div class="rail"><span class="no">5</span><span class="tc">00:19<br>–22</span><span class="tempo Q">Q</span></div>
+      <div class="body"><h4>回头 · 楼道空了</h4>
+        <p class="scene">他抱着大箱回到楼道想拿那箱"送人"的——<em>原地的空纸箱不见了,只剩一小块干净的地面</em>。瞳孔骤缩,抱着的大箱滑落在地。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;过肩急推空地</span><span><i>声音</i>&nbsp;所有环境音瞬间抽空,一声低频嗡鸣</span><span><i>情绪</i>&nbsp;大脑空白 → 惊慌。这是全片真正的"骤失",无需任何消失特效</span></div>
       </div>
+    </article>
 
-      <div class="act">🎬 Act III · 找(22–39s)—— 寻找压到两镜,低谷与转折合并</div>
+    <div class="act-head"><span class="reel">ACT III · 00:22–00:39</span><h3>找</h3><p class="mood">寻找压到三镜以内,低谷与转折合并。</p></div>
 
-      <div class="shot"><h4>#6 下楼疯找(跳切三连) <span class="tag">M · 6s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>6a 楼下回收站,纸板山翻过一遍——没有;6b 楼道转角,回收车已经空了;6c 问门卫大爷,大爷摇头摊手。色调转灰。</dd>
-          <dt>镜头 / 音效</dt><dd>跟拍跳切,每段 2 秒;喘息、纸板倒塌声、雨点初落。</dd>
-          <dt>情绪</dt><dd>执着、越来越慌。</dd>
-        </dl>
+    <article class="shot" id="s6">
+      <div class="rail"><span class="no">6</span><span class="tc">00:22<br>–28</span><span class="tempo M">M</span></div>
+      <div class="body"><h4>下楼疯找(跳切三连)</h4>
+        <p class="scene">6a 楼下回收站,纸板山翻过一遍——没有;6b 楼道转角,回收车已经空了;6c 问门卫大爷,大爷摇头摊手。色调转灰。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;跟拍跳切,每段 2 秒</span><span><i>声音</i>&nbsp;喘息、纸板倒塌声、雨点初落</span><span><i>情绪</i>&nbsp;执着、越来越慌</span></div>
       </div>
+    </article>
 
-      <div class="shot"><h4>#7 储藏间 · 翻箱倒柜 <span class="tag">M · 6s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>楼梯下杂物间,昏黄灯泡晃。狸花猫蹲在垃圾堆里逐箱打开,旧物翻了一地,灰尘在灯影里飞。他在一张废纸上看见金色反光的幻觉,抓起来——只是一卷胶带。</dd>
-          <dt>镜头 / 音效</dt><dd>低角度广角畸变,压抑;灯泡吱呀声、心跳渐强。</dd>
-          <dt>情绪</dt><dd>自责具象化:"是我亲手把它包进'送人'箱的。"</dd>
-        </dl>
+    <article class="shot" id="s7">
+      <div class="rail"><span class="no">7</span><span class="tc">00:28<br>–33</span><span class="tempo M">M</span></div>
+      <div class="body"><h4>储藏间 · 翻箱倒柜</h4>
+        <p class="scene">楼梯下杂物间,昏黄灯泡晃。狸花猫蹲在垃圾堆里逐箱打开,旧物翻了一地,灰尘在灯影里飞。他在一张废纸上看见金色反光的幻觉,抓起来——只是一卷胶带。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;低角度广角畸变,压抑</span><span><i>声音</i>&nbsp;灯泡吱呀、心跳渐强</span><span><i>情绪</i>&nbsp;自责具象化:"是我亲手把它包进'送人'箱的"</span></div>
       </div>
+    </article>
 
-      <div class="shot"><h4>#8 深夜沙发 · 记起 <span class="tag">S · 6s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>深夜客厅,全片最低点:狸花猫蜷在沙发,影子拉得很长,面前是空了的"送人"位置。音乐全停,只剩挂钟。他失神地盯着阳台方向——<b>那捆搬家剩下、一直没扔的旧报纸,还靠在阳台墙角</b>。瞳孔微张,他猛地坐直。</dd>
-          <dt>镜头 / 音效</dt><dd>静止远景极缓推近,在他坐直的瞬间停住;钟表滴答→骤停→一声清亮钢琴单音。</dd>
-          <dt>情绪</dt><dd>沉默的失落 → 一线希望。<b>转折来自他的记忆,不是阳光和运气。</b></dd>
-        </dl>
+    <article class="shot" id="s8">
+      <div class="rail"><span class="no">8</span><span class="tc">00:33<br>–39</span><span class="tempo S">S</span></div>
+      <div class="body"><h4>深夜沙发 · 记起</h4>
+        <p class="scene">深夜客厅,全片最低点:狸花猫蜷在沙发,影子拉得很长,面前是空了的"送人"位置。音乐全停,只剩挂钟。他失神地盯着阳台方向——<em>那捆搬家剩下、一直没扔的旧报纸,还靠在阳台墙角</em>。瞳孔微张,他猛地坐直。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;静止远景极缓推近,坐直瞬间停住</span><span><i>声音</i>&nbsp;钟表滴答→骤停→一声清亮钢琴单音</span><span><i>情绪</i>&nbsp;沉默的失落 → 一线希望</span></div>
+        <p class="tip">转折来自他的记忆,不是阳光和运气。配乐此镜最轻。</p>
       </div>
+    </article>
 
-      <div class="act">🎬 Act IV · 亲手重逢(39–49s)—— 全片最高点给足时长</div>
+    <div class="act-head"><span class="reel">ACT IV · 00:39–00:52</span><h3>亲手重逢</h3><p class="mood">全片最高点给足时长——重逢的每一秒都是前面翻找换来的。</p></div>
 
-      <div class="shot"><h4>#9 翻报纸 · 杯子滚出来 <span class="tag">Q · 4s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>阳台,狸花猫跪坐在那捆旧报纸前,一层一层<b>亲手</b>抖开,报纸散落一地。最后一张滑落——金缮杯骨碌碌滚出来,停在晨光/灯光里,<b>金线亮了一下,完好无损</b>。他的爪僵在半空,不敢碰。</dd>
-          <dt>镜头 / 音效</dt><dd>慢动作:报纸离开、杯子滚停、爪子悬停三段;纸张声密集后骤然安静,杯落地一声轻响。</dd>
-          <dt>情绪</dt><dd>屏息 → 不敢置信。重逢的每一秒都是他前面翻找换来的。</dd>
-        </dl>
+    <article class="shot" id="s9">
+      <div class="rail"><span class="no">9</span><span class="tc">00:39<br>–43</span><span class="tempo Q">Q</span></div>
+      <div class="body"><h4>翻报纸 · 杯子滚出来</h4>
+        <p class="scene">阳台,狸花猫跪坐在那捆旧报纸前,一层一层<em>亲手</em>抖开,报纸散落一地。最后一张滑落——金缮杯骨碌碌滚出来,停在晨光里,<em>金线亮了一下,完好无损</em>。他的爪僵在半空,不敢碰。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;慢动作三段:报纸离手 / 杯滚停 / 爪悬停</span><span><i>声音</i>&nbsp;纸张声密集后骤静,杯落地一声轻响</span><span><i>情绪</i>&nbsp;屏息 → 不敢置信</span></div>
       </div>
+    </article>
 
-      <div class="shot"><h4>#10 捧杯贴胸 · 招牌姿势 B 态 <span class="tag">S · 6s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>他终于把杯子捧起来,贴进胸口——与 #3 完全同构的动作,但这一次眼眶泛光、嘴角向下又慢慢上扬:捧的不再只是宝贝,是<b>失而复得本身</b>。星形高光后期补,别指望 AI。</dd>
-          <dt>镜头 / 音效</dt><dd>正面缓推至中近景;弦乐自单音缓缓涌起,晚进、渐强。</dd>
-          <dt>情绪</dt><dd>狂喜收敛成安静。克制后的爆发,全片情绪最高点。</dd>
-        </dl>
+    <article class="shot" id="s10">
+      <div class="rail"><span class="no">10</span><span class="tc">00:43<br>–48</span><span class="tempo S">S</span></div>
+      <div class="body"><h4>捧杯贴胸 · 招牌姿势 B 态</h4>
+        <p class="scene">他终于把杯子捧起来,贴进胸口——与 #3 完全同构的动作,但这一次眼眶泛光、嘴角向下又慢慢上扬:捧的不再只是宝贝,是<em>失而复得本身</em>。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;正面缓推至中近景</span><span><i>声音</i>&nbsp;弦乐自单音缓缓涌起,晚进、渐强</span><span><i>情绪</i>&nbsp;狂喜收敛成安静 · 全片情绪最高点</span></div>
+        <p class="tip">星形高光后期补(AE/剪映现成特效),别指望 AI 生成。</p>
       </div>
+    </article>
 
-      <div class="shot"><h4>#11 像检查一位老友 <span class="tag">M · 5s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>厨房水槽,温水冲洗薄灰。他把杯子举到灯下慢慢转,指腹顺着<b>金线</b>摸过一圈,确认没再碎。动作轻得像在检查旧伤疤。</dd>
-          <dt>镜头 / 音效</dt><dd>特写手部戏;水声、陶瓷轻叩声。</dd>
-          <dt>情绪</dt><dd>温柔、劫后余生。</dd>
-        </dl>
+    <article class="shot" id="s11">
+      <div class="rail"><span class="no">11</span><span class="tc">00:48<br>–52</span><span class="tempo M">M</span></div>
+      <div class="body"><h4>像检查一位老友</h4>
+        <p class="scene">厨房水槽,温水冲洗薄灰。他把杯子举到灯下慢慢转,指腹顺着<em>金线</em>摸过一圈,确认没再碎。动作轻得像在检查旧伤疤。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;特写手部戏</span><span><i>声音</i>&nbsp;水声、陶瓷轻叩</span><span><i>情绪</i>&nbsp;温柔、劫后余生</span></div>
       </div>
+    </article>
 
-      <div class="act">🎬 Act V · 第一口茶(49–60s)—— 失而复得的不是杯子,是重新端起它的能力</div>
+    <div class="act-head"><span class="reel">ACT V · 00:52–01:00</span><h3>第一口茶</h3><p class="mood">失而复得的不是杯子,是重新端起它的能力。</p></div>
 
-      <div class="shot"><h4>#12 再斟一杯 · 喝下 · 归位 <span class="tag">S · 8s</span></h4>
-        <dl>
-          <dt>画面</dt><dd>又一个清晨,与 #1 同机位同光回环:滚水冲茶,金缮杯,茶叶浮起。区别在于——这一次,狸花猫<b>端起杯子,喝了一口</b>,长长舒了一口气,笑着把杯子放回书桌,放回那只巴黎双人相框旁边,没有移开。热气袅袅漫过杯口,内壁 "PARIS" 在雾里若隐若现,自然带出,不特写、不停留。厨房柜里那只从没碰过的素白杯,门轻轻关上。</dd>
-          <dt>镜头 / 音效</dt><dd>缓拉+微升俯视收尾;钢琴与弦乐温暖铺开,留一丝怀旧的余味。</dd>
-          <dt>情绪</dt><dd>释然。从"捧着不敢用"到"喝下这一口"——招牌姿势完成 A→B→放下的三段闭环。</dd>
-        </dl>
+    <article class="shot" id="s12">
+      <div class="rail"><span class="no">12</span><span class="tc">00:52<br>–60</span><span class="tempo S">S</span></div>
+      <div class="body"><h4>再斟一杯 · 喝下 · 归位</h4>
+        <p class="scene">又一个清晨,与 #1 同机位同光回环:滚水冲茶,金缮杯,茶叶浮起。区别在于——这一次,狸花猫<em>端起杯子,喝了一口</em>,长长舒了一口气,笑着把杯子放回书桌,放回那只巴黎双人相框旁边,没有移开。热气袅袅漫过杯口,内壁 "PARIS" 在雾里若隐若现,自然带出,不特写、不停留。厨房柜里那只从没碰过的素白杯,门轻轻关上。</p>
+        <div class="meta"><span><i>镜头</i>&nbsp;缓拉+微升俯视收尾</span><span><i>声音</i>&nbsp;钢琴与弦乐温暖铺开,留一丝怀旧余味</span><span><i>情绪</i>&nbsp;释然 · 招牌姿势 A→B→放下,三段闭环</span></div>
       </div>
-    </section>
+    </article>
+  </section>
 
-    <section>
-      <h2>三、关键情绪节点 checklist(给生成 agent)</h2>
-      <ul>
-        <li>☐ #1–#3:甜而不腻;"她"只用金线、红绳、相框三处痕迹交代,零台词零字幕</li>
-        <li>☐ #4 是全片因果锁:报纸裹杯 → #9 靠报纸找回;"送人"箱 → #7 的自责</li>
-        <li>☐ #5 骤失靠"箱子没了"的叙事,不靠对焦特效;#6–#9 画面里不得提前出现杯子</li>
-        <li>☐ #8:全片最低点,<b>配乐最轻</b>;转折(记起报纸)必须由他的视线完成</li>
-        <li>☐ #9–#10:重逢共 10 秒,是寻找时长的合法回报;音乐克制后爆发,晚进渐强</li>
-        <li>☐ #10 与 #3 同机位同姿势,星形高光 AE/剪映后期合成</li>
-        <li>☐ #12 与 #1 同机位回环;差别只有一个:这次他<b>喝了</b>;"PARIS" 随热气自然露出,不做彩蛋特写</li>
-      </ul>
-    </section>
+  <!-- ================= checklist ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-no">QC</span><h2>关键情绪节点 checklist</h2><span class="en">给生成 agent</span></div>
+    <ul class="checklist">
+      <li>#1–#3:甜而不腻;"她"只用金线、红绳、相框三处痕迹交代,零台词零字幕</li>
+      <li>#4 是全片因果锁:报纸裹杯 → #9 靠报纸找回;"送人"箱 → #7 的自责</li>
+      <li>#5 骤失靠"箱子没了"的叙事,不靠对焦特效;#6–#9 画面里不得提前出现杯子</li>
+      <li>#8:全片最低点,<strong>配乐最轻</strong>;转折(记起报纸)必须由他的视线完成</li>
+      <li>#9–#11:重逢共 13 秒,是寻找时长的合法回报;音乐克制后爆发,晚进渐强</li>
+      <li>#10 与 #3 同机位同姿势,星形高光 AE/剪映后期合成</li>
+      <li>#12 与 #1 同机位回环;差别只有一个:这次他<strong>喝了</strong>;"PARIS" 随热气自然露出,不做彩蛋特写</li>
+    </ul>
+  </section>
 
-    <section>
-      <h2>四、全局注意事项(避坑清单)</h2>
-      <ol>
-        <li><b>金线一致性 = 杯子一致性:</b>每个出现杯子的镜头,1.1 前缀一字不差塞进 prompt;金线断没断、歪没歪是剧情连续性(崭新→落灰→完好)。</li>
-        <li><b>猫脸一致性:</b>所有主角镜头用 1.2 描述短语;"她"永远只拍爪(1.3),露脸即穿帮。</li>
-        <li><b>道具连续性唯一难点:</b>杯子只在 #1–#4、#9–#12 出现;#5–#8 是"缺失"状态。"消失"不需要 AI 做删除,只需要"不在场"。</li>
-        <li><b>报纸是隐藏主角:</b>#4 裹杯的报纸、#7 一闪而过的废纸、#9 找回的报纸,三处道具必须同款旧报纸质感。</li>
-        <li><b>音画对位:</b>#5 抽空、#8 停拍、#9 静后一声轻响、#10 晚进渐强——声音设计的骨架就是情绪骨架。</li>
-        <li><b>配色:</b>全片暖色为底,#6–#8 降饱和、可微微偏灰蓝,但<b>不走冷调</b>——结尾要重逢,中段不能把希望画死。</li>
-        <li><b>杯子要"脏":</b>#9 被找到时有一层薄灰+报纸油墨印,强化"消失了一段时间"。</li>
-        <li><b>克制的野心:</b>60 秒讲"一个人如何重新生活",不要贪情节;每一镜只服务弧线一格。</li>
-      </ol>
-    </section>
+  <!-- ================= 避坑 ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-no">RISKS</span><h2>全局避坑清单</h2><span class="en">continuity &amp; craft</span></div>
+    <ol class="pitfalls">
+      <li><strong>金线一致性 = 杯子一致性:</strong>每个出现杯子的镜头,杯子前缀一字不差塞进 prompt;金线的崭新→落灰→完好是剧情连续性。</li>
+      <li><strong>猫脸一致性:</strong>所有主角镜头用角色描述短语;"她"永远只拍爪,露脸即穿帮。</li>
+      <li><strong>道具连续性唯一难点:</strong>杯子只在 #1–#4、#9–#12 出现;#5–#8 是"缺失"状态。"消失"不需要 AI 做删除,只需要"不在场"。</li>
+      <li><strong>报纸是隐藏主角:</strong>#4 裹杯、#7 一闪而过的废纸、#9 找回的报纸,三处必须同款旧报纸质感。</li>
+      <li><strong>音画对位:</strong>#5 抽空、#8 停拍、#9 静后一声轻响、#10 晚进渐强——声音设计的骨架就是情绪骨架。</li>
+      <li><strong>配色:</strong>全片暖色为底,#6–#8 降饱和、可微微偏灰蓝,但<strong>不走冷调</strong>——结尾要重逢,中段不能把希望画死。</li>
+      <li><strong>杯子要"脏":</strong>#9 被找到时有一层薄灰+报纸油墨印,强化"消失了一段时间"。</li>
+      <li><strong>克制的野心:</strong>60 秒讲"一个人如何重新生活",不要贪情节;每一镜只服务弧线一格。</li>
+    </ol>
+  </section>
 
-    <footer>《失而复得》v2 · 基于 v1 五大问题重写 · 本页支持在线编辑,改动自动保存在本浏览器(localStorage);换设备请用「下载当前版」带走。</footer>
-  </article>
-</div>
+  <footer class="endnote">
+    <p><span class="seam-word">金缮</span></p>
+    <p>《失而复得》v2 · 本页支持在线编辑:「✎ 开启编辑」后直接改文字,自动保存于本浏览器(localStorage);换设备请用「下载当前版」带走。设计参考:anthropics/skills · frontend-design / cinematic-dark。</p>
+  </footer>
+  </div>
+</article>
 
 <script>
 (function () {
-  var KEY = 'mug-sc…s-v1';
+  var KEY = 'mug-sc…s-v2';
   var doc = document.getElementById('doc');
   var btnEdit = document.getElementById('btn-edit');
   var btnReset = document.getElementById('btn-reset');
   var btnDl = document.getElementById('btn-download');
   var btnPrint = document.getElementById('btn-print');
   var status = document.getElementById('status');
-  var original = doc.innerHTML; // 当前脚本加载时的原稿
+  var original = doc.innerHTML;
   var editing = false, timer = null;
 
   try {
@@ -285,16 +472,16 @@
       doc.innerHTML = saved;
       status.textContent = '已载入你上次的本地修改';
     }
-  } catch (e) { /* 隐私模式等,忽略 */ }
+  } catch (e) {}
 
   function setEditing(on) {
     editing = on;
     doc.contentEditable = on ? 'true' : 'false';
     document.body.classList.toggle('editing', on);
     btnEdit.classList.toggle('active', on);
-    btnEdit.textContent = on ? '✅ 编辑中 · 点此退出' : '✏️ 开启编辑';
+    btnEdit.textContent = on ? '✓ 编辑中 · 点此退出' : '✎ 开启编辑';
     if (on) { status.textContent = '编辑中 · 输入即自动保存'; doc.focus(); }
-    else if (!timer) { status.textContent = '只读模式 · 开启编辑后自动保存到本浏览器'; }
+    else { status.textContent = '只读 · 开启编辑后改动自动存入本浏览器'; }
   }
 
   function save() {
@@ -302,7 +489,7 @@
       localStorage.setItem(KEY, doc.innerHTML);
       var t = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       status.textContent = '已自动保存 ' + t;
-    } catch (e) { status.textContent = '⚠️ 保存失败(存储已满或隐私模式)'; }
+    } catch (e) { status.textContent = '⚠ 保存失败(存储已满或隐私模式)'; }
   }
 
   doc.addEventListener('input', function () {
@@ -331,9 +518,7 @@
     var blob = new Blob(['<!doctype html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
-    link.href = url;
-    link.download = 'mug-script-v2-edited.html';
-    link.click();
+    link.href = url; link.download = 'mug-script-v2-edited.html'; link.click();
     setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
   });
 
