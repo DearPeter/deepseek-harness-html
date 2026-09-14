@@ -841,6 +841,65 @@ def load_state():
   var messages = [];
   var busy = false;
   var currentStep = "第 1 步";
+  var currentStepEl = null;
+
+  // 把学生此刻正在看的那一步（含我给他的代码示例）整理成上下文，一起发给老师。
+  // 否则老师只知道"学到第几步"，看不到代码，只能凭空猜。
+  // 取"当前真正在看的那一步"：以视口上方 40% 处为准，
+  // 比只靠滚动观察器可靠 —— 观察器在快速跳转时容易漏掉
+  function activeStepEl() {
+    var els = document.querySelectorAll(".step");
+    if (!els.length) { return null; }
+    var mark = window.innerHeight * 0.4, best = null;
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].getBoundingClientRect().top <= mark) { best = els[i]; }
+    }
+    return best || els[0];
+  }
+
+  // 页面里同一段文案有三种系统版本（靠 CSS 隐藏），
+  // textContent 会把隐藏的那些也读出来，所以先克隆再剔掉不显示的
+  function visibleText(node) {
+    var c = node.cloneNode(true);
+    var os = window.courseOS || "mac";
+    var others = c.querySelectorAll(".os-mac, .os-win, .os-linux");
+    for (var i = 0; i < others.length; i++) {
+      if (!others[i].classList.contains("os-" + os)) {
+        others[i].parentNode.removeChild(others[i]);
+      }
+    }
+    return c.textContent;
+  }
+
+  function buildContext() {
+    var el = activeStepEl();
+    if (!el) { return ""; }
+    currentStepEl = el;
+    var noEl = el.querySelector(".step-no");
+    var tiEl = el.querySelector("h2");
+    var head = "第 " + (noEl ? noEl.textContent.replace(/^0/, "") : "?") +
+               " 步 · " + (tiEl ? tiEl.textContent.replace("分水岭", "").trim() : "");
+    var out = ["【学生此刻正在看的课程页面】" + head];
+    var nodes = el.querySelectorAll("h3, h4, pre code, p.act-note");
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i], tag = n.tagName.toLowerCase(), txt;
+      if (tag === "code") {
+        // 用 textContent，取的是学生当前系统那一版（切换过系统后已经换掉了）
+        txt = FENCE + "\n" + n.textContent + "\n" + FENCE;
+      } else if (tag === "h3") {
+        txt = "## " + n.textContent.trim();
+      } else if (tag === "h4") {
+        txt = "### " + n.textContent.trim();
+      } else {
+        txt = visibleText(n).trim();
+        if (txt.length > 100) { txt = txt.slice(0, 100) + "…"; }
+      }
+      out.push(txt);
+      // 最长的一步约 4000 字，上限设 5000 就能完整装下，不截断
+      if (out.join("\n").length > 5000) { break; }
+    }
+    return out.join("\n").slice(0, 5000);
+  }
 
   try { messages = JSON.parse(localStorage.getItem(CKEY) || "[]") || []; } catch (e) { messages = []; }
   function saveChat() { try { localStorage.setItem(CKEY, JSON.stringify(messages.slice(-30))); } catch (e) {} }
@@ -934,6 +993,17 @@ def load_state():
     var text = input.value.trim();
     if (!text) return;
     input.value = "";
+    // 提问这一刻以"实际在看的那一步"为准，别用观察器的滞后值
+    var el = activeStepEl();
+    if (el) {
+      var noEl = el.querySelector(".step-no"), tiEl = el.querySelector("h2");
+      if (noEl && tiEl) {
+        currentStepEl = el;
+        currentStep = "第 " + noEl.textContent.replace(/^0/, "") + " 步 · " +
+                      tiEl.textContent.replace("分水岭", "").trim();
+        ctxEl.textContent = "正在学：" + currentStep + "（已附上本步代码）";
+      }
+    }
     messages.push({ role: "user", content: text });
     saveChat();
     renderAll();
@@ -949,7 +1019,8 @@ def load_state():
     fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: modelSel.value, step: currentStep, messages: messages })
+      body: JSON.stringify({ model: modelSel.value, step: currentStep,
+                             context: buildContext(), messages: messages })
     }).then(function (resp) {
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
       var reader = resp.body.getReader();
@@ -1090,7 +1161,8 @@ def load_state():
           var no = en.target.querySelector(".step-no").textContent;
           var ti = en.target.querySelector("h2").textContent.replace("分水岭", "").trim();
           currentStep = "第 " + no.replace(/^0/, "") + " 步 · " + ti;
-          ctxEl.textContent = "正在学：" + currentStep;
+          currentStepEl = en.target;
+          ctxEl.textContent = "正在学：" + currentStep + "（已附上本步代码）";
         }
       });
     }, { rootMargin: "-30% 0px -60% 0px" });
