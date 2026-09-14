@@ -149,6 +149,11 @@
     .step-no { font-size: 24px; }
     .tools { right: 10px; bottom: 10px; }
   }
+  .chat .retry { margin-top: 10px; background: var(--accent); color: #fff; border: 0;
+    border-radius: 6px; padding: 7px 16px; font-family: var(--sans); font-size: 13px; cursor: pointer; }
+  .chat .retry:hover { filter: brightness(1.08); }
+  .chat .why { color: var(--ink-soft); }
+
   /* ── 系统切换 ── */
   .ossw { display: inline-flex; border: 1px solid var(--hair); border-radius: 8px; overflow: hidden;
     margin: 18px 0 2px; }
@@ -922,9 +927,39 @@ def load_state():
       if (acc) { messages.push({ role: "assistant", content: acc }); saveChat(); }
     }).catch(function () {
       stopPending();
-      if (!acc) {
-        note("连不上答疑服务。<br>先在终端里启动它：<br><code>cd ~/Projects/Deepseek/Self-Agent</code><br>" +
-             "<code>.venv/bin/python course/server.py</code><br>看到「课程答疑服务已启动」后，回到这里重新发送。");
+      if (acc) { return; }
+      // 分情况给原因 —— 笼统一句「连不上」会让人白折腾半天
+      var local = location.hostname === "127.0.0.1" || location.hostname === "localhost" || location.protocol === "file:";
+      var safari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
+      var why;
+      if (local) {
+        why = "你这个页面是本机打开的，所以单纯是<b>答疑服务没在跑</b>。先启动它：";
+      } else if (location.protocol === "https:" && safari) {
+        why = "你用的是 <b>Safari</b>，它不允许 https 页面访问本机的 http 服务（Chrome / Edge / Firefox 都没这个限制）。" +
+              "<br>两个办法：① 换 Chrome；② 直接用本机地址打开页面。先确认服务在跑：";
+      } else if (location.protocol === "https:") {
+        why = "你是从线上页面打开的，浏览器没能连回你本机的服务。两个可能：<b>① 本机服务没启动</b>；" +
+              "<b>② 浏览器版本较老</b>，不允许网页访问本机。先启动服务：";
+      } else {
+        why = "连不上答疑服务。先启动它：";
+      }
+      note("<span class='why'>" + why + "</span><br><code>" + window.courseCdCmd() + "</code><br>" +
+           "<code>" + window.courseStartCmd() + "</code><br>" +
+           "启动后如果还是不行，改用本机地址打开：<code>http://127.0.0.1:8765/</code>" +
+           "<br><button type='button' class='retry' id='chatRetry'>重试一次</button>");
+      var rb = document.getElementById("chatRetry");
+      if (rb) {
+        rb.addEventListener("click", function () {
+          var last = messages[messages.length - 1];
+          if (!last || last.role !== "user") { return; }
+          messages.pop();
+          var bubbles = log.querySelectorAll(".msg.user");
+          if (bubbles.length) { bubbles[bubbles.length - 1].remove(); }
+          input.value = last.content;
+          var oldWarn = rb.closest(".note-warn");
+          if (oldWarn) { oldWarn.remove(); } else { rb.remove(); }
+          send();
+        });
       }
     }).then(function () {
       busy = false;
