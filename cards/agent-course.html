@@ -149,6 +149,17 @@
     .step-no { font-size: 24px; }
     .tools { right: 10px; bottom: 10px; }
   }
+  .chat-svc { border-top: 1px solid var(--hair); padding: 7px 12px 0; }
+  .chat-svc-t { background: transparent; border: 0; color: var(--ink-soft); font-family: var(--sans);
+    font-size: 12.5px; cursor: pointer; padding: 0 0 6px; }
+  .chat-svc-t:hover { color: var(--accent); }
+  .chat-svc-b { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding-bottom: 8px; }
+  .chat-svc-b input { flex: 1 1 150px; min-width: 0; background: var(--code-bg); color: var(--paper);
+    border: 1px solid var(--hair); border-radius: 6px; padding: 6px 9px;
+    font-family: var(--mono); font-size: 12px; }
+  .chat-svc-b button { background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    padding: 6px 12px; font-family: var(--sans); font-size: 12.5px; cursor: pointer; }
+  .chat-svc-hint { flex: 1 1 100%; margin: 0; font-size: 11.5px; color: var(--ink-soft); }
   .chat .retry { margin-top: 10px; background: var(--accent); color: #fff; border: 0;
     border-radius: 6px; padding: 7px 16px; font-family: var(--sans); font-size: 13px; cursor: pointer; }
   .chat .retry:hover { filter: brightness(1.08); }
@@ -555,6 +566,14 @@ def load_state():
   </div>
   <div class="chat-ctx" id="chatCtx">正在学：第 1 步</div>
   <div class="chat-log" id="chatLog"></div>
+  <div class="chat-svc">
+    <button class="chat-svc-t" id="chatSvcT" type="button">⚙ 答疑服务地址</button>
+    <div class="chat-svc-b" id="chatSvcB" hidden>
+      <input id="chatSvcUrl" type="text" spellcheck="false" autocomplete="off" placeholder="http://127.0.0.1:8765">
+      <button id="chatSvcSave" type="button">保存</button>
+      <p class="chat-svc-hint" id="chatSvcHint"></p>
+    </div>
+  </div>
   <div class="chat-ft">
     <textarea id="chatInput" rows="2" placeholder="不懂的地方、或把报错原文贴进来…"></textarea>
     <button id="chatSend" type="button">发送</button>
@@ -764,7 +783,41 @@ def load_state():
 
 <script>
 (function () {
-  var API = "http://127.0.0.1:8765/api/chat";
+  var AKEY = "agent-course-v8-api";
+  var DEFAULT_REMOTE = "http://127.0.0.1:8765";
+  var BASE = DEFAULT_REMOTE;
+  var API = BASE + "/api/chat";
+
+  function trimSlash(u) { return String(u || "").replace(/\/+$/, ""); }
+
+  // 页面如果是课程服务自己发出来的（本机 / 局域网 IP / 隧道），走同源最省事：
+  // 不用跨域，也绕开了浏览器对「公网页面访问本机」的各种限制
+  function probeSameOrigin() {
+    if (location.protocol === "file:") { return Promise.resolve(null); }
+    return fetch(location.origin + "/api/health", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { return (j && j.ok) ? location.origin : null; })
+      .catch(function () { return null; });
+  }
+
+  function resolveBase() {
+    var q = "";
+    try { q = new URLSearchParams(location.search).get("api") || ""; } catch (e) {}
+    if (q) { return Promise.resolve(trimSlash(q)); }
+    var saved = "";
+    try { saved = localStorage.getItem(AKEY) || ""; } catch (e) {}
+    if (saved) { return Promise.resolve(trimSlash(saved)); }
+    return probeSameOrigin().then(function (origin) {
+      return trimSlash(origin || DEFAULT_REMOTE);
+    });
+  }
+
+  function setBase(b) {
+    BASE = trimSlash(b) || DEFAULT_REMOTE;
+    API = BASE + "/api/chat";
+    var el = document.getElementById("chatSvcUrl");
+    if (el) { el.value = BASE; }
+  }
   var CKEY = "agent-course-v8-chat";
   var BT = String.fromCharCode(96);
   var FENCE = BT + BT + BT;
@@ -929,7 +982,9 @@ def load_state():
       stopPending();
       if (acc) { return; }
       // 分情况给原因 —— 笼统一句「连不上」会让人白折腾半天
-      var local = location.hostname === "127.0.0.1" || location.hostname === "localhost" || location.protocol === "file:";
+      var sameOrigin = BASE === location.origin;
+      var local = sameOrigin || location.hostname === "127.0.0.1" ||
+                  location.hostname === "localhost" || location.protocol === "file:";
       var safari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
       var why;
       if (local) {
@@ -945,7 +1000,9 @@ def load_state():
       }
       note("<span class='why'>" + why + "</span><br><code>" + window.courseCdCmd() + "</code><br>" +
            "<code>" + window.courseStartCmd() + "</code><br>" +
-           "启动后如果还是不行，改用本机地址打开：<code>http://127.0.0.1:8765/</code>" +
+           "启动后如果还是不行：① 改用本机地址打开 <code>http://127.0.0.1:8765/</code>；" +
+           "② 或者点下面的 <b>⚙ 答疑服务地址</b>，把它改成你实际在用的地址。" +
+           "<br>当前地址：<code>" + BASE + "</code>" +
            "<br><button type='button' class='retry' id='chatRetry'>重试一次</button>");
       var rb = document.getElementById("chatRetry");
       if (rb) {
@@ -967,6 +1024,39 @@ def load_state():
       input.focus();
     });
   }
+
+  // ---- 答疑服务地址：设置界面 + 启动时自动判断 ----
+  var svcT = document.getElementById("chatSvcT");
+  var svcB = document.getElementById("chatSvcB");
+  var svcUrl = document.getElementById("chatSvcUrl");
+  var svcHint = document.getElementById("chatSvcHint");
+
+  svcT.addEventListener("click", function () {
+    svcB.hidden = !svcB.hidden;
+    if (!svcB.hidden) { svcUrl.focus(); }
+  });
+
+  document.getElementById("chatSvcSave").addEventListener("click", function () {
+    var v = trimSlash(svcUrl.value.trim()) || DEFAULT_REMOTE;
+    try { localStorage.setItem(AKEY, v); } catch (e) {}
+    setBase(v);
+    svcHint.textContent = "已保存：" + BASE + "，正在测试…";
+    fetch(BASE + "/api/health", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) { throw new Error("http " + r.status); } return r.json(); })
+      .then(function () { svcHint.textContent = "✓ 已保存，连接正常：" + BASE; })
+      .catch(function () {
+        svcHint.textContent = "✗ 已保存，但现在连不上：" + BASE +
+          "（确认服务在跑；跨网络的地址要写全 http:// 或 https://）";
+      });
+  });
+
+  setBase(BASE);
+  resolveBase().then(function (b) {
+    setBase(b);
+    return probeSameOrigin();
+  }).then(function (same) {
+    if (same) { svcHint.textContent = "当前用的是同源地址（页面就是服务发出来的），无需设置。"; }
+  });
 
   fab.addEventListener("click", function () {
     panel.classList.add("open");
