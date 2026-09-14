@@ -173,7 +173,9 @@
   .ossw button:hover { background: var(--accent-soft); }
   .ossw button.on { background: var(--accent); color: #fff; font-weight: 600; }
   .ossw-label { font-size: 12.5px; color: var(--ink-soft); margin-left: 10px; }
-  body.os-mac .os-win, body.os-win .os-mac { display: none; }
+  body.os-mac .os-win, body.os-mac .os-linux,
+  body.os-win .os-mac, body.os-win .os-linux,
+  body.os-linux .os-mac, body.os-linux .os-win { display: none; }
   /* ── 问老师 ── */
   .chat-fab { position: fixed; right: 20px; bottom: 78px; z-index: 40; display: inline-flex; align-items: center;
     gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 11px 20px;
@@ -248,7 +250,7 @@
       <h1>Agent 从零到一<br>手把手课程</h1>
       <p>不需要会机器学习，不需要数学，不需要显卡。你只需要会最基础的 Python。</p>
       <p>每一步都告诉你：要懂什么、敲什么、会看到什么、报错怎么办、怎么算过关。</p>
-      <div class="ossw" role="group" aria-label="选择你的操作系统"><button type="button" data-os="mac">macOS</button><button type="button" data-os="win">Windows</button></div><span class="ossw-label">两套命令都在页面里，切换只影响显示</span>
+      <div class="ossw" role="group" aria-label="选择你的操作系统"><button type="button" data-os="mac">macOS</button><button type="button" data-os="win">Windows</button><button type="button" data-os="linux">Linux</button></div><span class="ossw-label">三套命令都在页面里，切换只影响显示</span>
       <div class="meta">八步 · 约 81 小时 · 按每天 1 小时约 12 周 · <span id="metaStore">进度自动保存在本机浏览器</span></div>
     </div>
 
@@ -259,12 +261,12 @@
       <a class="btn" id="nowLink" href="#s1">跳到这一步</a>
     </div>
 
-    <section class="step" id="s1"><div class="step-hd"><span class="step-no">01</span><div><h2>让 Python 开口说第一句话</h2><p class="step-time">约 3 小时</p></div></div><p class="goal">你会有第一个能跟大模型对话的程序。跑起来的那一刻，你就正式开始了。</p><h3>先搞懂这几个词</h3><div class="terms"><div class="term"><b>API</b><span>程序之间的「点餐窗口」。你按固定格式写一份订单递过去，对方的服务器把做好的菜端回来。你不需要知道厨房里发生了什么。</span></div><div class="term"><b>API Key</b><span>你的会员卡，代表「这单记我账上」。它等于钱，绝不能粘贴到聊天窗口、也不能传到 GitHub 上。</span></div><div class="term"><b>messages</b><span>你递过去的对话记录，是一个清单，每一条都要标角色：system 是规矩，user 是你，assistant 是模型。</span></div></div><h3>跟着敲</h3><div class="act"><h4>第 1 步：确认你的 Python 版本</h4><p class="act-note"><span class="os-mac">macOS 自带的是 Python 3.9，太旧了。先看看你有没有新的。</span><span class="os-win">Windows 一般没装 Python，或者装的是应用商店版本。先确认一下你的情况。</span></p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="python --version">python3 --version</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="Python 3.12.4       ← 有输出就行&#10;# 如果弹出微软应用商店，说明还没装 Python，看第 2 步">Python 3.9.6        ← 如果是 3.9，说明是系统自带的旧版本</code></pre></div></div><div class="act"><h4>第 2 步：装一个够新的 Python</h4><p class="act-note">如果上一步显示的已经是 3.11 或更高，跳过这步。</p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="winget install -e --id Python.Python.3.12&#10;# 装完必须关掉终端重新打开，新命令才会生效">brew install python@3.12</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="已成功安装 Python 3.12。&#10;请关闭并重新打开 PowerShell，然后运行：python --version&#10;看到 3.12.x 就说明装好了。">==&gt; Pouring python@3.12 ...
+    <section class="step" id="s1"><div class="step-hd"><span class="step-no">01</span><div><h2>让 Python 开口说第一句话</h2><p class="step-time">约 3 小时</p></div></div><p class="goal">你会有第一个能跟大模型对话的程序。跑起来的那一刻，你就正式开始了。</p><h3>先搞懂这几个词</h3><div class="terms"><div class="term"><b>API</b><span>程序之间的「点餐窗口」。你按固定格式写一份订单递过去，对方的服务器把做好的菜端回来。你不需要知道厨房里发生了什么。</span></div><div class="term"><b>API Key</b><span>你的会员卡，代表「这单记我账上」。它等于钱，绝不能粘贴到聊天窗口、也不能传到 GitHub 上。</span></div><div class="term"><b>messages</b><span>你递过去的对话记录，是一个清单，每一条都要标角色：system 是规矩，user 是你，assistant 是模型。</span></div></div><h3>跟着敲</h3><div class="act"><h4>第 1 步：确认你的 Python 版本</h4><p class="act-note"><span class="os-mac">macOS 自带的是 Python 3.9，太旧了。先看看你有没有新的。</span><span class="os-win">Windows 一般没装 Python，或者装的是应用商店版本。先确认一下你的情况。</span><span class="os-linux">Linux 一般都自带 python3，但可能偏旧，而且常常缺「装虚拟环境」的组件。先看一眼版本。</span></p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="python --version">python3 --version</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="Python 3.12.4       ← 有输出就行&#10;# 如果弹出微软应用商店，说明还没装 Python，看第 2 步" data-linux="Python 3.12.3       ← 有输出就行&#10;# 如果提示「找不到 venv 模块」，先执行：sudo apt install python3-venv">Python 3.9.6        ← 如果是 3.9，说明是系统自带的旧版本</code></pre></div></div><div class="act"><h4>第 2 步：装一个够新的 Python</h4><p class="act-note">如果上一步显示的已经是 3.11 或更高，跳过这步。</p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="winget install -e --id Python.Python.3.12&#10;# 装完必须关掉终端重新打开，新命令才会生效" data-linux="sudo apt update &amp;&amp; sudo apt install -y python3 python3-venv python3-pip&#10;# 其它发行版：Fedora / CentOS 用 sudo dnf install python3 python3-pip&#10;#            Arch 用 sudo pacman -S python">brew install python@3.12</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="已成功安装 Python 3.12。&#10;请关闭并重新打开 PowerShell，然后运行：python --version&#10;看到 3.12.x 就说明装好了。" data-linux="正在设置 python3 (3.12.3-1) ...&#10;正在设置 python3-venv (3.12.3-1) ...&#10;# 装完直接就能用，不用重开终端">==&gt; Pouring python@3.12 ...
 ==&gt; Summary
-🍺  /opt/homebrew/Cellar/python@3.12/3.12.x: 3,000 files</code></pre></div></div><div class="act"><h4>第 3 步：建一个专门放代码的文件夹</h4><p class="act-note">别在 home 目录里乱放。第一次用「虚拟环境」这个概念：它是给你这个项目单独准备的房间，装什么都关在自己屋里，不会污染系统。</p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="mkdir $HOME\agent-course&#10;cd $HOME\agent-course&#10;python -m venv .venv&#10;.venv\Scripts\Activate.ps1&#10;# 如果提示「禁止运行脚本」，先执行：&#10;# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned">mkdir -p ~/agent-course
+🍺  /opt/homebrew/Cellar/python@3.12/3.12.x: 3,000 files</code></pre></div></div><div class="act"><h4>第 3 步：建一个专门放代码的文件夹</h4><p class="act-note">别在 home 目录里乱放。第一次用「虚拟环境」这个概念：它是给你这个项目单独准备的房间，装什么都关在自己屋里，不会污染系统。</p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="mkdir $HOME\agent-course&#10;cd $HOME\agent-course&#10;python -m venv .venv&#10;.venv\Scripts\Activate.ps1&#10;# 如果提示「禁止运行脚本」，先执行：&#10;# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned" data-linux="mkdir -p ~/agent-course&#10;cd ~/agent-course&#10;python3 -m venv .venv&#10;source .venv/bin/activate">mkdir -p ~/agent-course
 cd ~/agent-course
 python3.12 -m venv .venv
-source .venv/bin/activate</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="(agent-course) PS C:\Users\你的用户名\agent-course&gt;">(agent-course) peterchen@Mac agent-course %</code></pre></div></div><div class="act"><h4>第 4 步：装两个小工具</h4><p class="act-note">requests 用来发网络请求，python-dotenv 用来读配置文件。</p><div class="code"><button class="copy" type="button">复制</button><pre><code>pip install requests python-dotenv</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>Successfully installed python-dotenv-1.0.1 requests-2.32.3</code></pre></div></div><div class="act"><h4>第 5 步：申请一把 API Key</h4><p>打开你选定的平台控制台（阿里云百炼 / DeepSeek 都行），注册并登录，找到「API-KEY」菜单，创建一个，复制那串 sk- 开头的字符。
+source .venv/bin/activate</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code data-win="(agent-course) PS C:\Users\你的用户名\agent-course&gt;" data-linux="(agent-course) peterchen@ubuntu:~/agent-course$">(agent-course) peterchen@Mac agent-course %</code></pre></div></div><div class="act"><h4>第 4 步：装两个小工具</h4><p class="act-note">requests 用来发网络请求，python-dotenv 用来读配置文件。</p><div class="code"><button class="copy" type="button">复制</button><pre><code>pip install requests python-dotenv</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>Successfully installed python-dotenv-1.0.1 requests-2.32.3</code></pre></div></div><div class="act"><h4>第 5 步：申请一把 API Key</h4><p>打开你选定的平台控制台（阿里云百炼 / DeepSeek 都行），注册并登录，找到「API-KEY」菜单，创建一个，复制那串 sk- 开头的字符。
 
 拿到之后，**存进一个文件**，而不是记在聊天记录里：</p><div class="code"><button class="copy" type="button">复制</button><pre><code data-win="cd $HOME\agent-course&#10;Set-Content -Path .env -Value 'DASHSCOPE_API_KEY=sk-你复制的那串'&#10;Get-Content .env&#10;&#10;Add-Content -Path .gitignore -Value '.env'">cd ~/agent-course
 echo 'DASHSCOPE_API_KEY=sk-你复制的那串' &gt; .env
@@ -425,7 +427,7 @@ if __name__ == "__main__":
             "required": ["path"]
         }
     }
-}]</code></pre></div></div><div class="act"><h4>第 3 步：把最常用的五个工具写出来</h4><p class="act-note"><span class="os-mac">macOS 已经能直接用 rg。</span><span class="os-win">Windows 需要先装 ripgrep：<b>winget install BurntSushi.ripgrep.MSVC</b>，装完重开终端。</span></p><div class="code"><button class="copy" type="button">复制</button><pre><code>import subprocess, pathlib
+}]</code></pre></div></div><div class="act"><h4>第 3 步：把最常用的五个工具写出来</h4><p class="act-note"><span class="os-mac">macOS 已经能直接用 rg。</span><span class="os-win">Windows 需要先装 ripgrep：<b>winget install BurntSushi.ripgrep.MSVC</b>，装完重开终端。</span><span class="os-linux">Linux 需要先装 ripgrep：<b>sudo apt install ripgrep</b>（Fedora 用 sudo dnf install ripgrep）。</span></p><div class="code"><button class="copy" type="button">复制</button><pre><code>import subprocess, pathlib
 
 def read_file(path: str) -&gt; str:
     p = pathlib.Path(path).expanduser()
@@ -758,11 +760,15 @@ def load_state():
 
   function apply(os) {
     window.courseOS = os;
-    document.body.classList.toggle("os-mac", os !== "win");
+    document.body.classList.toggle("os-mac", os === "mac");
     document.body.classList.toggle("os-win", os === "win");
+    document.body.classList.toggle("os-linux", os === "linux");
     codes.forEach(function (c) {
       if (!c.dataset.mac) { c.dataset.mac = c.textContent; }
-      c.textContent = os === "win" ? c.dataset.win : c.dataset.mac;
+      // Linux 和 macOS 相同时不写 data-linux，自动回退到 mac 那套
+      c.textContent = os === "win" ? c.dataset.win
+                    : os === "linux" ? (c.dataset.linux || c.dataset.mac)
+                    : c.dataset.mac;
     });
     btns.forEach(function (b) { b.classList.toggle("on", b.dataset.os === os); });
     try { localStorage.setItem(KEY, os); } catch (e) {}
@@ -770,8 +776,12 @@ def load_state():
 
   var saved = "";
   try { saved = localStorage.getItem(KEY) || ""; } catch (e) {}
-  if (saved !== "mac" && saved !== "win") {
-    saved = /Win/i.test(navigator.userAgent || "") ? "win" : "mac";
+  if (saved !== "mac" && saved !== "win" && saved !== "linux") {
+    var ua = navigator.userAgent || "";
+    // 注意顺序：Android 的 UA 里也带 Linux，必须先排除，否则手机会被当成 Linux 桌面
+    saved = /Win/i.test(ua) ? "win"
+          : (/Linux|X11/i.test(ua) && !/Android/i.test(ua)) ? "linux"
+          : "mac";
   }
 
   btns.forEach(function (b) {
