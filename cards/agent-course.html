@@ -845,8 +845,7 @@ def load_state():
 
   // 把学生此刻正在看的那一步（含我给他的代码示例）整理成上下文，一起发给老师。
   // 否则老师只知道"学到第几步"，看不到代码，只能凭空猜。
-  // 取"当前真正在看的那一步"：以视口上方 40% 处为准，
-  // 比只靠滚动观察器可靠 —— 观察器在快速跳转时容易漏掉
+  // 取"当前真正在看的那一步"：以视口上方 40% 处为准，比靠滚动观察器可靠
   function activeStepEl() {
     var els = document.querySelectorAll(".step");
     if (!els.length) { return null; }
@@ -857,48 +856,28 @@ def load_state():
     return best || els[0];
   }
 
-  // 页面里同一段文案有三种系统版本（靠 CSS 隐藏），
-  // textContent 会把隐藏的那些也读出来，所以先克隆再剔掉不显示的
-  function visibleText(node) {
-    var c = node.cloneNode(true);
-    var os = window.courseOS || "mac";
-    var others = c.querySelectorAll(".os-mac, .os-win, .os-linux");
-    for (var i = 0; i < others.length; i++) {
-      if (!others[i].classList.contains("os-" + os)) {
-        others[i].parentNode.removeChild(others[i]);
-      }
-    }
-    return c.textContent;
-  }
-
+  // 只给老师一份"轻量目录"（几百字），不把整步塞进去。
+  // 它要正文时自己调 read_course_step 工具取 —— 按需查比硬塞更准，也更省。
   function buildContext() {
     var el = activeStepEl();
     if (!el) { return ""; }
     currentStepEl = el;
     var noEl = el.querySelector(".step-no");
     var tiEl = el.querySelector("h2");
-    var head = "第 " + (noEl ? noEl.textContent.replace(/^0/, "") : "?") +
-               " 步 · " + (tiEl ? tiEl.textContent.replace("分水岭", "").trim() : "");
-    var out = ["【学生此刻正在看的课程页面】" + head];
-    var nodes = el.querySelectorAll("h3, h4, pre code, p.act-note");
-    for (var i = 0; i < nodes.length; i++) {
-      var n = nodes[i], tag = n.tagName.toLowerCase(), txt;
-      if (tag === "code") {
-        // 用 textContent，取的是学生当前系统那一版（切换过系统后已经换掉了）
-        txt = FENCE + "\n" + n.textContent + "\n" + FENCE;
-      } else if (tag === "h3") {
-        txt = "## " + n.textContent.trim();
-      } else if (tag === "h4") {
-        txt = "### " + n.textContent.trim();
-      } else {
-        txt = visibleText(n).trim();
-        if (txt.length > 100) { txt = txt.slice(0, 100) + "…"; }
-      }
-      out.push(txt);
-      // 最长的一步约 4000 字，上限设 5000 就能完整装下，不截断
-      if (out.join("\n").length > 5000) { break; }
-    }
-    return out.join("\n").slice(0, 5000);
+    var clean = function (x) { return x.replace("分水岭", "").replace("★", "").trim(); };
+    var cur = "第 " + (noEl ? noEl.textContent.replace(/^0/, "") : "?") + " 步";
+    var out = ["【学生此刻正在看的步骤】" + cur + " · " + (tiEl ? clean(tiEl.textContent) : "")];
+    var idx = [];
+    document.querySelectorAll(".step").forEach(function (s) {
+      var n = s.querySelector(".step-no"), t = s.querySelector("h2");
+      if (n && t) { idx.push("第 " + n.textContent.replace(/^0/, "") + " 步 · " + clean(t.textContent)); }
+    });
+    out.push("这门课的全部步骤：\n" + idx.join("\n"));
+    var heads = [];
+    el.querySelectorAll("h3, h4").forEach(function (h) { heads.push("- " + h.textContent.trim()); });
+    if (heads.length) { out.push("他这一步的目录：\n" + heads.join("\n")); }
+    out.push("需要某一步的完整原文和代码，用 read_course_step 取；不确定在哪一步就用 search_course 搜。");
+    return out.join("\n");
   }
 
   try { messages = JSON.parse(localStorage.getItem(CKEY) || "[]") || []; } catch (e) { messages = []; }
@@ -1001,7 +980,7 @@ def load_state():
         currentStepEl = el;
         currentStep = "第 " + noEl.textContent.replace(/^0/, "") + " 步 · " +
                       tiEl.textContent.replace("分水岭", "").trim();
-        ctxEl.textContent = "正在学：" + currentStep + "（已附上本步代码）";
+        ctxEl.textContent = "正在学：" + currentStep + "（老师可按需翻看原文）";
       }
     }
     messages.push({ role: "user", content: text });
@@ -1020,6 +999,7 @@ def load_state():
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: modelSel.value, step: currentStep,
+                             os: window.courseOS || "mac",
                              context: buildContext(), messages: messages })
     }).then(function (resp) {
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
@@ -1040,7 +1020,8 @@ def load_state():
             try { ev = JSON.parse(payload); } catch (e) { return; }
             if (ev.error) { stopPending(); note("老师那边出错了：" + esc(ev.error)); return; }
             if (ev.thinking) {
-              if (pendingEl) { pendingEl.textContent = "老师正在思考… " + ev.elapsed + " 秒"; }
+              if (pendingEl) { pendingEl.textContent = ev.status ||
+            ("老师正在思考… " + ev.elapsed + " 秒"); }
               return;
             }
             if (ev.delta) {
@@ -1162,7 +1143,7 @@ def load_state():
           var ti = en.target.querySelector("h2").textContent.replace("分水岭", "").trim();
           currentStep = "第 " + no.replace(/^0/, "") + " 步 · " + ti;
           currentStepEl = en.target;
-          ctxEl.textContent = "正在学：" + currentStep + "（已附上本步代码）";
+          ctxEl.textContent = "正在学：" + currentStep + "（老师可按需翻看原文）";
         }
       });
     }, { rootMargin: "-30% 0px -60% 0px" });
