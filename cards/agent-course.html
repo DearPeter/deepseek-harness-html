@@ -852,6 +852,13 @@ def load_state():
     return fetch(b + "/api/state", { cache: "no-store" });
   }).then(function (r) { return r.ok ? r.json() : null; }).then(function (remote) {
     applyRemote(remote);
+    // 反向也要合：如果本机(比如之前在这个地址学的)比服务端多，就把本机推上去
+    var localN = 0, k;
+    for (k in state) { if (state[k]) { localN++; } }
+    var remoteN = 0;
+    var rp = (remote && remote.progress) || {};
+    for (k in rp) { if (rp[k]) { remoteN++; } }
+    if (localN > remoteN) { pushState(); }
   }).catch(function () {});
 
   paint();
