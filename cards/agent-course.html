@@ -189,9 +189,10 @@
   .mkfile.edit .mktag { background: var(--ink-soft); }
   .mkfile code { font-family: var(--mono); font-size: 13.5px; font-weight: 600; color: var(--ink); }
   .mknote { font-size: 12px; color: var(--ink-soft); }
-  .os-mac, .os-win, .os-linux, .os-rhel { display: none; }
-  body.os-mac .os-mac, body.os-win .os-win,
-  body.os-linux .os-linux, body.os-rhel .os-rhel { display: inline; }
+  body.os-mac .os-win, body.os-mac .os-linux, body.os-mac .os-rhel,
+  body.os-win .os-mac, body.os-win .os-linux, body.os-win .os-rhel,
+  body.os-linux .os-mac, body.os-linux .os-win, body.os-linux .os-rhel,
+  body.os-rhel .os-mac, body.os-rhel .os-win, body.os-rhel .os-linux { display: none; }
   /* ── 问老师 ── */
   .chat-fab { position: fixed; right: 20px; bottom: 78px; z-index: 40; display: inline-flex; align-items: center;
     gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 11px 20px;
