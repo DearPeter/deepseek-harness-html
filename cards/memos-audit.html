@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MemOS 评测取证 · 检定记录</title>
+<meta name="color-scheme" content="light">
+<meta name="description" content="对 MemTensor MemOS 作为 AI Agent 记忆系统的第三方评测取证：自报分数、受控榜单、工程一手缺陷与证据分级。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+/* ============================================================
+   检定台 —— 对 MemOS 评测证据的取证
+   设计原则：全页唯一大胆处 = 一条 0–100 量程尺，所有分数钉在同一尺度上
+             强调色承担语义（朱漆=自报存疑 / 冷杉绿=独立可核验），不作装饰
+             零圆角卡、零阴影、零渐变、零入场动画
+   ============================================================ */
+:root{
+  --bench:#eceee9; --bench-lo:#e3e6e0; --paper:#f8f9f6;
+  --ink:#171a19; --ink2:#41473f; --ink3:#6d746b;
+  --rule:#cbcfc6; --rule-hi:#a9b0a4;
+  --bronze:#7a6f52; --seal:#9e2b20; --seal-lo:#c2604f; --jade:#2c6b56;
+  --serif:"Noto Serif SC","Songti SC","STSongti-SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bench);color:var(--ink);font-family:var(--sans);
+  font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(158,43,32,.18)}
+
+/* ---------- 顶部工具条 ---------- */
+.toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:9px 20px;background:rgba(236,238,233,.9);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--rule)}
+.toolbar .stamp{font:600 11.5px/1 var(--mono);letter-spacing:.1em;color:var(--bronze);
+  border:1px solid var(--rule-hi);padding:6px 10px;background:var(--bench-lo)}
+.toolbar button{font-family:var(--mono);font-size:12px;letter-spacing:.03em;padding:6px 12px;cursor:pointer;
+  background:var(--paper);color:var(--ink);border:1px solid var(--ink);transition:background .15s}
+.toolbar button:hover{background:var(--ink);color:var(--paper)}
+.toolbar button:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.toolbar button.on{background:var(--seal);border-color:var(--seal);color:#fff}
+.toolbar .state{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--ink3)}
+#doc[contenteditable="true"]{outline:1px dashed var(--seal);outline-offset:14px}
+
+/* ---------- 版式 ---------- */
+.wrap{max-width:920px;margin:0 auto;padding:0 24px 96px}
+.masthead{padding:56px 0 34px;border-bottom:2px solid var(--ink)}
+.kicker{font:600 12px/1 var(--mono);letter-spacing:.22em;color:var(--bronze);margin:0 0 20px}
+h1{font-family:var(--serif);font-size:clamp(30px,5.2vw,46px);line-height:1.28;font-weight:600;
+  letter-spacing:.01em;margin:0 0 18px;text-wrap:balance}
+.standfirst{font-family:var(--serif);font-size:17.5px;line-height:1.9;color:var(--ink2);margin:0;max-width:44em}
+.meta{display:flex;flex-wrap:wrap;gap:0 26px;margin-top:26px;font:12px/1.9 var(--mono);color:var(--ink3)}
+.meta b{color:var(--ink);font-weight:600}
+
+section{padding-top:52px}
+h2{font-family:var(--serif);font-size:23px;font-weight:600;margin:0 0 6px;letter-spacing:.01em;line-height:1.5}
+h2 .zh{color:var(--bronze);font-weight:400;margin-right:12px}
+.lede{color:var(--ink3);font-size:13.5px;margin:0 0 26px;font-family:var(--mono);letter-spacing:.01em}
+h3{font-size:16.5px;font-weight:600;margin:36px 0 10px;padding-left:12px;border-left:3px solid var(--rule-hi)}
+p{margin:0 0 16px;max-width:44em}
+strong{font-weight:600}
+em{font-style:normal;background:linear-gradient(transparent 62%, rgba(158,43,32,.16) 62%)}
+code{font-family:var(--mono);font-size:.9em;background:var(--bench-lo);padding:1px 5px;border:1px solid var(--rule)}
+
+/* 证据标签 */
+.tag{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.06em;padding:4px 7px;vertical-align:1.5px;
+  border:1px solid currentColor;white-space:nowrap}
+.tag.self{color:var(--seal)} .tag.indie{color:var(--jade)} .tag.na{color:var(--ink3)} .tag.warn{color:var(--bronze)}
+
+/* ---------- 量程尺（全页唯一大胆处） ---------- */
+.scale{margin:26px 0 34px;border:1px solid var(--rule);background:var(--paper)}
+.scale .cap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:11px 16px;border-bottom:1px solid var(--rule);font:11.5px/1.5 var(--mono);color:var(--ink3)}
+.scale .cap b{color:var(--ink);font-weight:600}
+.axis{display:grid;grid-template-columns:176px 1fr 66px;gap:14px;padding:26px 16px 4px;align-items:end}
+.axis .ticks{position:relative;height:26px;border-bottom:1px solid var(--rule-hi);
+  background:repeating-linear-gradient(90deg,var(--rule-hi) 0 1px,transparent 1px 5%),
+             repeating-linear-gradient(90deg,var(--rule) 0 1px,transparent 1px 2.5%)}
+.axis .ticks span{position:absolute;bottom:5px;transform:translateX(-50%);font:10px/1 var(--mono);color:var(--ink3)}
+.axis .lab{font:10.5px/1.4 var(--mono);color:var(--ink3);padding-bottom:5px}
+.row{display:grid;grid-template-columns:176px 1fr 66px;gap:14px;padding:7px 16px;align-items:center}
+.row + .row{border-top:1px solid var(--bench-lo)}
+.row .nm{font-size:13.5px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm i{font-style:normal;font:11px/1 var(--mono);color:var(--ink3);margin-left:7px}
+.track{position:relative;height:15px;background:
+  repeating-linear-gradient(90deg,var(--rule) 0 1px,transparent 1px 10%)}
+.bar{position:absolute;left:0;top:0;bottom:0;background:var(--bronze)}
+.bar.self{background:var(--seal)} .bar.indie{background:var(--jade)}
+.limit{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--seal);z-index:3}
+.limit::after{content:attr(data-lab);position:absolute;top:-17px;left:5px;font:10px/1 var(--mono);color:var(--seal);white-space:nowrap}
+.row .vl{font:600 14px/1 var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.row.key{background:var(--bench-lo)}
+.row.key .nm{font-weight:700;color:var(--seal)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;padding:12px 16px;border-top:1px solid var(--rule);font:11.5px/1.6 var(--mono);color:var(--ink3)}
+.legend s{display:inline-block;width:22px;height:9px;text-decoration:none;margin-right:7px;vertical-align:0}
+@media(max-width:640px){
+  .axis,.row{grid-template-columns:120px 1fr 54px;gap:9px;padding-left:11px;padding-right:11px}
+  .row .nm{font-size:11.5px}
+  .axis{padding-top:24px}
+}
+
+/* ---------- 表格 ---------- */
+.tw{overflow-x:auto;margin:22px 0 30px;border:1px solid var(--rule);background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--bench-lo);vertical-align:top;line-height:1.6}
+th{font:600 11.5px/1.4 var(--mono);letter-spacing:.04em;color:var(--bronze);
+  background:var(--bench-lo);border-bottom:1px solid var(--rule-hi);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+td.hi{font-weight:700;color:var(--seal)}
+tr.key td{background:rgba(158,43,32,.055)}
+
+/* ---------- 提示块 ---------- */
+.note{border-left:4px solid var(--bronze);background:var(--paper);padding:16px 20px;margin:24px 0}
+.note.stop{border-left-color:var(--seal)}
+.note.ok{border-left-color:var(--jade)}
+.note p:last-child{margin-bottom:0}
+.note .h{font:600 12px/1 var(--mono);letter-spacing:.08em;color:var(--bronze);display:block;margin-bottom:9px}
+.note.stop .h{color:var(--seal)} .note.ok .h{color:var(--jade)}
+
+/* 证据分级三色 */
+.grade{display:grid;gap:18px;margin:26px 0}
+.g{border:1px solid var(--rule);background:var(--paper);padding:18px 20px}
+.g.t1{border-top:3px solid var(--jade)} .g.t2{border-top:3px solid var(--bronze)} .g.t3{border-top:3px solid var(--seal)}
+.g h4{margin:0 0 12px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px}
+.g h4 span{font:600 11px/1 var(--mono);color:var(--ink3);border:1px solid var(--rule-hi);padding:4px 7px}
+.g ul{margin:0;padding-left:19px} .g li{margin-bottom:9px;font-size:14px;line-height:1.75}
+.g li:last-child{margin-bottom:0}
+
+/* 列表 */
+ul.plain{padding-left:19px;max-width:44em} ul.plain li{margin-bottom:10px}
+ol.steps{padding-left:22px;max-width:44em} ol.steps li{margin-bottom:12px}
+
+footer{margin-top:64px;padding-top:26px;border-top:2px solid var(--ink);font-size:12.5px;color:var(--ink3)}
+footer a{color:var(--bronze)}
+.src{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px 24px;
+  font-size:12.5px;line-height:1.9;margin-top:14px}
+.src a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--rule-hi)}
+.src a:hover{color:var(--seal);border-bottom-color:var(--seal)}
+.sig{margin-top:26px;font-family:var(--serif);font-size:15px;color:var(--ink2);border-left:3px solid var(--ink);
+  padding:14px 0 14px 20px;max-width:44em;line-height:1.95}
+
+/* ---------- 打印：反转成纸面 ---------- */
+@media print{
+  :root{--bench:#fff;--bench-lo:#f2f3f0;--paper:#fff;--ink:#000;--ink2:#222;--ink3:#555;
+        --rule:#bbb;--rule-hi:#888;--bronze:#5a5136;--seal:#8a1f16;--jade:#1d4c3d}
+  .toolbar,.no-print{display:none!important}
+  body{font-size:11.5pt}
+  .wrap{max-width:none;padding:0}
+  section{padding-top:26px;break-inside:avoid}
+  h2{break-after:avoid}
+  .scale,.tw,.g,.note{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar no-print" id="toolbar">
+  <span class="stamp">检定记录 · MEMOS</span>
+  <button id="btn-edit" type="button">✎ 开启编辑</button>
+  <button id="btn-reset" type="button">恢复原稿</button>
+  <button id="btn-save" type="button">下载当前版</button>
+  <button id="btn-print" type="button">打印 PDF</button>
+  <span class="state" id="edit-state">只读 · 改动自动存本机</span>
+</div>
+
+<div class="wrap">
+<article id="doc">
+
+  <header class="masthead">
+    <p class="kicker">AUDIT · 2026-09-15</p>
+    <h1>MemOS 评测取证：<br>它自己的尺子，和别人的尺子</h1>
+    <p class="standfirst">
+      MemTensor 的 MemOS 是这两年声势最大的 Agent 记忆系统之一。这份记录不谈架构好不好看，
+      只做一件事：把它所有的分数按<strong>来源</strong>拆开，钉在同一把 0–100 的量程尺上，
+      看哪些是它自己量的，哪些是别人量过的，两者差多少。
+    </p>
+    <div class="meta">
+      <span><b>对象</b>　MemOS / MemOS Cloud / memos-local-plugin</span>
+      <span><b>方法</b>　3 路并行调研 + 主代理直连核验</span>
+      <span><b>一手来源</b>　GitHub API · AML 榜单 API · npm · alphaxiv</span>
+    </div>
+  </header>
+
+  <!-- ============ 结论 ============ -->
+  <section>
+    <h2><span class="zh">零</span>先给结论</h2>
+    <p class="lede">要一句话的话，是这句</p>
+    <p class="sig">
+      架构叙事和工程投入是真的，"评测领先"不是。<br>
+      在唯一一个把答案生成与打分都收归平台的第三方榜单上，MemOS 排第 2；<br>
+      在唯一给出误差棒的第三方重跑里，它只有 72.99，<strong>低于自己论文的 75.80</strong>；<br>
+      而 README 上写的 88.83，来自它自家的评测框架。
+    </p>
+    <p style="margin-top:26px">
+      它的真实强项是<em>检索速度</em>和<em>写入容量</em>；真实短板是<em>记忆治理、冲突消解、规则与流程执行</em>——
+      最后一项恰好是它对外宣传的头号卖点"自进化 / 技能复用"，在受控榜单上只拿到 <strong>9.82</strong>。
+    </p>
+  </section>
+
+  <!-- ============ 一 ============ -->
+  <section>
+    <h2><span class="zh">一</span>动手前先分开两个 "Memos"</h2>
+    <p class="lede">这是这类调研里最容易出错的地方，先排除掉</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>名字</th><th>是什么</th><th>注意</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>usememos/memos</code></td>
+            <td>自托管轻量笔记应用（Go），<strong>与 AI 无关</strong></td>
+            <td>网上搜 "Memos CVE" 命中的 <strong>CVE-2025-50738（CVSS 9.8）属于它</strong> <span class="tag warn">子代理核查</span></td>
+          </tr>
+          <tr class="key">
+            <td><code>MemTensor/MemOS</code></td>
+            <td>本记录对象：LLM / AI Agent 的记忆操作系统</td>
+            <td>我方直连核验：<strong>未找到针对它的任何 CVE</strong>。已公开的安全问题都以 GitHub issue 形式存在 <span class="tag indie">我已核验</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      把两者的 star 数、CVE、用户评价混在一起，结论就全错了。第三方站点 RightAIChoice 自己就踩了这个坑：
+      它把另一个<strong>同名笔记应用</strong>的 61K stars 算到了 MemOS 头上。所以它那个"61% 负面"的情感比，
+      只能当"缺乏真实用户验证"的弱信号，<strong>不能当分数级证据用</strong>。
+    </p>
+  </section>
+
+  <!-- ============ 二 ============ -->
+  <section>
+    <h2><span class="zh">二</span>官方自报：它说自己考了多少</h2>
+    <p class="lede">全部为自评口径，来源：GitHub README</p>
+
+    <div class="scale">
+      <div class="cap">
+        <span><b>MemOS 官方 README 自报成绩</b> · 脚注原文 "Evaluated via OmniMemEval"</span>
+        <span>OmniMemEval = MemTensor 自家评测框架</span>
+      </div>
+      <div class="axis">
+        <div class="lab">基准</div>
+        <div class="ticks">
+          <span style="left:0%">0</span><span style="left:25%">25</span><span style="left:50%">50</span>
+          <span style="left:75%">75</span><span style="left:100%">100</span>
+        </div>
+        <div class="lab" style="text-align:right">分数</div>
+      </div>
+      <div class="row key"><div class="nm">LongMemEval</div><div class="track"><div class="bar self" style="width:89.2%"></div></div><div class="vl">89.20</div></div>
+      <div class="row key"><div class="nm">LoCoMo</div><div class="track"><div class="bar self" style="width:88.83%"></div></div><div class="vl">88.83</div></div>
+      <div class="row"><div class="nm">HaluMem <i>自家基准</i></div><div class="track"><div class="bar self" style="width:80.91%"></div></div><div class="vl">80.91</div></div>
+      <div class="row"><div class="nm">LiveCodeBench</div><div class="track"><div class="bar self" style="width:64.96%"></div></div><div class="vl">64.96</div></div>
+      <div class="row"><div class="nm">GDPVal</div><div class="track"><div class="bar self" style="width:62.07%"></div></div><div class="vl">62.07</div></div>
+      <div class="row"><div class="nm">OmniMath</div><div class="track"><div class="bar self" style="width:61%"></div></div><div class="vl">61.00</div></div>
+      <div class="row"><div class="nm">BEAM-10M</div><div class="track"><div class="bar self" style="width:56.75%"></div></div><div class="vl">56.75</div></div>
+      <div class="row"><div class="nm">PersonaMem v2</div><div class="track"><div class="bar self" style="width:40.58%"></div></div><div class="vl">40.58</div></div>
+      <div class="row"><div class="nm">SWE-Bench</div><div class="track"><div class="bar self" style="width:38.46%"></div></div><div class="vl">38.46</div></div>
+      <div class="row"><div class="nm">BrowseComp-Plus</div><div class="track"><div class="bar self" style="width:23.85%"></div></div><div class="vl">23.85</div></div>
+      <div class="legend"><span><s style="background:var(--seal)"></s>自报口径（自家框架 / 官方渠道）</span></div>
+    </div>
+
+    <p>
+      同页还有一条自报：接入 OpenClaw 后五项 agent 任务平均完成率 <strong>36.63% → 50.87%</strong>。
+      另外 README 的 News 段明确记录 <strong>2026-08-17「MemOS Connects with DeepSeek Harness」</strong>，
+      仓库简介也写着 "DeepSeek Harness support"。
+    </p>
+    <div class="note stop">
+      <span class="h">第一个裂缝</span>
+      <p>
+        论文 v4 报的 LoCoMo 是 <strong>75.80</strong>，README 报的是 <strong>88.83</strong>，差 <strong>+13.03</strong>。
+        README 没有说明这是哪个版本变更带来的、怎么复现。LongMemEval 同样从 77.8 涨到 89.20。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 三 ============ -->
+  <section>
+    <h2><span class="zh">三</span>别人的尺子：AML 受控榜单</h2>
+    <p class="lede">Agent Memory Leaderboard · 2026-08-12 首期放榜 · 我方直连 API 全量抓取</p>
+
+    <p>
+      这是全网唯一一个把变量真正锁死的榜单：参评系统<strong>只暴露 Add / Search 两个接口</strong>，
+      答案生成、裁判模型、prompt、评分<strong>全部由平台统一控制</strong>，Add/Search 阶段强制使用
+      <code>gpt-4o-mini</code>。由 20+ 所高校与研究机构联合发起，评测集含 PersonaMem、LoCoMo-Refined、
+      CLBench、BEAM、LongMemEval、ScriptMem，1,500+ 历史与任务、近 5,000 道题。
+    </p>
+
+    <div class="scale">
+      <div class="cap">
+        <span><b>AML · 商业产品榜 · 文本记忆</b>（共 15 条，全部列出）</span>
+        <span>总分 0–100 · 版本号随行标注</span>
+      </div>
+      <div class="axis">
+        <div class="lab">系统</div>
+        <div class="ticks">
+          <span style="left:0%">0</span><span style="left:25%">25</span><span style="left:50%">50</span>
+          <span style="left:75%">75</span><span style="left:100%">100</span>
+        </div>
+        <div class="lab" style="text-align:right">总分</div>
+      </div>
+      <div class="row"><div class="nm">MemoraX <i>v0.5</i></div><div class="track"><div class="bar" style="width:58.02%"></div></div><div class="vl">58.02</div></div>
+      <div class="row key"><div class="nm">MemOS <i>v2.0.1</i></div><div class="track"><div class="bar" style="width:45.89%"></div></div><div class="vl">45.89</div></div>
+      <div class="row"><div class="nm">NTES-MEMORY-SMART</div><div class="track"><div class="bar" style="width:44.21%"></div></div><div class="vl">44.21</div></div>
+      <div class="row"><div class="nm">AML-Eval-FLASH</div><div class="track"><div class="bar" style="width:43.65%"></div></div><div class="vl">43.65</div></div>
+      <div class="row"><div class="nm">Cognee <i>v1.4.0</i></div><div class="track"><div class="bar" style="width:42.61%"></div></div><div class="vl">42.61</div></div>
+      <div class="row"><div class="nm">NTES-MEMORY-MQ-LAYER</div><div class="track"><div class="bar" style="width:42.11%"></div></div><div class="vl">42.11</div></div>
+      <div class="row"><div class="nm">TencentDB <i>v2.0.0</i></div><div class="track"><div class="bar" style="width:41.48%"></div></div><div class="vl">41.48</div></div>
+      <div class="row"><div class="nm">Mem0 <i>v3</i></div><div class="track"><div class="bar" style="width:41.4%"></div></div><div class="vl">41.40</div></div>
+      <div class="row"><div class="nm">MemPalace <i>v3.5.0</i></div><div class="track"><div class="bar" style="width:39.48%"></div></div><div class="vl">39.48</div></div>
+      <div class="row"><div class="nm">Vectorize Hindsight Cloud</div><div class="track"><div class="bar" style="width:38.54%"></div></div><div class="vl">38.54</div></div>
+      <div class="row"><div class="nm">memory-dense <i>v1.1</i></div><div class="track"><div class="bar" style="width:37.65%"></div></div><div class="vl">37.65</div></div>
+      <div class="row"><div class="nm">星际罗盘 <i>v1.0</i></div><div class="track"><div class="bar" style="width:35.64%"></div></div><div class="vl">35.64</div></div>
+      <div class="row"><div class="nm">memory-8000 <i>v1.0</i></div><div class="track"><div class="bar" style="width:34.22%"></div></div><div class="vl">34.22</div></div>
+      <div class="row"><div class="nm">SuperMemory</div><div class="track"><div class="bar" style="width:29.63%"></div></div><div class="vl">29.63</div></div>
+      <div class="row"><div class="nm">NTES-MEMORY-TDAM</div><div class="track"><div class="bar" style="width:26.3%"></div></div><div class="vl">26.30</div></div>
+      <div class="legend">
+        <span><s style="background:var(--bronze)"></s>全部为平台评测结果</span>
+        <span>Zep 未上榜</span>
+        <span>第 1 名 MemoraX 与 MemOS 是<strong>两家不同公司</strong></span>
+      </div>
+    </div>
+
+    <h3>把 MemOS 拆开看：总分第 2，结构却极不均衡</h3>
+    <p class="lede">AML 同时公布七个能力维度，这才是真正有信息量的部分</p>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>能力维度</th><th>MemOS</th><th>MemoraX ①</th><th>Mem0</th><th>Cognee</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>A 显式事实召回</td><td class="num">68.9</td><td class="num">89.9</td><td class="num">50.6</td><td class="num">53.6</td></tr>
+          <tr><td>B 关系与多跳组合</td><td class="num">53.4</td><td class="num">63.4</td><td class="num">42.7</td><td class="num">42.9</td></tr>
+          <tr><td>C 时序与事件序列</td><td class="num">56.5</td><td class="num">60.0</td><td class="num">17.4</td><td class="num">22.0</td></tr>
+          <tr><td>D 记忆治理</td><td class="num">44.3</td><td class="num">51.2</td><td class="num">36.0</td><td class="num">32.1</td></tr>
+          <tr><td>E 个性化与关怀</td><td class="num">48.7</td><td class="num">58.5</td><td class="num">55.3</td><td class="num">54.5</td></tr>
+          <tr class="key"><td>G 上下文学习 / 规则与流程执行</td><td class="num hi">9.8</td><td class="num">30.0</td><td class="num">27.4</td><td class="num">27.1</td></tr>
+          <tr><td>H 认识论安全与隐私</td><td class="num">56.1</td><td class="num">58.4</td><td class="num">37.4</td><td class="num">29.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      叶子项更刺眼：<strong>G4 = 0.00、G3 = 1.37、G1 = 13.11、G2 = 8.71</strong>；<strong>D2 = 0.00</strong>；F1 = 33.33。
+    </p>
+    <div class="note">
+      <span class="h">怎么读这三个数字</span>
+      <p>
+        <strong>① 事实召回确实是第一梯队。</strong>68.9 仅次于 MemoraX，时序推理 56.5 明显强过 Mem0 的 17.4。
+      </p>
+      <p>
+        <strong>② 但宣传最猛的能力几乎归零。</strong>"G 上下文学习 / 规则与流程执行"只有 9.82，
+        而这一项对应的正是它对外讲的 self-evolving memory、skill reuse、crystallized Skills。
+      </p>
+      <p>
+        <strong>③ 有人独立撞到了同一个结论。</strong>中文侧报道（36氪）说排名第 2、第 9 的框架在事实召回、多跳、
+        时序、记忆治理上都强，<em>"规则与工作流执行是它们共同的短板"</em>——第 2 名就是 MemOS。
+      </p>
+    </div>
+
+    <div class="note stop">
+      <span class="h">但 AML 自己也要打折</span>
+      <p>
+        我直连它的榜单 API 后发现：返回的 <strong>65 条记录（商业 15 + 学术 50）全部共享同一个
+        <code>target_deployment</code>、同一批 <code>excel_*_job_id</code>、同一个提交时间戳</strong>，
+        商业榜 15 条的耗时与 token 成本字段全是 <code>null</code>。
+      </p>
+      <p>
+        也就是说，<strong>公开榜单是一次性从电子表格导入的结果，而不是逐条由站点自己描述的 Add/Search 流水线产出</strong>，
+        没有逐条 run 记录可供复核。这不等于造假（很可能评测在内部跑完后整表发布），但它意味着：
+        AML 的可复现性承诺目前还停留在流程描述层面。而且它只办了一期。
+      </p>
+    </div>
+
+    <h3>顺带一个更扎心的事实：开源方法榜上，笨基线并不落后</h3>
+    <p class="lede">AML 学术（开源方法）榜 50 条 · 子代理未取到，我方补上</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>系统</th><th>排名</th><th>总分</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>InvMem</td><td class="num">1</td><td class="num">45.06</td><td>榜首</td></tr>
+          <tr class="key"><td>Mem0</td><td class="num">19</td><td class="num">42.07</td><td>被列为学术方法参赛</td></tr>
+          <tr><td>Raw Memory</td><td class="num">13</td><td class="num">42.31</td><td><strong>压过 Mem0</strong></td></tr>
+          <tr><td>SQLite-FTS-Baseline</td><td class="num">22</td><td class="num">41.79</td><td>纯 SQLite 全文检索</td></tr>
+          <tr><td>aml-memory-baseline</td><td class="num">25</td><td class="num">40.78</td><td>官方基线，等于全榜中位数</td></tr>
+          <tr><td>just-a-BM25</td><td class="num">35</td><td class="num">38.47</td><td>名字就是它的全部实现</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      全榜中位数 40.78，最差 23.55，最好 45.06。<strong>在受控协议下，整个记忆层品类的分数被压缩在 38–45 这个窄带里</strong>，
+      花哨架构相对朴素基线的领先只有几个点。这正是多个独立评论把这个赛道称作
+      "crowded, commoditized, and benchmark-gamed" 的原因。
+    </p>
+  </section>
+
+  <!-- ============ 四 ============ -->
+  <section>
+    <h2><span class="zh">四</span>同一个 LoCoMo，五个互相打架的数字</h2>
+    <p class="lede">这是整份记录里最值得记住的一张图</p>
+
+    <div class="scale">
+      <div class="cap">
+        <span><b>LoCoMo 基准上的 MemOS 分数，按来源排列</b></span>
+        <span>同一基准 · 同一系统 · 横轴 60–100</span>
+      </div>
+      <div class="axis">
+        <div class="lab">来源</div>
+        <div class="ticks" style="position:relative">
+          <span style="left:0%">60</span><span style="left:25%">70</span><span style="left:50%">80</span>
+          <span style="left:75%">90</span><span style="left:100%">100</span>
+          <div class="limit" data-lab="审计硬上限 93.57" style="left:83.9%"></div>
+        </div>
+        <div class="lab" style="text-align:right">分数</div>
+      </div>
+      <div class="row"><div class="nm">ENGRAM 独立重跑 <i>±0.14</i></div><div class="track"><div class="bar indie" style="width:32.5%"></div></div><div class="vl">72.99</div></div>
+      <div class="row"><div class="nm">MemOS 论文 v4</div><div class="track"><div class="bar self" style="width:39.5%"></div></div><div class="vl">75.80</div></div>
+      <div class="row"><div class="nm">EverMemOS 论文转引</div><div class="track"><div class="bar self" style="width:51.9%"></div></div><div class="vl">80.76</div></div>
+      <div class="row key"><div class="nm">README / OmniMemEval</div><div class="track"><div class="bar self" style="width:72.1%"></div></div><div class="vl">88.83</div></div>
+      <div class="row key"><div class="nm">官方渠道转载</div><div class="track"><div class="bar self" style="width:80.9%"></div></div><div class="vl">92.34</div></div>
+      <div class="legend">
+        <span><s style="background:var(--jade)"></s>独立第三方重跑</span>
+        <span><s style="background:var(--seal)"></s>自报口径</span>
+        <span>横轴放大到 60–100 区间，刻度尺仅示意相对位置</span>
+      </div>
+    </div>
+
+    <p>
+      <strong>唯一的独立重跑落在最低处</strong>，而分数随口径变化一路上涨到 92.34 —— 已经贴到审计出来的数学上限。
+      同一基准的 context token 口径也在漂移：论文约 1,589 → 第三方记录 2,640 → OmniMemEval 自报 5,400，
+      <strong>相差 3.4 倍</strong>。
+    </p>
+
+    <h3>而 LoCoMo 这把尺子本身已经被审计击穿</h3>
+    <ul class="plain">
+      <li>1,540 道题里 <strong>99 道（6.4%）金标答案本身就是错的</strong> → 数学上限 <strong>93.57%</strong>，满分不可能。</li>
+      <li>故意写"含糊但切题"的错误答案，<strong>62.81% 被判为正确</strong>——裁判过于宽松。</li>
+      <li>各类样本量差 8.8 倍，<strong>56% 的相邻名次对比在统计上无法区分</strong>。</li>
+      <li>446 道（22.5%）对抗题，在所有已发表结果里从未被评测过。</li>
+    </ul>
+    <div class="note stop">
+      <span class="h">推论</span>
+      <p>
+        在 LoCoMo 上，<strong>小于 5 个百分点的差距不该被当真</strong>。而 MemOS 自报的 88.83 与转载的 92.34，
+        都已经逼近 93.57 的硬上限——却没有任何第三方复现接近过 80。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 五 ============ -->
+  <section>
+    <h2><span class="zh">五</span>其他第三方基准：它一次也没拿第一</h2>
+    <p class="lede">逐条列出，包括对我方结论不利的限定条件</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>基准</th><th>MemOS 表现</th><th>关键结论</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ENGRAM 论文<br><span class="tag indie">我方核验</span></td>
+            <td>LoCoMo <strong>72.99 ± 0.14</strong>（~1,593 tokens，p50 4.965s）<br>ENGRAM 77.55 · full-context 72.60 · Mem0 64.73</td>
+            <td>全网唯一给出误差棒的第三方重跑。论文主旨是"不需要 OS 式调度器也能更好"——MemOS 在此是被当作<strong>要被简单方案超越的复杂对照</strong>。它比 full-context 只高 0.39。</td>
+          </tr>
+          <tr>
+            <td>EvoMemBench</td>
+            <td>综合第 <strong>3 / 12</strong>；Event_QA 90.4（并列最高），但 FC_MH <strong>3</strong>、FC_SH <strong>35</strong>；记忆修订排名 <strong>7.5</strong></td>
+            <td>"long-context baselines remain highly competitive"、"no single memory form works consistently"</td>
+          </tr>
+          <tr>
+            <td>MemTrapBench</td>
+            <td>5 个被测框架之一</td>
+            <td><strong>所有记忆策略都低于"无记忆"基线</strong>：Gemini-3-Flash 上 85.16% → 最好的记忆框架仅 71.17%；Qwen3-30B 上 81.83% → 70.13%。<span class="tag warn">这是品类级批评，不是单独指控 MemOS</span></td>
+          </tr>
+          <tr>
+            <td>MemEye</td>
+            <td>第 <strong>7 / 13</strong>；Avg EM 48.7%、LLM-Judge 33.3%</td>
+            <td>多模态记忆：现有架构仍难保住细粒度视觉细节与状态变化</td>
+          </tr>
+          <tr>
+            <td>MedMemoryBench</td>
+            <td>第 <strong>3 / 13</strong>；Avg Eff 48.2%；<strong>MCD Eff 仅 15.2%</strong></td>
+            <td>提出 "memory saturation"：信息持续涌入反而降低鲁棒性</td>
+          </tr>
+          <tr>
+            <td>EverMemOS 论文</td>
+            <td>LongMemEval 77.80 vs EverMemOS 83.00</td>
+            <td>竞品论文；但其 baseline 系<strong>引用而非重跑</strong>，非严格同条件，需降权</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>还有一件事：它在独立综述里是"缺席"的</h3>
+    <p>
+      两份独立基准综述——MemPalace 那份逐条标注 self / indie 的对照表，以及 Vectorize
+      《Best AI Agent Memory Systems in 2026》（评了 8 个框架）——<strong>都没有收录 MemOS</strong>。
+    </p>
+    <p>
+      这本身就是结论：<strong>它的"高分"从未进入任何独立复现的汇总表。</strong>它的第三方评价几乎全部集中在中文圈，
+      而其中相当比例是竞品软文或官方供稿。
+    </p>
+  </section>
+
+  <!-- ============ 六 ============ -->
+  <section>
+    <h2><span class="zh">六</span>最硬的批评来自它自己的 issue 区</h2>
+    <p class="lede">仓库状态（我方直连 GitHub API，2026-09-15）：11,333 star · 1,037 fork · <strong>51 watcher</strong> · 74 open issues · Apache-2.0 · 创建 2025-07-06</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Issue</th><th>内容</th><th>为什么重要</th></tr></thead>
+        <tbody>
+          <tr class="key">
+            <td><strong>#2277</strong></td>
+            <td>对线上本地库做 66 条查询的召回基准：<strong>Recall@1 仅 14.6%（7/48）</strong>；<strong>假阳性率 8/8 = 100%</strong>（从没存过的主题也返回高分结果）；请求 <code>topK: 50</code> 实际恒返回 <strong>1 条</strong>；正负样本得分都是 1.05–1.32，<code>minScore 0.45</code> 形同虚设。</td>
+            <td>这是<strong>用户对自己实例的定量测量</strong>，不是主观吐槽</td>
+          </tr>
+          <tr>
+            <td><strong>#948</strong></td>
+            <td>官方 collaborator 自提："<strong>Currently, MemOS does not support conflict-aware updates</strong>"，导致重复记忆与新记忆不生效。</td>
+            <td>直接打脸它宣称的核心差异化能力（MemCube 版本链 / 生命周期）</td>
+          </tr>
+          <tr>
+            <td><strong>#881</strong></td>
+            <td>语义重复记忆仍被新增；召回<strong>同时返回新旧两条 → 重复答案</strong>；<code>merged_from</code> 不归档、不按 <code>status="activated"</code> 过滤。后果原文："noisy recall results, bloated graphs"。</td>
+            <td>记忆污染与重复召回是<strong>生产环境的真实问题</strong></td>
+          </tr>
+          <tr>
+            <td><strong>#2331<br>#2329<br>#2290<br>#1303</strong></td>
+            <td>删除返回成功但<strong>没删</strong>；<code>add_memory</code> 返回成功随即查同 id <strong>404</strong>；抽取层被绕过，落库内容<strong>基本就是对话原文</strong>；Initial Retrieval 返回 10 个候选、LLM Filter 把全部判为"无关"→<strong>召回为空</strong>，且导入在子步骤失败时<strong>误报成功</strong>。</td>
+            <td>这类<strong>静默失败</strong>是全史约 63 条 issue 的系统性模式</td>
+          </tr>
+          <tr>
+            <td><strong>#2141</strong> <span class="tag warn">子代理单源</span></td>
+            <td>生产环境因 replay loop「24 小时写入 <strong>6,076 条</strong>记忆、约 <strong>90% 重复</strong>（583 条唯一内容 × 30–40 份）」，用户附了已跑通的自托管补丁；<strong>被 stale bot 于 2026-08-30 自动关闭，2 条评论全部来自 github-actions[bot]</strong>。</td>
+            <td><strong>本轮我方 GitHub API 配额耗尽，未能二次直连复核</strong>，请按单源对待</td>
+          </tr>
+          <tr>
+            <td><strong>#2259</strong></td>
+            <td>鉴权绕过：<code>INTERNAL_SERVICE_SECRET</code> 未设置时 <code>None == None → True</code>，普通外部请求即被当成内部服务，<strong>无需 API key 即获 <code>scopes:["all"]</code></strong>。</td>
+            <td>它引用的 <code>GHSA-9pw6-vmgx-qgwx</code> 现已 404；我核验仓库 advisories API 返回<strong>空数组</strong></td>
+          </tr>
+          <tr>
+            <td>#2202 / #2205 / #2203</td>
+            <td><code>/product</code> REST 面默认无鉴权且 <code>user_id</code> 客户端可控（跨用户 IDOR）；Neo4j Cypher 注入；激活缓存用 <code>pickle.load</code> 反序列化。</td>
+            <td>自部署的默认姿态不安全</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <span class="h">归纳</span>
+      <p>
+        社区的真实抱怨高度集中在四类：<strong>①静默失败（返回成功但没写 / 没删）②召回质量不稳定
+        ③写入侧无去重导致重复记忆爆炸 ④后台管线拖死主进程</strong>。
+        这与前面评测结果的指向一致——<strong>MemOS 的短板在"治理"，不在"召回事实"。</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 七 ============ -->
+  <section>
+    <h2><span class="zh">七</span>口碑与采用度：star 数和真实使用严重脱节</h2>
+    <p class="lede">我方直连 GitHub / npm API</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>指标</th><th>MemOS</th><th>对照</th></tr></thead>
+        <tbody>
+          <tr><td>GitHub star</td><td class="num">11,333</td><td>Mem0 65,331 · Graphiti 30,894 · Cognee 30,698 · Supermemory 29,676 · Letta 24,747</td></tr>
+          <tr class="key"><td><strong>watcher</strong></td><td class="num">51</td><td>star 的 0.45%，异常偏低 → 提示<strong>深度使用者很少</strong></td></tr>
+          <tr class="key"><td>npm 月下载（local plugin）</td><td class="num">6,811</td><td><code>mem0ai</code> <strong>464,094</strong>，约 <strong>68 倍</strong>差距</td></tr>
+          <tr><td>Hacker News</td><td class="num">1 帖</td><td>2 分 0 评论；对照 Show HN Mem0 = 201 分 61 评论</td></tr>
+          <tr><td>Reddit</td><td class="num">未能访问</td><td>三路调研均连接被重置；记为<strong>"未找到"而非"没有讨论"</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>中文圈：软文与硬核实测两极分化</h3>
+    <ul class="plain">
+      <li>
+        <strong>正面实操（53AI 转载，2026-08-03）</strong>——给 Hermes 装 memos-local-plugin 2.0 的完整体验，
+        认可记忆面板、"记忆自进化"（任务→经验→环境认知→技能结晶），结论是"我用过比较完整、比较有成长感的一套方案"。
+        <em>但同一篇转述了更高的官方数字：云服务"已进一步提升到 LoCoMo 92.34、LongMemEval 93.40"</em>——比 README 又涨一截，无版本与复现说明。
+      </li>
+      <li>
+        <strong>竞品横评（掘金）</strong>——作者明确在推 TiMEM，数字自相矛盾不可用。但对 MemOS 的<strong>定性</strong>仍值得记：
+        优点＝概念完整、多模态记忆、中文支持好；缺点＝"概念有点重了"、5 种记忆类型 "一开始不太好搞清楚该用哪个"、
+        部署复杂度较高、macOS 有已知兼容性问题、生产稳定性待验证。
+      </li>
+      <li>
+        <strong>品玩 pingwest（2025-12-01）</strong>——中文最扎实的横评之一：MemOS 与 Mem0"表现不甚稳定"；
+        4 道实测题 <strong>MemOS 0 题满分</strong>（漏价格、年份错成 2023）；"学习曲线陡峭、系统较重"。
+      </li>
+      <li>
+        <strong>V2EX t/1240746（2026-09-09）</strong>——一位开发者因记忆超过 1 万条后 Agent"老年痴呆"，
+        <strong>同时部署 22 套记忆框架</strong>（MemOS 列第 1）在 MCP 层汇聚。它被当作<strong>多层冗余中的一层</strong>，而非被单独信任的方案。
+      </li>
+      <li>
+        <strong>可信度最高的正面评价</strong>：CCF TF 锐评（2026-06-23，王昊奋署名）——非厂商、学术共同体背书。
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============ 八 ============ -->
+  <section>
+    <h2><span class="zh">八</span>证据分级：什么能信，什么不能</h2>
+    <p class="lede">这是整份记录最该被复用的部分</p>
+
+    <div class="grade">
+      <div class="g t1">
+        <h4>可核验 <span>高可信</span></h4>
+        <ul>
+          <li><strong>AML 商业榜 MemOS = 45.89（第 2），G 类 9.82、G4 = 0</strong>——协议把答案与 judge 收归平台，逐类分数可查，版本号明确（v2.0.1）。<strong>最强第三方证据。</strong></li>
+          <li><strong>ENGRAM 测得 MemOS LoCoMo = 72.99 ± 0.14</strong>——唯一带误差棒的第三方重跑，同 backbone、同 top-k，附 token 与延迟。</li>
+          <li><strong>官方 issue #881 / #948 / #978 / #1303 / #2277 / #2331 / #2329</strong>——一手缺陷记录；#948 由官方 collaborator 自提。</li>
+          <li><strong>仓库指标</strong>：11,333 star / 51 watcher / npm 月下载 6,811——我方直连 GitHub 与 npm API。</li>
+          <li><strong>LoCoMo 审计</strong>（93.57% 上限、99 处金标错误、裁判 62.81% 宽松）——独立、方法透明；它约束的是<strong>所有</strong> LoCoMo 数字，不只是 MemOS。</li>
+        </ul>
+      </div>
+
+      <div class="g t2">
+        <h4>须注明口径 <span>中等可信</span></h4>
+        <ul>
+          <li>EvoMemBench / MemEye / MedMemoryBench 的逐项分数：经聚合页读取，<strong>未直读论文表格</strong>，且聚合页标注 "Self-reported"。</li>
+          <li>EverMemOS 论文里的 MemOS 80.76 / 77.80：竞品论文，且 LongMemEval 的 baseline 是<strong>引用而非重跑</strong>。</li>
+          <li>#2141：子代理单源，本轮未能复核。</li>
+          <li>AgentRecall-X 的行业 landscape：方法透明，但属社区调研，非同行评审。</li>
+        </ul>
+      </div>
+
+      <div class="g t3">
+        <h4>不能当证据用 <span>须剔除</span></h4>
+        <ul>
+          <li><strong>LoCoMo 88.83 / LongMemEval 89.20 / 云服务 92.34 &amp; 93.40</strong>——全部出自 MemTensor 自家 OmniMemEval 或官方渠道转载；无第三方复现；与论文自报差 +13 ~ +17 且无版本说明。</li>
+          <li><strong>"HaluMem 全部第一"</strong>——HaluMem 由 MemTensor 团队自研（作者即 MemOS 作者），MemOS 既是被测系统又是基准设计方。</li>
+          <li><strong>"+43.70% over OpenAI Memory / 35.24% token savings"</strong>——厂商话术，无方法学披露，且与自家 OmniMemEval 的 token 口径（5,400）互相矛盾。</li>
+          <li><strong>RightAIChoice 39% / 61% 情感比</strong>——该站自承样本被同名笔记应用污染、stars 张冠李戴。</li>
+          <li><strong>CVE-2025-50738</strong>——属于 <code>usememos/memos</code> 笔记应用，与 MemTensor 无关。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 九 ============ -->
+  <section>
+    <h2><span class="zh">九</span>结论：它到底值多少</h2>
+
+    <h3>真实资产</h3>
+    <ul class="plain">
+      <li><strong>事实召回与时序推理是第一梯队</strong>：AML 上 A 68.9 / C 56.5，明显强于 Mem0 的 50.6 / 17.4。</li>
+      <li><strong>检索延迟极低</strong>：在 MemTensor <em>自家</em> HaluMem 耗时表里，检索 20.5 / 21.0 分钟为全表最佳（对比 Supermemory 95.5、Memobase 139.9）。这是它最硬的工程亮点，且出自"不利自认"。</li>
+      <li><strong>迭代极快</strong>：约 14 个月、39+ release、53 个 npm 版本；插件覆盖 OpenClaw / Hermes / DSH / Dify。</li>
+      <li><strong>中文场景与本土合规</strong>是结构性优势。</li>
+    </ul>
+
+    <h3>真实代价</h3>
+    <ul class="plain">
+      <li><strong>写入极慢</strong>：同一张自家表里，Medium 下写入 1,028.84 分钟，是 Supermemory 的 3.8 倍；Long 下 1,524.39 分钟，是 Memobase 的 <strong>6.4 倍</strong>。<strong>检索快是拿写入慢换的。</strong></li>
+      <li><strong>多写换精度</strong>：MemOS 抽了 <strong>71,793 条</strong>记忆、Target P 86.25%、Accuracy 59.55%；而 Memobase 只抽 <strong>5,443 条</strong>就拿到 Target P <strong>92.24%</strong>。多写 13 倍，精度更低。</li>
+      <li><strong>抗幻觉弱</strong>：HaluMem 的 FMR 指标上 MemOS 仅 44.94% / 28.85%，远低于 Memobase 的 80.78% / 85.39%。</li>
+      <li><strong>治理能力名不副实</strong>：AML 的 D 类 44.3、D2 = 0；EvoMemBench 记忆修订排名 7.5；官方 issue #948 自认"不支持冲突感知更新"。</li>
+      <li><strong>宣传最猛的"自进化 / 技能复用"在受控评测里几乎归零</strong>（G = 9.82，G4 = 0）。</li>
+    </ul>
+
+    <p class="sig">
+      把它当"能大幅提升 agent 智能的记忆 OS"，会失望；<br>
+      把它当"一个检索快、写入重、需要你盯住去重与删除语义的记忆后端"，基本符合观察。<br>
+      分数请以 <strong>AML 的 45.89</strong> 和 <strong>ENGRAM 的 72.99</strong> 为锚，<br>
+      而不是 README 的 88.83。
+    </p>
+  </section>
+
+  <!-- ============ 十 ============ -->
+  <section>
+    <h2><span class="zh">十</span>如果已经在自己机器上跑着它</h2>
+    <p class="lede">上面所有结论落到操作层面，是这七条</p>
+    <ol class="steps">
+      <li><strong>别用自报分数做选型依据。</strong>几百条记忆的规模下任何方案都够用；真正的分水岭在<strong>记忆条数上万之后</strong>——而那正是 #2277（Recall@1 14.6%、假阳性 100%）与 #2141（24 小时写入 6,076 条、90% 重复）暴露问题的区间。</li>
+      <li><strong>盯住三个已知静默失败点</strong>：写入后立刻按 id 回查（#2329）、删除后立刻重新检索（#2331）、导入后核对落库内容是否真是抽取结果而非原文（#2290）。这三条都能用一个脚本定期自检。</li>
+      <li><strong>定期体检重复率。</strong>官方明确自认"不支持冲突感知更新"（#948），重复记忆是结构性问题而非偶发 bug。统计"唯一内容 / 总条数"是最直接的信号。</li>
+      <li><strong>敏感内容走本地插件，别走云。</strong>记忆是明文存储，且官方文档里查不到加密与数据保留策略。</li>
+      <li><strong>保留退出路径。</strong>用户侧数据导出未文档化，云版独有能力（知识库、连续对话、调用链分析）不可迁移——至少在本地留一份自己的记忆快照。</li>
+      <li><strong>DSH 侧确实有更轻的替代</strong>：<code>dsh-memgas</code>（ICLR 2026 论文 MemGAS 的四通道检索融合）、<code>dsh-plugin-long-term-memory</code>（npm 月下载 2,180，约为 memos-local-plugin 的三分之一）。只想解决"跨会话记不住"的话，它们是更小的赌注。</li>
+      <li><strong>别把 AML 当圣经，也别把它当营销。</strong>它的协议设计是全网最干净的，但公开数据是整表导入、缺少逐条溯源，且只办了一期。<strong>等第二期（预计 2026-09-20 开放）</strong>再决定要不要加注。</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p style="margin-bottom:6px"><strong>调研方法</strong>　3 路并行子代理（基准评测 / 社区口碑 / 产品商业）+ 主代理直连核验（GitHub API、AML 榜单 API、npm registry、alphaxiv）。</p>
+    <p style="margin-bottom:6px">文中每条结论都带证据等级：<span class="tag indie">我已核验</span> 主代理亲自抓取原始数据 · <span class="tag warn">子代理核查</span> 由子代理抓取、本轮未二次直连 · <span class="tag na">未找到</span> 查证后确认无公开证据。</p>
+    <p>明确未能核实的项已在正文中就地标注，未做任何推断：Reddit 三路不可达（记为"未找到"而非"没有讨论"）、知乎与 36 氪被登录墙与风控拦截、GitHub API 配额在调研后段耗尽导致 #2141 无法二次复核。</p>
+
+    <h3 style="margin-top:30px">核心来源</h3>
+    <div class="src">
+      <a href="https://github.com/MemTensor/MemOS">MemOS 仓库（README 自报表）</a>
+      <a href="https://arxiv.org/abs/2507.03724">MemOS 论文（长版 2507.03724）</a>
+      <a href="https://agentmemoryleaderboard.ai/leaderboard/industry/textual">AML 商业榜 · 文本记忆</a>
+      <a href="https://agentmemoryleaderboard.ai/leaderboard?track=academic">AML 榜单 API（原始 JSON）</a>
+      <a href="https://github.com/AML-memory/agent-memory-leaderboard">AML 官方仓库与评测协议</a>
+      <a href="https://arxiv.org/abs/2511.12960">ENGRAM 论文（唯一带误差棒的重跑）</a>
+      <a href="https://arxiv.org/abs/2605.18421">EvoMemBench</a>
+      <a href="https://arxiv.org/abs/2608.20202">MemTrapBench（认知陷阱）</a>
+      <a href="https://arxiv.org/abs/2511.03506">HaluMem（MemTensor 自家基准）</a>
+      <a href="https://github.com/MemTensor/OmniMemEval">OmniMemEval（MemTensor 自家框架）</a>
+      <a href="https://github.com/dial481/locomo-audit">LoCoMo 审计</a>
+      <a href="https://blog.getzep.com/lies-damn-lies-statistics-is-mem0-really-sota-in-agent-memory/">Zep 反驳 Mem0 的 benchmark 质疑</a>
+      <a href="https://github.com/Goldentrii/AgentRecall-X/blob/main/docs/research/agent-memory-landscape-2026-07.md">AgentRecall-X 行业 landscape</a>
+      <a href="https://www.53ai.com/news/OpenSourceLLM/2026080324659.html">53AI 实操长测</a>
+      <a href="https://www.v2ex.com/t/1240746">V2EX「22 套记忆框架」讨论</a>
+    </div>
+    <p style="margin-top:22px">MemOS 缺陷 issue 见 <code>github.com/MemTensor/MemOS/issues/</code> 下的 #881 · #948 · #978 · #1303 · #2277 · #2290 · #2329 · #2331 · #2259。</p>
+    <p style="margin-top:18px">检定于 2026-09-15 · 数据以抓取时点为准</p>
+  </footer>
+
+</article>
+</div>
+
+<script>
+(function(){
+  var KEY='memos-audit-v1-edits-v1';
+  var doc=document.getElementById('doc');
+  var btnEdit=document.getElementById('btn-edit');
+  var btnReset=document.getElementById('btn-reset');
+  var btnDownload=document.getElementById('btn-save');
+  var btnPrint=document.getElementById('btn-print');
+  var state=document.getElementById('edit-state');
+  var pristine=doc.innerHTML;
+  var timer=null;
+
+  try{
+    var saved=localStorage.getItem(KEY);
+    if(saved){doc.innerHTML=saved;state.textContent='已从本地恢复你的编辑稿';}
+  }catch(e){}
+
+  function setEditing(on){
+    doc.contentEditable=on?'true':'false';
+    btnEdit.classList.toggle('on',on);
+    btnEdit.textContent=on?'■ 退出编辑':'✎ 开启编辑';
+    if(on)state.textContent='编辑中 · 改动自动存本机';
+  }
+  btnEdit.addEventListener('click',function(){
+    setEditing(doc.getAttribute('contenteditable')!=='true');
+  });
+  doc.addEventListener('input',function(){
+    if(doc.getAttribute('contenteditable')!=='true')return;
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      try{localStorage.setItem(KEY,doc.innerHTML);state.textContent='已保存 · '+new Date().toLocaleTimeString();}catch(e){}
+    },500);
+  });
+  btnReset.addEventListener('click',function(){
+    if(!confirm('放弃本地修改，恢复原始稿件？'))return;
+    try{localStorage.removeItem(KEY);}catch(e){}
+    doc.innerHTML=pristine;setEditing(false);state.textContent='已恢复原稿';
+  });
+  btnDownload.addEventListener('click',function(){
+    var clone=document.documentElement.cloneNode(true);
+    var d=clone.querySelector('#doc');if(d)d.removeAttribute('contenteditable');
+    var t=clone.querySelector('#toolbar');if(t)t.remove();
+    var blob=new Blob(['<!doctype html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='memos-audit-当前版.html';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  });
+  btnPrint.addEventListener('click',function(){window.print();});
+})();
+</script>
+</body>
+</html>
