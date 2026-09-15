@@ -562,14 +562,83 @@ python memory.py</code></pre></div><div class="out"><span class="out-lb">你应�
 === 向量搜（问题：屋里太热了怎么办）===
 0.613  空调.md:2 | 夏天空调开多少度合适？建议 26 度，每调高 1 度大约省 7% 的电。
 0.588  空调.md:3 | 温度调太低会感冒，而且压缩机一直满负荷运转更费电。
-0.562  电费.md:2 | 夏天电费为什么这么高？大头是空调。</code></pre></div><p class="act-note"><b>差别在哪</b>：关键词搜「热」一个字都没找到，因为那两篇文档里根本没有「热」这个字；向量搜却准确找到了空调那篇——因为它比的是意思，不是字面——因为它比的是意思，不是字面。这正是 RAG 里「检索」那一步真正在做的事。</p></div><div class="act"><h4>第 4 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
-没有找到依据的部分，直接说「资料里没有」，不要凭记忆编。"""</code></pre></div></div><div class="act"><h4>第 5 步：加一个摘要压缩</h4><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def compress(messages):
+0.562  电费.md:2 | 夏天电费为什么这么高？大头是空调。</code></pre></div><p class="act-note"><b>差别在哪</b>：关键词搜「热」一个字都没找到，因为那两篇文档里根本没有「热」这个字；向量搜却准确找到了空调那篇——因为它比的是意思，不是字面。这正是 RAG 里「检索」那一步真正在做的事。</p></div><div class="act"><h4>第 4 步：把 memory 接进 Agent 的主循环</h4><p class="act-note">前三节都在造 memory：切段、算向量、能搜。但到现在为止，memory 还只是「一个能单独跑的小工具」，Agent 根本不知道它存在。</p><p class="act-note"><b>这一节就讲它们到底怎么接上。</b>机制只有一句话：<b>在把 messages 发给模型之前，先拿用户的问题去 memory 里搜一遍，把搜到的原文塞进 system 提示词。</b></p><p class="act-note">打个比方：模型是个很聪明、但完全不了解你公司的顾问。你每次问他之前，先去档案室把这题相关的几页复印出来，夹在问题里一起给他——他就能答得又准又具体。memory 就是那个档案室，「先查再问」就是全部的秘密。</p><p class="act-note">还有两个细节要说清楚：<b>什么时候查</b>——每轮提问前都查一次，因为用户随时可能换话题；<b>查到了放哪</b>——塞进 system，不要混进对话历史，否则会被后面的内容冲淡。</p><p><b>① 先给 memory.py 加一个「一问就能用」的入口</b></p><p class="act-note">上一节的 search_vector 是给人看的（带相似度分数）。Agent 要的是一段能直接塞进提示词的干净文字，所以我们再包一层。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接在末尾</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 接在 memory.py 末尾，给 Agent 一个「一问就能用」的入口
+def recall(question, top=3):
+    chunks = json.loads(VEC_FILE.read_text(encoding="utf-8"))
+    qv = embed([question])[0]
+    ranked = sorted(chunks, key=lambda c: _cos(qv, c["vec"]), reverse=True)[:top]
+    if not ranked:
+        return "（资料库里没有相关内容）"
+    # 每段前面带上来源，后面要模型标出处时才有东西可标
+    return (chr(10) * 2).join("[" + c["src"] + "] " + c["text"] for c in ranked)</code></pre></div><p><b>② 再改 agent.py 的主循环</b></p><p class="act-note">改动只有开头那几行——检索、拼接、再发给模型。下面的循环体和原来完全一样。</p><div class="mkfile"><span class="mktag">接着写</span><code>agent.py</code><span class="mknote">同一个文件，只是开头多了两行</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># agent.py
+import json, os
+import requests
+from dotenv import load_dotenv
+from tools import TOOLS
+import memory                       # 新加的一行：把 memory 引进来
+
+load_dotenv()
+API_KEY = os.environ["DASHSCOPE_API_KEY"]
+URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+MODEL = "qwen-plus"
+MAX_STEPS = 6
+
+def run(question):
+    # ==== 和 memory 结合，就这两行 ====
+    context = memory.recall(question)                 # 1. 先拿用户的问题去 memory 里搜
+    system = (SYSTEM + chr(10) * 2 +
+              "以下是检索到的资料，回答时优先依据它们：" + chr(10) + context)
+    print("[memory] 检索到的资料：" + chr(10) + context)
+
+    messages = [{"role": "system", "content": system},
+                {"role": "user", "content": question}]
+
+    for step in range(1, MAX_STEPS + 1):
+        reply = ask(messages)
+        print("--- 第 " + str(step) + " 步 ---")
+        print(reply)
+        messages.append({"role": "assistant", "content": reply})
+        try:
+            action = pick_json(reply)
+        except ValueError as exc:
+            messages.append({"role": "user",
+                             "content": "你的输出不是合法 JSON（" + str(exc) + "），请重新只输出一个 JSON。"})
+            continue
+        if "final_answer" in action:
+            return action["final_answer"]
+        name = action.get("action")
+        kwargs = action.get("action_input") or {}
+        result = TOOLS[name](**kwargs) if name in TOOLS else "没有这个工具：" + str(name)
+        print("观察结果：" + str(result))
+        messages.append({"role": "user", "content": "Observation: " + str(result)})
+
+    return "超过最大步数，没做完"</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>[memory] 检索到的资料：
+[空调.md:2] 夏天空调开多少度合适？建议 26 度，每调高 1 度大约省 7% 的电。
+[空调.md:3] 温度调太低会感冒，而且压缩机一直满负荷运转更费电。
+[电费.md:2] 夏天电费为什么这么高？大头是空调。
+--- 第 1 步 ---
+{"thought": "资料里有 26 度这个数字，先算一下 26*0.1", "action": "calculator", "action_input": {"expression": "26*0.1"}}
+观察结果：2.6
+--- 第 2 步 ---
+{"thought": "算完了，可以回答", "final_answer": "建议开 26 度。每调高 1 度大约省 7% 的电。"}</code></pre></div><p class="act-note"><b>还有另一个方向：往 memory 里「写入」。</b>上面讲的全是「读」。写入最朴素也最实用的做法是——把新学到的东西写成一个新的 .md 丢进 docs/，下次重跑一次 python memory.py 建索引，它就进记忆库了。真正上生产会做成增量索引（只算新增那几段，省钱），但原理完全一样：<b>memory 就是一堆文档 + 一个索引文件</b>，读写都围着它们转。</p><div class="act"><h4>第 5 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>agent.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
+没有找到依据的部分，直接说「资料里没有」，不要凭记忆编。"""</code></pre></div></div><div class="act"><h4>第 6 步：加一个摘要压缩</h4><div class="mkfile"><span class="mktag">接着写</span><code>agent.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def compress(messages):
     """当对话太长时，把前面的内容压成一段摘要"""
     old = messages[1:-6]           # 保留 system 和最近 6 条
     summary = ask([{"role": "user", "content":
         "把下面这段对话压缩成 200 字以内的摘要，保留所有结论和关键数字：\n" + str(old)}])
-    return [messages[0], {"role": "user", "content": "[之前的对话摘要] " + summary}] + messages[-6:]</code></pre></div></div><div class="act"><h4>第 6 步：压力测试</h4><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 连续问 50 个问题，看会不会崩、关键信息会不会丢
-# 在第 40 轮的时候回头问第 2 轮说过的内容</code></pre></div></div><h3>卡住了怎么办</h3><div class="tw"><table><thead><tr><th>报错 / 现象</th><th>为什么</th><th>怎么办</th></tr></thead><tbody><tr><td><code>检索总是搜不到该搜的</code></td><td>只做了向量检索，没做关键词</td><td>两者结合。人名、代号、专有名词上关键词必赢，语义模糊时向量赢</td></tr><tr><td><code>回答里编造了不存在的内容</code></td><td>没给模型「找不到就说找不到」的出口</td><td>在 system 里明确写出：没有依据时必须说没有</td></tr><tr><td><code>切分太碎，意思断了</code></td><td>按固定字符数硬切</td><td>按段落或标题切；每段前面带上它所属的标题，保留上下文</td></tr><tr><td><code>程序越跑越慢</code></td><td>每轮都重新算所有内容的向量</td><td>向量算一次存起来，别重复算</td></tr></tbody></table></div><h3>做完自检</h3><p class="hint">全部打勾，这一步才算过。</p><div class="checks"><label class="chk"><input type="checkbox" data-step="s4" data-i="0"><span>连续 50 轮对话不爆上下文，关键信息还在</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="1"><span>问「我第 2 轮说过的那个文件名」它能答对</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="2"><span>回答里能看到出处标注</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="3"><span>我能说清什么时候该摘要、什么时候直接丢、什么时候去检索</span></label></div><h3>这一步的材料</h3><ul class="mats"><li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Anthropic《Effective Context Engineering》</a> — 这一步的理论基础</li><li><a href="https://arxiv.org/abs/2310.08560" target="_blank" rel="noopener">MemGPT 论文</a> — 只看摘要，理解「把上下文当虚拟内存管」这个思路</li></ul></section>
+    return [messages[0], {"role": "user", "content": "[之前的对话摘要] " + summary}] + messages[-6:]</code></pre></div></div><div class="act"><h4>第 7 步：压力测试</h4><div class="mkfile"><span class="mktag">接着写</span><code>agent.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 压力测试：连问 40 轮，看会不会崩、关键信息会不会丢
+if __name__ == "__main__":
+    memory.build_index("docs")          # 先把索引更新到最新
+
+    # 第 1 轮先埋一个事实
+    print(run("记住一件事：我的空调是格力的，2023 年买的"))
+
+    # 接着连问 40 轮无关问题，把上下文撑大
+    for i in range(1, 41):
+        run("顺便问一句：第 " + str(i) + " 个无关问题")
+
+    # 最后回头看它还记不记得
+    print(run("我的空调是什么牌子、哪年买的？"))</code></pre></div><p class="act-note">注意：run() 每次调用都是一份全新的 messages，所以它「记得」靠的不是对话历史，而是 memory。这正是前面花那么大力气做检索的原因——<b>对话会丢，memory 不会</b>。</p></div><h3>卡住了怎么办</h3><div class="tw"><table><thead><tr><th>报错 / 现象</th><th>为什么</th><th>怎么办</th></tr></thead><tbody><tr><td><code>检索总是搜不到该搜的</code></td><td>只做了向量检索，没做关键词</td><td>两者结合。人名、代号、专有名词上关键词必赢，语义模糊时向量赢</td></tr><tr><td><code>回答里编造了不存在的内容</code></td><td>没给模型「找不到就说找不到」的出口</td><td>在 system 里明确写出：没有依据时必须说没有</td></tr><tr><td><code>切分太碎，意思断了</code></td><td>按固定字符数硬切</td><td>按段落或标题切；每段前面带上它所属的标题，保留上下文</td></tr><tr><td><code>程序越跑越慢</code></td><td>每轮都重新算所有内容的向量</td><td>向量算一次存起来，别重复算</td></tr></tbody></table></div><h3>做完自检</h3><p class="hint">全部打勾，这一步才算过。</p><div class="checks"><label class="chk"><input type="checkbox" data-step="s4" data-i="0"><span>连续 50 轮对话不爆上下文，关键信息还在</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="1"><span>问「我第 2 轮说过的那个文件名」它能答对</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="2"><span>回答里能看到出处标注</span></label><label class="chk"><input type="checkbox" data-step="s4" data-i="3"><span>我能说清什么时候该摘要、什么时候直接丢、什么时候去检索</span></label></div><h3>这一步的材料</h3><ul class="mats"><li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Anthropic《Effective Context Engineering》</a> — 这一步的理论基础</li><li><a href="https://arxiv.org/abs/2310.08560" target="_blank" rel="noopener">MemGPT 论文</a> — 只看摘要，理解「把上下文当虚拟内存管」这个思路</li></ul></section>
 <section class="step" id="s5"><div class="step-hd"><span class="step-no">05</span><div><h2>规划与多步任务</h2><p class="step-time">约 10 小时 · 建议分 3–4 天</p></div></div><p class="goal">从「一步一步挪」升级成「先想清楚，再分头干」。复杂任务的成功率会明显上升。</p><h3>先搞懂这几个词</h3><div class="terms"><div class="term"><b>任务分解</b><span>让 Agent 接到大任务时，先列出待办清单，再逐条执行、逐条打勾。而不是走一步看一步。</span></div><div class="term"><b>反思（Reflection）</b><span>做完之后自己检查一遍「我做得对吗」，发现不对就重做。论文证明这一招能明显提升复杂任务的成功率。</span></div><div class="term"><b>子任务隔离</b><span>派一个干净的助手去做子任务，只把结论带回来。这样主对话不会被过程中的废话撑满——这是所有主流 Agent 产品的核心技巧。</span></div></div><h3>跟着敲</h3><div class="act"><h4>第 1 步：让计划成为一等公民</h4><p class="act-note">在 system 里要求它先产出清单，后面每一步都要更新清单状态。</p><div class="mkfile"><span class="mktag">新建文件</span><code>planner.py</code><span class="mknote">放进 ~/agent-course/</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """接到任务后，你必须先输出一个待办清单：
 {"plan": ["步骤1", "步骤2", ...], "current": 0}
 
