@@ -485,7 +485,7 @@ def search_keyword(keyword: str, folder: str) -&gt; str:
         for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
             if keyword in line:
                 hits.append(str(p) + ":" + str(i) + " | " + line.strip())
-    return "\n".join(hits[:20]) or "没找到"</code></pre></div></div><div class="act"><h4>第 3 步：再做向量搜索，对比结果</h4><p class="act-note">上一节的 search_keyword 只能命中「字面和关键词一模一样」的行。这一节换成向量搜索：把文字变成一串数字，意思相近的数字也相近，于是能按意思找。</p><p class="act-note">按下面 5 个动作做，做完你能亲眼看到两种搜法的差别。</p><p><b>① 先在 .env 里给向量模型单独加一个 key</b></p><p class="act-note">对话模型和向量模型各用各的变量名。将来两者换成不同供应商时，不会互相影响。</p><div class="mkfile"><span class="mktag">接着写</span><code>.env</code><span class="mknote">加一行，原来那行不要删</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># .env
+    return "\n".join(hits[:20]) or "没找到"</code></pre></div></div><div class="act"><h4>第 3 步：再做向量搜索，对比结果</h4><p class="act-note">上一节的 search_keyword 只能命中「字面和关键词一模一样」的行。这一节换成向量搜索：把文字变成一串数字，意思相近的数字也相近，于是能按意思找。</p><p class="act-note">按下面 7 个动作做，做完你能亲眼看到两种搜法的差别。</p><p><b>① 先在 .env 里给向量模型单独加一个 key</b></p><p class="act-note">对话模型和向量模型各用各的变量名。将来两者换成不同供应商时，不会互相影响。</p><div class="mkfile"><span class="mktag">接着写</span><code>.env</code><span class="mknote">加一行，原来那行不要删</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># .env
 DASHSCOPE_API_KEY=sk-你的对话模型 key
 DASHSCOPE_EMBED_KEY=sk-你的向量模型 key</code></pre></div><p><b>② 再把 memory.py 的开头补上，写「文字转向量」的函数</b></p><p class="act-note">embedding 接口一次最多收 25 条文字，所以要分批送。这里读的是向量模型自己的 EMBED_KEY。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">把这几行补在 memory.py 最上面</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 先给 memory.py 补上开头这几行
 import json, os, pathlib, requests
@@ -526,7 +526,7 @@ def build_index(folder="docs"):
     for c, v in zip(chunks, vecs):
         c["vec"] = v
     VEC_FILE.write_text(json.dumps(chunks, ensure_ascii=False), encoding="utf-8")
-    return len(chunks)</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 37 段</code></pre></div><p><b>④ 写向量搜索函数</b></p><p class="act-note">余弦相似度就是「两个向量的夹角有多小」，越接近 1 表示意思越接近。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def _cos(a, b):
+    return len(chunks)</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 4 段</code></pre></div><p><b>④ 写向量搜索函数</b></p><p class="act-note">余弦相似度就是「两个向量的夹角有多小」，越接近 1 表示意思越接近。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def _cos(a, b):
     # 余弦相似度：两个向量的夹角有多小。越接近 1 越像
     dot = sum(x * y for x, y in zip(a, b))
     na = sum(x * x for x in a) ** 0.5
@@ -540,22 +540,31 @@ def search_vector(question, top=5):
     ranked = sorted(chunks, key=lambda c: _cos(qv, c["vec"]), reverse=True)
     return chr(10).join(
         "%.3f  %s | %s" % (_cos(qv, c["vec"]), c["src"], c["text"][:60])
-        for c in ranked[:top])</code></pre></div><p><b>⑤ 跑一次对比</b></p><p class="act-note">同一个问题，两种搜法各跑一遍，把结果并排看。这一步的产出就是你的实验结论。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 建索引只要跑一次，以后直接用 vectors.json，不用重复花钱
+        for c in ranked[:top])</code></pre></div><p><b>⑤ 先造几篇测试文档</b></p><p class="act-note">向量搜索得有东西可搜。在 ~/agent-course/ 下新建一个 docs 文件夹，里面放下面两篇小 .md 就够了。</p><div class="mkfile"><span class="mktag">新建文件</span><code>docs/空调.md</code><span class="mknote">放进 ~/agent-course/docs/</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 空调
+
+夏天空调开多少度合适？建议 26 度，每调高 1 度大约省 7% 的电。
+
+温度调太低会感冒，而且压缩机一直满负荷运转更费电。</code></pre></div><div class="mkfile"><span class="mktag">新建文件</span><code>docs/电费.md</code><span class="mknote">放进 ~/agent-course/docs/</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 电费
+
+夏天电费为什么这么高？大头是空调。
+
+把温度设在 26 度、配合风扇，能明显降下来。</code></pre></div><p><b>⑥ 把跑对比的那段补到 memory.py 末尾</b></p><p class="act-note">这段只在你直接运行 memory.py 时执行，被别人 import 时不会执行。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 建索引只要跑一次，以后直接用 vectors.json，不用重复花钱
 if __name__ == "__main__":
     print("建好索引：", build_index("docs"), "段")
     q = "屋里太热了怎么办"
-    print(chr(10) + "=== 关键词搜（搜「热」）===")
+    print(chr(10) + "=== 关键词搜（关键词：热）===")
     print(search_keyword("热", "docs"))
-    print(chr(10) + "=== 向量搜 ===")
-    print(search_vector(q))</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 37 段
+    print(chr(10) + "=== 向量搜（问题：" + q + "）===")
+    print(search_vector(q))</code></pre></div><p><b>⑦ 在终端里跑起来</b></p><p class="act-note">先确认终端当前目录是 ~/agent-course（不是的话先 cd 过去），然后：</p><div class="code"><button class="copy" type="button">复制</button><pre><code>cd ~/agent-course
+python memory.py</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 4 段
 
-=== 关键词搜（搜「热」）===
-docs/空调.md:1 | 夏天空调开多少度合适
+=== 关键词搜（关键词：热）===
+没找到
 
-=== 向量搜 ===
-0.842  空调.md:1 | 夏天空调开多少度合适
-0.795  空调.md:4 | 温度调太低会感冒
-0.771  电费.md:2 | 夏天电费为什么这么高</code></pre></div><p class="act-note"><b>差别在哪</b>：关键词搜「热」只命中字面带「热」的那一行；向量搜把「温度调太低会感冒」「夏天电费为什么这么高」也捞出来了——因为它比的是意思，不是字面。这正是 RAG 里「检索」那一步真正在做的事。</p></div><div class="act"><h4>第 4 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
+=== 向量搜（问题：屋里太热了怎么办）===
+0.613  空调.md:2 | 夏天空调开多少度合适？建议 26 度，每调高 1 度大约省 7% 的电。
+0.588  空调.md:3 | 温度调太低会感冒，而且压缩机一直满负荷运转更费电。
+0.562  电费.md:2 | 夏天电费为什么这么高？大头是空调。</code></pre></div><p class="act-note"><b>差别在哪</b>：关键词搜「热」一个字都没找到，因为那两篇文档里根本没有「热」这个字；向量搜却准确找到了空调那篇——因为它比的是意思，不是字面——因为它比的是意思，不是字面。这正是 RAG 里「检索」那一步真正在做的事。</p></div><div class="act"><h4>第 4 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
 没有找到依据的部分，直接说「资料里没有」，不要凭记忆编。"""</code></pre></div></div><div class="act"><h4>第 5 步：加一个摘要压缩</h4><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def compress(messages):
     """当对话太长时，把前面的内容压成一段摘要"""
     old = messages[1:-6]           # 保留 system 和最近 6 条
