@@ -447,7 +447,7 @@ if __name__ == "__main__":
             "required": ["path"]
         }
     }
-}]</code></pre></div></div><div class="act"><h4>第 3 步：把最常用的五个工具写出来</h4><p class="act-note"><span class="os-mac">macOS 已经能直接用 rg。</span><span class="os-win">Windows 需要先装 ripgrep：<b>winget install BurntSushi.ripgrep.MSVC</b>，装完重开终端。</span><span class="os-linux">Ubuntu / Debian 需要先装 ripgrep：<b>sudo apt install ripgrep</b>。</span><span class="os-rhel">阿里云 Linux / CentOS 需要先装 ripgrep：<b>sudo dnf install -y ripgrep</b>。</span></p><div class="mkfile"><span class="mktag">接着写</span><code>tools.py</code><span class="mknote">把步骤 2 的假工具换成真的</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>import subprocess, pathlib
+}]</code></pre></div></div><div class="act"><h4>第 3 步：把最常用的五个工具写出来</h4><p class="act-note"><span class="os-mac">macOS 已经能直接用 rg。</span><span class="os-win">Windows 需要先装 ripgrep：<b>winget install BurntSushi.ripgrep.MSVC</b>，装完重开终端。</span><span class="os-linux">Ubuntu / Debian 需要先装 ripgrep：<b>sudo apt install ripgrep</b>。</span><span class="os-rhel">阿里云 Linux / CentOS 需要先装 ripgrep：<b>sudo dnf install -y ripgrep</b>。</span></p><div class="mkfile"><span class="mktag">接着写</span><code>tools.py</code><span class="mknote">第 2 步已经建过的同一个文件，把假工具换成真的</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>import subprocess, pathlib
 
 def read_file(path: str) -&gt; str:
     p = pathlib.Path(path).expanduser()
