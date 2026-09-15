@@ -485,9 +485,74 @@ def search_keyword(keyword: str, folder: str) -&gt; str:
         for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
             if keyword in line:
                 hits.append(str(p) + ":" + str(i) + " | " + line.strip())
-    return "\n".join(hits[:20]) or "没找到"</code></pre></div></div><div class="act"><h4>第 3 步：再做向量搜索，对比结果</h4><p>把每段文字发给模型的 embedding 接口，拿回一串数字存起来。搜索时把你的问题也转成数字，找最接近的几段。
+    return "\n".join(hits[:20]) or "没找到"</code></pre></div></div><div class="act"><h4>第 3 步：再做向量搜索，对比结果</h4><p class="act-note">上一节的 search_keyword 只能命中「字面和关键词一模一样」的行。这一节换成向量搜索：把文字变成一串数字，意思相近的数字也相近，于是能按意思找。</p><p class="act-note">按下面 4 个小动作做，做完你能亲眼看到两种搜法的差别。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接在 search_keyword 后面</span></div><p><b>① 补上文件开头，写「文字转向量」的函数</b></p><p class="act-note">embedding 接口一次最多收 25 条文字，所以要分批送。</p><div class="code"><button class="copy" type="button">复制</button><pre><code># 先给 memory.py 补上开头这几行
+import json, os, pathlib, requests
+from dotenv import load_dotenv
 
-**关键是做对比**：同一个问题，关键词搜出来的是什么、向量搜出来的是什么、各自漏了什么。这个对比做下来，你就真的懂检索了。</p></div><div class="act"><h4>第 4 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
+load_dotenv()
+API_KEY = os.environ["DASHSCOPE_API_KEY"]
+EMB_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings"
+
+
+def embed(texts):
+    # 把一批文字换成向量。这个接口一次最多收 25 条，所以要分批送
+    out = []
+    for i in range(0, len(texts), 25):
+        r = requests.post(
+            EMB_URL,
+            headers={"Authorization": "Bearer " + API_KEY},
+            json={"model": "text-embedding-v3", "input": texts[i:i + 25]},
+            timeout=60,
+        )
+        r.raise_for_status()
+        out.extend(d["embedding"] for d in r.json()["data"])
+    return out</code></pre></div><p><b>② 切段、建索引，存成一个文件</b></p><p class="act-note">建索引只做一次。做完以后直接用 vectors.json，不用每次重新花钱算。</p><div class="code"><button class="copy" type="button">复制</button><pre><code>VEC_FILE = pathlib.Path("vectors.json")
+
+
+def build_index(folder="docs"):
+    # 把文档按空行切成段落，每段算一个向量，存进 vectors.json
+    chunks = []
+    for f in pathlib.Path(folder).rglob("*.md"):
+        text = f.read_text(encoding="utf-8", errors="replace")
+        for i, para in enumerate(text.split(chr(10) * 2), 1):
+            para = para.strip()
+            if len(para) &lt; 20:
+                continue                      # 太短的段落直接丢掉
+            chunks.append({"src": f.name + ":" + str(i), "text": para[:500]})
+    vecs = embed([c["text"] for c in chunks])
+    for c, v in zip(chunks, vecs):
+        c["vec"] = v
+    VEC_FILE.write_text(json.dumps(chunks, ensure_ascii=False), encoding="utf-8")
+    return len(chunks)</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 37 段</code></pre></div><p><b>③ 写向量搜索函数</b></p><p class="act-note">余弦相似度就是「两个向量的夹角有多小」，越接近 1 表示意思越接近。</p><div class="code"><button class="copy" type="button">复制</button><pre><code>def _cos(a, b):
+    # 余弦相似度：两个向量的夹角有多小。越接近 1 越像
+    dot = sum(x * y for x, y in zip(a, b))
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(y * y for y in b) ** 0.5
+    return dot / (na * nb) if na and nb else 0.0
+
+
+def search_vector(question, top=5):
+    chunks = json.loads(VEC_FILE.read_text(encoding="utf-8"))
+    qv = embed([question])[0]
+    ranked = sorted(chunks, key=lambda c: _cos(qv, c["vec"]), reverse=True)
+    return chr(10).join(
+        "%.3f  %s | %s" % (_cos(qv, c["vec"]), c["src"], c["text"][:60])
+        for c in ranked[:top])</code></pre></div><p><b>④ 跑一次对比</b></p><p class="act-note">同一个问题，两种搜法各跑一遍，把结果并排看。这一步的产出就是你的实验结论。</p><div class="code"><button class="copy" type="button">复制</button><pre><code># 建索引只要跑一次，以后直接用 vectors.json，不用重复花钱
+if __name__ == "__main__":
+    print("建好索引：", build_index("docs"), "段")
+    q = "屋里太热了怎么办"
+    print(chr(10) + "=== 关键词搜（搜「热」）===")
+    print(search_keyword("热", "docs"))
+    print(chr(10) + "=== 向量搜 ===")
+    print(search_vector(q))</code></pre></div><div class="out"><span class="out-lb">你应该看到</span><pre><code>建好索引： 37 段
+
+=== 关键词搜（搜「热」）===
+docs/空调.md:1 | 夏天空调开多少度合适
+
+=== 向量搜 ===
+0.842  空调.md:1 | 夏天空调开多少度合适
+0.795  空调.md:4 | 温度调太低会感冒
+0.771  电费.md:2 | 夏天电费为什么这么高</code></pre></div><p class="act-note"><b>差别在哪</b>：关键词搜「热」只命中字面带「热」的那一行；向量搜把「温度调太低会感冒」「夏天电费为什么这么高」也捞出来了——因为它比的是意思，不是字面。这正是 RAG 里「检索」那一步真正在做的事。</p></div><div class="act"><h4>第 4 步：回答必须带出处</h4><p class="act-note">让模型在回答里标出「这段来自哪个文件的第几行」。这一个习惯能让你的 Agent 从玩具变成可信的工具。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>SYSTEM = """回答时必须在句末用 [来源: 文件名:行号] 标出依据。
 没有找到依据的部分，直接说「资料里没有」，不要凭记忆编。"""</code></pre></div></div><div class="act"><h4>第 5 步：加一个摘要压缩</h4><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>def compress(messages):
     """当对话太长时，把前面的内容压成一段摘要"""
     old = messages[1:-6]           # 保留 system 和最近 6 条
