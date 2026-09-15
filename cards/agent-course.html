@@ -487,29 +487,27 @@ def search_keyword(keyword: str, folder: str) -&gt; str:
                 hits.append(str(p) + ":" + str(i) + " | " + line.strip())
     return "\n".join(hits[:20]) or "没找到"</code></pre></div></div><div class="act"><h4>第 3 步：再做向量搜索，对比结果</h4><p class="act-note">上一节的 search_keyword 只能命中「字面和关键词一模一样」的行。这一节换成向量搜索：把文字变成一串数字，意思相近的数字也相近，于是能按意思找。</p><p class="act-note">按下面 7 个动作做，做完你能亲眼看到两种搜法的差别。</p><p><b>① 先在 .env 里给向量模型单独加一个 key</b></p><p class="act-note">对话模型和向量模型各用各的变量名。将来两者换成不同供应商时，不会互相影响。</p><div class="mkfile"><span class="mktag">接着写</span><code>.env</code><span class="mknote">加一行，原来那行不要删</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># .env
 DASHSCOPE_API_KEY=sk-你的对话模型 key
-DASHSCOPE_EMBED_KEY=sk-你的向量模型 key</code></pre></div><p><b>② 再把 memory.py 的开头补上，写「文字转向量」的函数</b></p><p class="act-note">embedding 接口一次最多收 25 条文字，所以要分批送。这里读的是向量模型自己的 EMBED_KEY。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">把这几行补在 memory.py 最上面</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 先给 memory.py 补上开头这几行
-import json, os, pathlib, requests
+DASHSCOPE_EMBED_KEY=sk-你的向量模型 key</code></pre></div><p><b>② 装 SDK，再把 memory.py 的开头补上</b></p><p class="act-note">官方的向量接口用的是 dashscope 这个 SDK，先装上：</p><div class="code"><button class="copy" type="button">复制</button><pre><code>pip install dashscope</code></pre></div><p class="act-note">官方文档里三行就能调通。我们把它包成一个能复用的函数，并且读向量模型自己的 EMBED_KEY。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">把这几行补在 memory.py 最上面</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code># 先给 memory.py 补上开头这几行
+import json, os, pathlib
+
+import dashscope
 from dotenv import load_dotenv
 
 load_dotenv()
 # 向量模型单独用一个 key 变量，不要和对话模型混着用
-EMBED_KEY = os.environ["DASHSCOPE_EMBED_KEY"]
-EMB_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings"
+dashscope.api_key = os.environ["DASHSCOPE_EMBED_KEY"]
+EMB_MODEL = "qwen3.7-text-embedding-flash"
 
 
 def embed(texts):
-    # 把一批文字换成向量。这个接口一次最多收 25 条，所以要分批送
-    out = []
-    for i in range(0, len(texts), 25):
-        r = requests.post(
-            EMB_URL,
-            headers={"Authorization": "Bearer " + EMBED_KEY},
-            json={"model": "text-embedding-v3", "input": texts[i:i + 25]},
-            timeout=60,
-        )
-        r.raise_for_status()
-        out.extend(d["embedding"] for d in r.json()["data"])
-    return out</code></pre></div><p><b>③ 切段、建索引，存成一个文件</b></p><p class="act-note">建索引只做一次。做完以后直接用 vectors.json，不用每次重新花钱算。</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>VEC_FILE = pathlib.Path("vectors.json")
+    # 把一批文字换成向量。官方 SDK 一次可以收一整个列表
+    resp = dashscope.TextEmbedding.call(model=EMB_MODEL, input=texts)
+    if resp.status_code != 200:
+        # 出错时把原始返回打出来，key 错、模型名错都能在这里看到
+        raise RuntimeError("向量接口报错：" + str(resp))
+    # 返回里带 text_index，按它排序保证顺序和传入一致
+    embs = sorted(resp.output["embeddings"], key=lambda d: d.get("text_index", 0))
+    return [d["embedding"] for d in embs]</code></pre></div><p><b>③ 切段、建索引，存成一个文件</b></p><p class="act-note">建索引只做一次。做完以后直接用 vectors.json，不用每次重新花钱算。（这个向量模型单条最长能吃 128K token，我们这几段文字远远够。）</p><div class="mkfile"><span class="mktag">接着写</span><code>memory.py</code><span class="mknote">同一个文件，接着写</span></div><div class="code"><button class="copy" type="button">复制</button><pre><code>VEC_FILE = pathlib.Path("vectors.json")
 
 
 def build_index(folder="docs"):
