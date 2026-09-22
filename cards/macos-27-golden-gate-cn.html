@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>macOS 27「Golden Gate」国行通行清单 · 可编辑稿</title>
+<meta name="description" content="macOS 27 Golden Gate 新功能逐条标注中国大陆可用性：放行 35 项、拦在桥外 24 项、待检 6 项，附国行 Apple 智能审批时间线与自查方法。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+  /* ============================================================
+     macOS 27「Golden Gate」国行通行清单
+     色彩取自内容自身世界：金门大桥国际橙 + 冷纸文书（既定规范）
+     ============================================================ */
+  :root{
+    --paper:#f5f6f8;        /* 冷纸白 */
+    --paper-hi:#ffffff;
+    --ink:#14161c;          /* 冷墨 */
+    --ink-2:#3a3f4a;
+    --fog:#d9dde4;          /* 桥雾灰 · 分隔线 */
+    --muted:#5c636e;
+    --bridge:#c0362c;       /* 金门大桥国际橙 · 唯一强调色 */
+    --bridge-ink:#96271f;   /* 同色文字档（保证对比度） */
+    --indigo:#3b46e0;       /* 既定规范靛蓝 · 放行章 */
+    --serif:"Noto Serif SC","Songti SC","STSong",serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.8;
+  }
+
+  /* ---------- 工具栏（可编辑基线） ---------- */
+  .slatebar{
+    position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+    padding:10px 16px;background:rgba(245,246,248,.94);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--fog);
+  }
+  .slatebar .mark{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;color:var(--muted);margin-right:auto}
+  .slatebar .mark b{color:var(--bridge-ink);letter-spacing:.16em}
+  .btn{
+    font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--fog);border-radius:2px;
+    background:var(--paper-hi);color:var(--ink);cursor:pointer;
+  }
+  .btn:hover{border-color:var(--ink-2)}
+  .btn.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .btn:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+  #status{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex-basis:100%}
+  @media (min-width:720px){#status{flex-basis:auto;margin-left:4px}}
+
+  #doc{max-width:920px;margin:0 auto;padding:0 20px 72px}
+
+  /* ---------- 页首：雾中桥索 ---------- */
+  header.hero{padding:56px 0 30px;border-bottom:1px solid var(--fog);position:relative}
+  .bridge{display:block;width:100%;height:auto;margin:0 0 6px;opacity:.9}
+  .bridge .cable{fill:none;stroke:var(--ink);stroke-opacity:.30;stroke-width:1.1}
+  .bridge .susp{stroke:var(--ink);stroke-opacity:.13;stroke-width:.8}
+  .bridge .tower{stroke:var(--ink);stroke-opacity:.42;stroke-width:1.6}
+  .bridge .deck{stroke:var(--ink);stroke-opacity:.55;stroke-width:1.4}
+  .bridge .fogband{fill:var(--paper);opacity:.85}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--muted);margin:0 0 14px}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5vw,40px);line-height:1.25;
+    letter-spacing:.01em;margin:0 0 10px}
+  h1 .gate{color:var(--bridge-ink)}
+  .standfirst{font-size:16.5px;color:var(--ink-2);max-width:44em;margin:0 0 22px}
+  .standfirst b{color:var(--ink)}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+  .meta span::before{content:"";display:inline-block;width:4px;height:4px;background:var(--fog);
+    border-radius:50%;margin-right:7px;vertical-align:2px}
+  .meta span:first-child::before{display:none}
+
+  /* ---------- 统计带 ---------- */
+  .tally{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:34px 0 8px;border:1px solid var(--fog)}
+  .tally div{padding:16px 18px;border-right:1px solid var(--fog)}
+  .tally div:last-child{border-right:none}
+  .tally .n{font-family:var(--mono);font-size:30px;line-height:1.1;display:block}
+  .tally .k{font-size:13px;color:var(--muted);display:block;margin-top:4px}
+  .tally .t-go .n{color:var(--indigo)}
+  .tally .t-stop .n{color:var(--bridge-ink)}
+  .tally .t-wait .n{color:var(--ink-2)}
+
+  /* ---------- 闸口分组 ---------- */
+  section.gate{margin-top:64px}
+  .gate-head{display:flex;align-items:flex-start;gap:22px;padding-bottom:14px;border-bottom:2px solid var(--ink);position:relative}
+  .gate-head .txt{flex:1 1 auto;min-width:0}
+  .gate-head .idx{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--muted);display:block;margin-bottom:8px}
+  h2{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.35;margin:0 0 8px}
+  .gate-head p{margin:0;font-size:14.5px;color:var(--muted);max-width:40em}
+
+  /* 印章 —— 全页唯一的大胆处 */
+  .stamp{
+    flex:0 0 auto;width:106px;height:106px;border-radius:50%;border:2.5px solid currentColor;
+    display:grid;place-content:center;text-align:center;transform:rotate(-7deg);
+    position:relative;font-family:var(--serif);font-size:21px;letter-spacing:.16em;
+    padding-left:.16em;line-height:1.1;mix-blend-mode:multiply;
+  }
+  .stamp::after{content:"";position:absolute;inset:7px;border-radius:50%;border:1px solid currentColor;opacity:.5}
+  .stamp small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;margin-top:5px;opacity:.8;padding-left:0}
+  .s-go{color:var(--indigo)}
+  .s-stop{color:var(--bridge-ink)}
+  .s-wait{color:var(--ink-2);border-style:dashed;mix-blend-mode:normal}
+  .s-wait::after{border-style:dashed;opacity:.35}
+
+  /* ---------- 功能行 ---------- */
+  ol.rows{list-style:none;margin:0;padding:0}
+  li.row{display:flex;gap:16px;align-items:baseline;padding:14px 2px;border-bottom:1px solid var(--fog)}
+  li.row:last-child{border-bottom:none}
+  .badge{
+    flex:0 0 auto;font-family:var(--mono);font-size:12px;line-height:1;width:20px;height:20px;
+    display:grid;place-items:center;border:1px solid currentColor;border-radius:2px;transform:translateY(3px);
+  }
+  .b-go{color:var(--indigo)}
+  .b-stop{color:var(--bridge-ink)}
+  .b-wait{color:var(--ink-2)}
+  .row-body{flex:1 1 auto;min-width:0}
+  .row-body h3{font-size:16px;font-weight:600;margin:0 0 2px;line-height:1.6}
+  .row-body p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.75}
+  .row-body p b{color:var(--ink-2);font-weight:600}
+  .row-body code{font-family:var(--mono);font-size:13px;background:var(--paper-hi);
+    border:1px solid var(--fog);border-radius:2px;padding:1px 5px}
+
+  /* ---------- 时间线（真实序列，故允许时间码） ---------- */
+  section.timeline{margin-top:64px}
+  .tl{margin:22px 0 0;padding:0;list-style:none;border-left:2px solid var(--fog)}
+  .tl li{position:relative;padding:0 0 22px 24px}
+  .tl li::before{content:"";position:absolute;left:-7px;top:9px;width:12px;height:12px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--ink-2)}
+  .tl li.now::before{background:var(--bridge);border-color:var(--bridge)}
+  .tl .when{font-family:var(--mono);font-size:12px;color:var(--muted);display:block;letter-spacing:.04em}
+  .tl .what{font-size:15.5px;margin:1px 0 0}
+  .tl .what b{font-weight:600}
+
+  /* ---------- 收尾 ---------- */
+  .note{margin-top:44px;padding:20px 22px;background:var(--paper-hi);border:1px solid var(--fog)}
+  .note h3{font-family:var(--serif);font-size:17px;margin:0 0 8px}
+  .note ul{margin:0;padding-left:20px;font-size:14.5px;color:var(--ink-2)}
+  .note li{margin:5px 0}
+  .note li b{color:var(--ink)}
+  footer.endnote{margin-top:56px;padding-top:20px;border-top:1px solid var(--fog);
+    font-size:12.5px;color:var(--muted);line-height:1.9}
+  footer.endnote a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+  footer.endnote .seamword{font-family:var(--serif);letter-spacing:.34em;color:var(--bridge-ink);
+    display:block;text-align:center;margin-top:22px;font-size:13px}
+
+  /* ---------- 编辑态 ---------- */
+  body.editing #doc :is(h1,h2,h3,p,li,.standfirst,.what,.when,.k){outline:1px dashed rgba(59,70,224,.45);outline-offset:2px}
+
+  /* ---------- 窄屏 ---------- */
+  @media (max-width:640px){
+    #doc{padding:0 16px 56px}
+    header.hero{padding-top:36px}
+    .gate-head{flex-direction:column-reverse;gap:14px}
+    .stamp{width:88px;height:88px;font-size:18px;align-self:flex-end}
+    .tally{grid-template-columns:1fr}
+    .tally div{border-right:none;border-bottom:1px solid var(--fog)}
+    .tally div:last-child{border-bottom:none}
+    h1{font-size:27px}
+  }
+
+  /* ---------- 打印（本页本来就是纸面色，只做去交互 + 防断行） ---------- */
+  @media print{
+    :root{--paper:#fff;--paper-hi:#fff;--fog:#c8ccd4;--muted:#4a505a}
+    body{background:#fff}
+    .slatebar{display:none!important}
+    #doc{max-width:none;padding:0}
+    li.row,.tl li,.note{break-inside:avoid}
+    section.gate{break-before:auto;margin-top:34px}
+    .stamp{mix-blend-mode:normal}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<div class="slatebar">
+  <span class="mark">MACOS&nbsp;27 · <b>GOLDEN&nbsp;GATE</b> · 国行通行清单</span>
+  <button class="btn" id="btn-edit">✎ 开启编辑</button>
+  <button class="btn" id="btn-reset">恢复原稿</button>
+  <button class="btn" id="btn-download">下载当前版</button>
+  <button class="btn" id="btn-print">打印 / PDF</button>
+  <span id="status">只读 · 开启编辑后改动自动存入本浏览器</span>
+</div>
+
+<article id="doc">
+
+  <!-- ================= 页首 ================= -->
+  <header class="hero">
+    <svg class="bridge" viewBox="0 0 920 210" preserveAspectRatio="none" aria-hidden="true">
+      <!-- 悬索 -->
+      <path class="cable" d="M0,70 Q125,40 250,40"/>
+      <path class="cable" d="M250,40 Q460,120 670,40"/>
+      <path class="cable" d="M670,40 Q795,40 920,70"/>
+      <!-- 吊索 -->
+      <g class="susp">
+        <line x1="292" y1="54" x2="292" y2="190"/><line x1="334" y1="66" x2="334" y2="190"/>
+        <line x1="376" y1="74" x2="376" y2="190"/><line x1="418" y1="78" x2="418" y2="190"/>
+        <line x1="460" y1="80" x2="460" y2="190"/><line x1="502" y1="78" x2="502" y2="190"/>
+        <line x1="544" y1="74" x2="544" y2="190"/><line x1="586" y1="66" x2="586" y2="190"/>
+        <line x1="628" y1="54" x2="628" y2="190"/>
+      </g>
+      <!-- 桥塔 -->
+      <path class="tower" d="M250,30 L250,196 M670,30 L670,196"/>
+      <path class="tower" d="M244,50 L256,50 M664,50 L676,50"/>
+      <!-- 雾（先画，桥面随后压在上面，避免雾吃掉桥面） -->
+      <rect class="fogband" x="0" y="164" width="920" height="46"/>
+      <!-- 桥面 -->
+      <path class="deck" d="M0,190 L920,190"/>
+    </svg>
+    <p class="kicker">2026-09-22 · 逐条核实</p>
+    <h1>macOS 27「<span class="gate">Golden&nbsp;Gate</span>」<br>国行通行清单</h1>
+    <p class="standfirst">同一版系统，桥的两侧看到的功能不一样。这份清单把 macOS&nbsp;27 的新功能按中国大陆的实际可用性分成三档：<b>已在国行放行的</b>、<b>被拦在桥外的</b>、<b>还在海关等检验的</b>。判据来自 Apple 官方更新说明、WWDC26 与 9 月发布会的官方口径，以及国行 Apple 智能的备案与审批进展。</p>
+    <p class="meta">
+      <span>macOS 27.0 · 2026-09-14 推送</span>
+      <span>当前测试版 27.2 Beta 2</span>
+      <span>仅 Apple 芯片</span>
+      <span>可编辑稿</span>
+    </p>
+
+    <div class="tally">
+      <div class="t-go"><span class="n">35</span><span class="k">放行 · 国内可正常使用</span></div>
+      <div class="t-stop"><span class="n">24</span><span class="k">拦在桥外 · 依赖 Apple 智能</span></div>
+      <div class="t-wait"><span class="n">6</span><span class="k">待检 · 看国行 AI 落地节奏</span></div>
+    </div>
+    <p class="k" style="font-size:13px;color:var(--muted);margin:10px 0 0">
+      标记读法：<span class="badge b-go" style="display:inline-grid;vertical-align:-4px">✓</span> 放行 ·
+      <span class="badge b-stop" style="display:inline-grid;vertical-align:-4px">✕</span> 拦在桥外 ·
+      <span class="badge b-wait" style="display:inline-grid;vertical-align:-4px">◌</span> 待检
+    </p>
+  </header>
+
+  <!-- ================= 闸口 A ================= -->
+  <section class="gate" id="gate-a">
+    <div class="gate-head">
+      <div class="txt">
+        <span class="idx">闸口 A · 35 项</span>
+        <h2>已放行：不依赖 Apple 智能的部分</h2>
+        <p>这些能力由系统框架、图形栈和硬件完成，与 AI 审批无关，国行机器升级后即可用。它们其实占了本次更新的大半。</p>
+      </div>
+      <div class="stamp s-go" aria-label="放行章">放行<small>35 PASSED</small></div>
+    </div>
+
+    <ol class="rows">
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Liquid Glass 透明度滑杆</h3><p>系统设置 → 外观，可从全透明拉到不透明着色版本，解决去年"太透看不清"的抱怨。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>窗口圆角统一收敛</h3><p>Tahoe 那种夸张大圆角被取消，所有窗口统一半径、工具栏统一样式，跨 App 观感一致。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>侧边栏通栏 + 彩色图标回归</h3><p>侧边栏不再悬浮，改为通栏贴边，去掉多余投影；侧边栏图标恢复彩色。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>图标重绘与界面 HDR</h3><p>App 图标增加 Liquid Glass 层次以提升细节；界面引入 HDR 表现层次与纵深感。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Golden Gate 新壁纸</h3><p>Golden Gate Sunset / Golden Gate Night 两款实景壁纸，解锁时有动画，可设为屏保。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>超宽屏 5K @120Hz</h3><p>新增更高分辨率与高刷模式，超宽屏最高 5K/120Hz，且重新连接后保留原有显示设置。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>外接显示器窗口定位更稳</h3><p>跨显示器移动时窗口与空间不再乱跳，减少"插拔一次、桌面重排一次"的痛点。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>下滑刷新</h3><p>Safari、邮件、播客、日历新增下拉刷新手势，直接更新内容。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>AirDrop 与网络文件浏览提速</h3><p>AirDrop 传输更快，Windows / NAS 等网络文件服务的浏览响应也明显改善。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>iCloud 照片上传提速</h3><p>iPhone 侧开启优先同步后，照片上传到 iCloud 明显加快。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>索引与快捷指令响应提速</h3><p>搜索底座重建，Spotlight 输入建议更贴题，快捷指令与 App Intents 从 Spotlight 调用更快（非 AI 的检索层改进）。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>iPhone 镜像窗口可缩放</h3><p>镜像窗口不再固定比例，可放大或改成竖屏比例，画面自动适配；Sidecar 触控支持也加强。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>视频抽帧存为照片</h3><p>播放视频时可直接把某一帧保存成独立照片。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>关键词与星级评分</h3><p>照片/视频可加关键词、打 1–5 星并按评分筛选，元数据管理终于像个正经图库。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>共享相册跨平台化</h3><p>支持全分辨率分享，Android 与 Windows 用户也能向 iCloud 共享相册投稿；新增 30 天过期选项。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>任意相册做幻灯片</h3><p>不再局限于"回忆"，任意相册或选中的一组照片视频都能直接播放幻灯片。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Captured by Me / Identity Documents</h3><p>两个新工具集：汇总你历年 iPhone 拍的照片；归拢护照、驾照等证件照。另有 Selection View 批量改元数据。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Safari · Resume Browsing</h3><p>起始页新增"继续浏览"区，接回你刚关掉的主题或其他设备上开着的页面。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Safari · Notify Me</h3><p>监控指定网页的变化（降价、补货、开票），按日/周/月频率提醒。本地抓取实现，不依赖 Apple 智能。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>备忘录格式与手写升级</h3><p>Markdown 复制粘贴、分隔线、Section Links 段落跳转，还可用触控板手写涂画。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>信息通知减负</h3><p>Tapback 通知合并、发送失败自动重试、大文件连续发送不卡顿、跨设备不再重复提醒。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>电话 · Call Context</h3><p>给商家打电话时自动带出相关本机信息（如航班号），减少来回找资料的次数。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>音乐 · 艺人页与 AutoMix</h3><p>艺人页重做，AutoMix 过渡更顺滑。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>时钟 · 闹钟音量独立</h3><p>闹钟音量可以独立于系统音量设置，不再"调小音乐就听不见闹钟"。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>播客 · 视频播客</h3><p>支持视频播客完整播放控制、画中画与下载。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>AirPods 自定义 EQ</h3><p>可调低音、中音、高音。限 H2 芯片机型：AirPods Pro 2 / Pro 3 / AirPods 4 / AirPods Max 2。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>屏幕使用时间重新设计</h3><p>家长一眼看到孩子设备使用情况与高频 App，并可当场调整权限。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Time Allowances 分类限时</h3><p>按"娱乐 / 游戏 / 社交"类目设时长上限，附按孩子年龄给的专家建议值。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Daily Schedules 分时段</h3><p>按一周内不同时段限制可用 App，比如吃饭与户外时间自动收紧。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Ask to Buy / Ask to Browse</h3><p>孩子每次下载 App、访问任意新网站都需家长批准。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>通讯对象管理</h3><p>家长可管理孩子能联系的人，并要求"联系新联系人前先获得许可"。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Communication Safety 扩展</h3><p>18 岁以下除裸露外，新增默认模糊血腥与暴力画面（信息与 FaceTime）。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>视频自动字幕</h3><p>无障碍新增视频自动字幕；这也是本次更新中国行不受影响的能力之一。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>仅 Apple 芯片</h3><p>M1 及以后可升级；Intel 机型止步 macOS Tahoe，那 4 款 Mac 这次被移出支持列表。</p></div></li>
+      <li class="row"><span class="badge b-go">✓</span><div class="row-body"><h3>Rosetta 2 最后完整支持版本</h3><p>macOS 27 是最后一个完整支持 Rosetta 2 的 macOS，Intel 应用的转译支持进入倒计时。</p></div></li>
+    </ol>
+  </section>
+
+  <!-- ================= 闸口 B ================= -->
+  <section class="gate" id="gate-b">
+    <div class="gate-head">
+      <div class="txt">
+        <span class="idx">闸口 B · 24 项</span>
+        <h2>拦在桥外：Apple 智能 / Siri AI 系</h2>
+        <p>Apple 在 WWDC26 上明确表态：在中国大陆，Siri AI 和其他 Apple 智能新功能需要配合监管要求推进，<b>暂不提供</b>。以下功能全部落在这一条里，国行机器升级后看不到入口。</p>
+      </div>
+      <div class="stamp s-stop" aria-label="拦截章">止步<small>24 HELD</small></div>
+    </div>
+
+    <ol class="rows">
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · 个人上下文</h3><p>跨邮件、短信、备忘录、照片、文件、日历做语义检索（"我哥上周让我看的那部电影"）。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · 世界知识</h3><p>联网检索回答任意话题、做行程与攻略、辅导作业等对话式问答。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · 屏幕感知</h3><p>知道你在看什么，可总结、核对文档、翻译菜单、解释图表。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · App Actions</h3><p>跨 App 执行操作：回邮件、加日程、整理相册、规划带中途停靠的路线。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · Spotlight「Search or Ask」</h3><p>⌘ + 空格 呼出后可直接提问，支持追问、上传文件图片、富信息卡片。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · 独立 Siri App</h3><p>卡片式会话历史、搜索与置顶，跨 Apple 设备 iCloud 同步。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · Write with Siri</h3><p>全局写作：起草、改语气、纠语法、按你自己的文风写邮件与信息。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Siri AI · 自定义语音与强化听写</h3><p>可调语速与表现力的自定义音色，以及端侧模型带来的听写精度提升（硬件要求见待检区）。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Visual Intelligence 登陆 Mac</h3><p><code>⌘ + Shift + Space</code> 框选屏幕任意区域问 Siri；系统级右键「Ask Siri」；识别动植物地标、以图搜同款、翻译朗读。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>照片 · Extend 扩展画幅</h3><p>用生成式填充扩大取景范围或改变构图，边框可拖拽调整。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>照片 · Reframe 改变视角</h3><p>结合拍摄时的空间信息 + AI 补像素，后期改变相机角度与人物朝向。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>图像乐园重做 / Genmoji</h3><p>任意风格（含写实）、可生成人物、手势微调；Genmoji 更快更好。注意额度与 iCloud+ 订阅挂钩。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Safari · 标签页智能分组</h3><p>按主题自动把标签页、书签、阅读列表归类。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>Safari · Create an Extension</h3><p>用自然语言生成自定义扩展（引用格式、专注计时、字号、页面改造等）。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>密码 App · AI 自动改密</h3><p>官方明确该功能基于 Apple Intelligence 与 Safari 的代理式操作，能自动登录网站并把弱密码/已泄露密码换成强密码。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>文件 · 智能命名</h3><p>保存文件或文件夹时，按内容自动建议名称。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>快捷指令 · Describe a Shortcut</h3><p>一句话描述需求，自动生成整条快捷指令（含所需步骤）。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>邮件 · 意图相关性搜索</h3><p>搜索不再按关键词与时间排序，而按相关性与意图排名。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>邮件 · 学你文风的智能回复</h3><p>Smart Replies 按你的写作风格生成，建议更像你本人会打的字。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>邮件 · 上下文建议条</h3><p>顶部的上下文操作建议开放给第三方 App，并按内容给出一键动作。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>信息 · AI 操作建议</h3><p>按对话内容建议插图片、分享位置等下一步动作。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>地图 · Flyover 视觉模型增强</h3><p>用航拍影像 + 视觉模型让 Flyover 更真实。中国大陆的 Flyover 本就未开放，双重受限。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>手记 · 生成式写作提示</h3><p>按情境生成写作灵感提示。</p></div></li>
+      <li class="row"><span class="badge b-stop">✕</span><div class="row-body"><h3>VoiceOver · AI 图像描述</h3><p>更丰富的图像描述依赖生成式模型，因此同属受限范围。</p></div></li>
+    </ol>
+  </section>
+
+  <!-- ================= 闸口 C ================= -->
+  <section class="gate" id="gate-c">
+    <div class="gate-head">
+      <div class="txt">
+        <span class="idx">闸口 C · 6 项</span>
+        <h2>待检：卡在审批与适配之间</h2>
+        <p>国行 Apple 智能已完成备案并获首批合规资格，但截至 2026-09-22 尚未正式推送。以下项目最可能随首批放开，也可能继续等。</p>
+      </div>
+      <div class="stamp s-wait" aria-label="待检章">待检<small>6 PENDING</small></div>
+    </div>
+
+    <ol class="rows">
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>照片 · Clean Up 生成式消除</h3><p>新版模型能更好重建复杂背景，含 Fast / High Quality / Auto 三档。<b>最可能进入国行首批</b>——库克点名"相册 AI 消除"属首批工具类功能。</p></div></li>
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>写作工具（改写 / 润色）</h3><p>备忘录、邮件等处的写作与改写能力。8 月短暂上架的《在 Mac 上配合 Apple 智能使用千问》文档明确提到其支持写作工具与 Siri，说明适配已在进行。</p></div></li>
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>日历 / 提醒事项自然语言输入</h3><p>"明天下午 2 点在首尔站和 Kim 开会"自动识别人名、地点、时间并建日程。实现上多半依赖端侧模型，与国行 AI 同步上线最合理。</p></div></li>
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>家庭 App · AI 活动摘要</h3><p>HomeKit 安防视频的 4K 串流、AI 活动摘要、多机位拼接与片段搜索。4K 与新硬件关系更大，AI 摘要部分看国行覆盖范围，部分能力还绑 iCloud+。</p></div></li>
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>端侧强模型 / Siri 自定义语音</h3><p>硬件门槛是 <b>M3 及以上 + 至少 12GB 内存</b>——你的 M4 Mac 达标，但国行没有 Siri AI，达标也用不上。</p></div></li>
+      <li class="row"><span class="badge b-wait">◌</span><div class="row-body"><h3>新闻 App（News）</h3><p>中国大陆本就不提供 News App，所以"下滑刷新"这条能力在这里没有落地场景，属长期地区限制，与 AI 无关。</p></div></li>
+    </ol>
+  </section>
+
+  <!-- ================= 时间线 ================= -->
+  <section class="timeline" id="timeline">
+    <div class="gate-head" style="border-bottom-width:1px">
+      <div class="txt">
+        <span class="idx">国行 Apple 智能 · 审批进程</span>
+        <h2>桥是怎么一点点搭起来的</h2>
+        <p>从"暂不提供"到"首批获批"，再到今天的"仍未推送"。</p>
+      </div>
+    </div>
+    <ol class="tl">
+      <li><span class="when">2026-06-09</span><p class="what"><b>WWDC26 官方定调</b>：在中国大陆，Siri AI 与 Apple 智能新功能需配合监管要求推进，<b>暂不提供</b>。</p></li>
+      <li><span class="when">2026-07-08</span><p class="what"><b>完成备案</b>：苹果技术开发（上海）的「Apple 智能」大模型进入网信办生成式 AI 备案名单。</p></li>
+      <li><span class="when">2026-07 下旬</span><p class="what"><b>首批获批</b>：财报会上确认已获中国监管批准，首批工具类功能（相册 AI 消除等）具备合规上线资格；<b>高阶 Siri AI 仍处起步阶段</b>，需后续审批与适配。基础功能免费，高阶或与 iCloud+ 挂钩。</p></li>
+      <li><span class="when">2026-08-09</span><p class="what"><b>手册闪现又下架</b>：苹果中国官网出现《在 Mac 上配合 Apple 智能使用千问》，要求大陆版设备 + Apple ID 地区为中国大陆 + 身处大陆，支持写作工具与 Siri；上线不到一天即撤下。</p></li>
+      <li><span class="when">2026-09-10</span><p class="what"><b>新 Siri AI 发布</b>：共支持 16 种语言，含简繁中文，但<b>首发不含中国大陆</b>；英语 Beta 已开，10 月加法语、日语、韩语、葡语、西语。</p></li>
+      <li><span class="when">2026-09-14</span><p class="what"><b>macOS 27 Golden Gate 正式推送</b>：国行机器可升级系统，但 Apple 智能相关能力未随之放开。</p></li>
+      <li class="now"><span class="when">2026-09-22 · 今天</span><p class="what"><b>仍未正式推送</b>：国行底层方案由阿里千问（系统级文本/图像理解与内容生成，覆盖 macOS 等全平台）+ 百度文心（Siri 语音、视觉识别）承接，落地节奏待 Apple 官方公布。</p></li>
+    </ol>
+  </section>
+
+  <!-- ================= 自查与建议 ================= -->
+  <div class="note">
+    <h3>升级后怎么自查，以及四条提醒</h3>
+    <ul>
+      <li><b>自查</b>：打开 系统设置，看是否有「Apple 智能与 Siri」入口及可用开关。没有入口，就说明国行尚未对你开放。</li>
+      <li><b>别强开</b>：网上已有"国行 Mac 一键开启完整 Apple 智能"之类的第三方脚本，涉及注入系统与改区，存在账号安全、合规与后续更新风险，也不符合 Apple 条款。</li>
+      <li><b>预期管理</b>：先来的会是照片消除、写作工具这类基础能力；Siri AI 与 Visual Intelligence 要再等一轮审批，别照着发布会宣传的功能去期待。</li>
+      <li><b>替代方案</b>：现阶段想在 Mac 上用同类 AI 能力，走第三方客户端（通义、ChatGPT、Claude 等）更省事，不依赖国行推送节奏。</li>
+    </ul>
+  </div>
+
+  <footer class="endnote">
+    <p><b>来源</b>：Apple 官方更新说明《What's new in macOS 27 Golden Gate》；MacRumors macOS Golden Gate 深度汇总与兼容机型页；IT之家 WWDC26 国行说明与 9 月发布会报道；新华财经关于 Apple 智能备案与千问手册下架的报道；ZOL 发布会报道。所有功能细节以 Apple 官方与上述报道为准，可用性结论截至 2026-09-22。</p>
+    <p>本页支持在线编辑：「✎ 开启编辑」后直接改文字，改动 500ms 防抖自动存入本浏览器（localStorage）；换设备请用「下载当前版」带走，或用「打印 / PDF」存档。</p>
+    <span class="seamword">雾散之前，先看清桥在哪</span>
+  </footer>
+</article>
+
+<script>
+(function () {
+  var KEY = 'macos27-golden-gate-cn-v1-edits-v1';
+  var doc = document.getElementById('doc');
+  var btnEdit = document.getElementById('btn-edit');
+  var btnReset = document.getElementById('btn-reset');
+  var btnDl = document.getElementById('btn-download');
+  var btnPrint = document.getElementById('btn-print');
+  var status = document.getElementById('status');
+  var original = doc.innerHTML;
+  var editing = false, timer = null;
+
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved && saved !== original) {
+      doc.innerHTML = saved;
+      status.textContent = '已载入你上次的本地修改';
+    }
+  } catch (e) {}
+
+  function setEditing(on) {
+    editing = on;
+    doc.contentEditable = on ? 'true' : 'false';
+    document.body.classList.toggle('editing', on);
+    btnEdit.classList.toggle('active', on);
+    btnEdit.textContent = on ? '✓ 编辑中 · 点此退出' : '✎ 开启编辑';
+    status.textContent = on ? '编辑中 · 输入即自动保存' : '只读 · 开启编辑后改动自动存入本浏览器';
+    if (on) doc.focus();
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, doc.innerHTML);
+      var t = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      status.textContent = '已自动保存 ' + t;
+    } catch (e) { status.textContent = '⚠ 保存失败（存储已满或隐私模式）'; }
+  }
+
+  doc.addEventListener('input', function () {
+    if (!editing) return;
+    clearTimeout(timer);
+    timer = setTimeout(function () { timer = null; save(); }, 500);
+  });
+
+  btnEdit.addEventListener('click', function () { setEditing(!editing); });
+
+  btnReset.addEventListener('click', function () {
+    if (!confirm('恢复原稿将丢弃本浏览器内的全部修改，确定？')) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    doc.innerHTML = original;
+    setEditing(false);
+    status.textContent = '已恢复服务器原稿';
+  });
+
+  btnDl.addEventListener('click', function () {
+    var clone = document.documentElement.cloneNode(true);
+    var a = clone.querySelector('#doc');
+    if (a) a.removeAttribute('contenteditable');
+    var b = clone.querySelector('body');
+    if (b) b.classList.remove('editing');
+    var st = clone.querySelector('#status');
+    if (st) st.textContent = '导出于 ' + new Date().toLocaleString('zh-CN');
+    var blob = new Blob(['<!doctype html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'macos-27-golden-gate-cn-edited.html';
+    link.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  });
+
+  btnPrint.addEventListener('click', function () { window.print(); });
+})();
+</script>
+</body>
+</html>
