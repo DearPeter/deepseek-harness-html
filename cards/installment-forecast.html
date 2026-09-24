@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分期与贷款还款时间表</title>
+<style>
+:root{
+  --bg:#0b0f14; --card:#141a22; --card2:#1a222c; --line:#24303d;
+  --tx:#e8eef5; --mu:#8b9aab; --gold:#f2c14e; --blue:#5aa9f7; --green:#4ade80; --red:#f87171;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);
+ font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+ padding:20px 14px 56px;max-width:860px;margin:0 auto}
+h1{font-size:20px;font-weight:600;margin:0 0 6px}
+.sub{color:var(--mu);font-size:12.5px;margin-bottom:20px}
+.sub b{color:#b9c7d6;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi .l{color:var(--mu);font-size:12px;margin-bottom:6px}
+.kpi .v{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kpi .v small{font-size:12px;color:var(--mu);font-weight:400;margin-left:2px}
+.sec{margin:26px 0 12px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sec::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--gold)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 12px;overflow:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-bottom:6px}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:9px 6px;border-bottom:1px solid var(--line);font-size:13px;text-align:right;white-space:nowrap}
+th{color:var(--mu);font-weight:500;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tr.peak td{background:rgba(242,193,78,.07)}
+td.mm{color:#b9c7d6}
+td.tot{font-weight:600;color:#fff}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.cn{font-size:13.5px;font-weight:600;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.cn i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.crow{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--mu)}
+.crow b{color:var(--tx);font-weight:500}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
+summary{padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;font-size:13.5px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .st{color:var(--gold);font-variant-numeric:tabular-nums}
+ul.lines{list-style:none;margin:0;padding:0 14px 10px}
+ul.lines li{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-top:1px dashed var(--line);font-size:12.5px}
+ul.lines .d{color:var(--mu);flex:0 0 42px;white-space:nowrap;font-variant-numeric:tabular-nums}
+ul.lines .n{flex:1 1 auto;color:#cfd9e4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ul.lines .c{color:var(--mu);flex:0 0 auto;font-size:11.5px;white-space:nowrap}
+ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:tabular-nums}
+.ms{list-style:none;padding:0;margin:0}
+.ms li{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;color:#cfd9e4}
+.ms li:last-child{border-bottom:none}
+.note{margin-top:26px;padding:13px 14px;background:var(--card2);border:1px solid var(--line);border-radius:10px;
+ color:var(--mu);font-size:12px;line-height:1.75}
+.note b{color:#b9c7d6;font-weight:500}
+@media (max-width:560px){
+ body{padding:16px 10px 48px}
+ h1{font-size:18px}
+ .sub{font-size:12px}
+ .kpi{padding:12px}
+ .kpi .v{font-size:18px}
+ .kpi .l{font-size:11.5px}
+ th,td{padding:8px 2px;font-size:11px;letter-spacing:-.3px}
+ th{font-size:10.5px}
+ ul.lines li{font-size:11.5px;gap:6px}
+ ul.lines .d{flex:0 0 40px}
+ ul.lines .a{flex:0 0 62px}
+ ul.lines .c{font-size:11px}
+}
+</style>
+</head>
+<body>
+<h1>分期与贷款 · 月度还款时间表</h1>
+<div class="sub">统计基准 <b>2026-09-24</b> · 数据源 <b>CMB 账单库</b>（bill_installment / bill_statement_detail）· 口径 <b>按到期还款日归月</b></div>
+
+<div class="kpis">
+  <div class="kpi"><div class="l">未来 12 个月合计</div><div class="v">¥80,565.94</div></div>
+  <div class="kpi"><div class="l">月均还款</div><div class="v">¥6,713.83</div></div>
+  <div class="kpi"><div class="l">峰值月 · 2026-12</div><div class="v">¥9,962.19</div></div>
+  <div class="kpi"><div class="l">最近待还 · 汽车分期</div><div class="v">¥3,480.00<small>09-28</small></div></div>
+</div>
+
+<div class="sec">月度还款构成</div>
+<div class="panel">
+  <div class="legend">
+    <span><i style="background:#f2c14e"></i>e招贷</span>
+    <span><i style="background:#5aa9f7"></i>汽车分期</span>
+    <span><i style="background:#4ade80"></i>账单分期</span>
+  </div>
+  <svg viewBox="0 0 420 232" role="img" aria-label="未来12个月分期还款柱状图" style="width:100%;max-width:520px;display:block;margin:0 auto">
+<title>未来 12 个月月度还款金额</title>
+<desc>按到期还款日归月，含 e招贷、汽车分期与账单分期三部分堆叠，虚线为月均水平。</desc>
+<line x1="42" y1="194.0" x2="410" y2="194.0" stroke="#24303d" stroke-width="1"/><text x="35" y="197.5" text-anchor="end" fill="#7c8b9c" font-size="10">0</text><line x1="42" y1="156.5" x2="410" y2="156.5" stroke="#24303d" stroke-width="1"/><text x="35" y="160.0" text-anchor="end" fill="#7c8b9c" font-size="10">2.5k</text><line x1="42" y1="119.0" x2="410" y2="119.0" stroke="#24303d" stroke-width="1"/><text x="35" y="122.5" text-anchor="end" fill="#7c8b9c" font-size="10">5k</text><line x1="42" y1="81.5" x2="410" y2="81.5" stroke="#24303d" stroke-width="1"/><text x="35" y="85.0" text-anchor="end" fill="#7c8b9c" font-size="10">7.5k</text><line x1="42" y1="44.0" x2="410" y2="44.0" stroke="#24303d" stroke-width="1"/><text x="35" y="47.5" text-anchor="end" fill="#7c8b9c" font-size="10">10k</text><line x1="42" y1="93.3" x2="410" y2="93.3" stroke="#f2c14e" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/><text x="408" y="88.3" text-anchor="end" fill="#f2c14e" font-size="9.5" opacity=".85">月均 6.7k</text>
+<rect x="47.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="47.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="47.3" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="57.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/10</text><rect x="78.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="78.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="78.0" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="88.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/11</text><rect x="108.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="108.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="108.7" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="118.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/12</text><rect x="139.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="139.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="149.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/01</text><rect x="170.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="170.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="180.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/02</text><rect x="200.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="200.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="210.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/03</text><rect x="231.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="231.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="241.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/04</text><rect x="262.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="262.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="272.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/05</text><rect x="292.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="292.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="302.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/06</text><rect x="323.3" y="160.2" width="20" height="33.8" fill="#4ade80" rx="2"/><rect x="323.3" y="108.0" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="333.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/07</text><rect x="354.0" y="160.2" width="20" height="33.8" fill="#4ade80" rx="2"/><rect x="354.0" y="108.0" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="364.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/08</text><rect x="384.7" y="173.4" width="20" height="20.6" fill="#4ade80" rx="2"/><rect x="384.7" y="121.2" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="394.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/09</text><text x="408" y="222" text-anchor="end" fill="#5f6b78" font-size="9">2026 → 2027</text>
+</svg>
+</div>
+
+<div class="sec">逐月金额</div>
+<div class="panel tw">
+<table>
+<thead><tr><th>还款月</th><th>e招贷</th><th>汽车分期</th><th>账单分期</th><th>合计</th></tr></thead>
+<tbody><tr>
+<td class="mm">2026-10</td>
+<td class="num">4,236.53</td>
+<td class="num">3,480.00</td>
+<td class="num">2,244.22</td>
+<td class="num tot">9,960.75</td></tr><tr>
+<td class="mm">2026-11</td>
+<td class="num">4,236.53</td>
+<td class="num">3,480.00</td>
+<td class="num">2,244.94</td>
+<td class="num tot">9,961.47</td></tr><tr class="peak">
+<td class="mm">2026-12</td>
+<td class="num">4,236.53</td>
+<td class="num">3,480.00</td>
+<td class="num">2,245.66</td>
+<td class="num tot">9,962.19</td></tr><tr>
+<td class="mm">2027-01</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,246.38</td>
+<td class="num tot">5,726.38</td></tr><tr>
+<td class="mm">2027-02</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,247.10</td>
+<td class="num tot">5,727.10</td></tr><tr>
+<td class="mm">2027-03</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,247.82</td>
+<td class="num tot">5,727.82</td></tr><tr>
+<td class="mm">2027-04</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,248.54</td>
+<td class="num tot">5,728.54</td></tr><tr>
+<td class="mm">2027-05</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,249.26</td>
+<td class="num tot">5,729.26</td></tr><tr>
+<td class="mm">2027-06</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,249.98</td>
+<td class="num tot">5,729.98</td></tr><tr>
+<td class="mm">2027-07</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,250.70</td>
+<td class="num tot">5,730.70</td></tr><tr>
+<td class="mm">2027-08</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">2,251.42</td>
+<td class="num tot">5,731.42</td></tr><tr>
+<td class="mm">2027-09</td>
+<td class="num">—</td>
+<td class="num">3,480.00</td>
+<td class="num">1,370.33</td>
+<td class="num tot">4,850.33</td></tr></tbody>
+</table>
+</div>
+
+<div class="sec">分期档案</div>
+<div class="cards"><div class="card">
+<div class="cn"><i style="background:#f2c14e"></i>e招贷</div>
+<div class="crow"><span>月供</span><b>¥4,236.53</b></div>
+<div class="crow"><span>进度</span><b>9/12 期</b></div>
+<div class="crow"><span>待还</span><b>3 期 · ¥12,709.59</b></div>
+<div class="crow"><span>还清</span><b>2026-12-07</b></div>
+</div><div class="card">
+<div class="cn"><i style="background:#4ade80"></i>账单分期12期·¥10411.94</div>
+<div class="crow"><span>月供</span><b>¥873.17</b></div>
+<div class="crow"><span>进度</span><b>1/12 期</b></div>
+<div class="crow"><span>待还</span><b>11 期 · ¥9,652.39</b></div>
+<div class="crow"><span>还清</span><b>2027-08-07</b></div>
+</div><div class="card">
+<div class="cn"><i style="background:#5aa9f7"></i>汽车分期-上海特斯拉</div>
+<div class="crow"><span>月供</span><b>¥3,480.00</b></div>
+<div class="crow"><span>进度</span><b>46/60 期</b></div>
+<div class="crow"><span>待还</span><b>14 期 · ¥48,720.00</b></div>
+<div class="crow"><span>还清</span><b>2027-10-28</b></div>
+</div><div class="card">
+<div class="cn"><i style="background:#4ade80"></i>账单分期24期·¥12000</div>
+<div class="crow"><span>月供</span><b>¥517.14</b></div>
+<div class="crow"><span>进度</span><b>8/24 期</b></div>
+<div class="crow"><span>待还</span><b>16 期 · ¥8,274.24</b></div>
+<div class="crow"><span>还清</span><b>2028-01-07</b></div>
+</div><div class="card">
+<div class="cn"><i style="background:#4ade80"></i>账单分期24期·¥20000</div>
+<div class="crow"><span>月供</span><b>¥853.19</b></div>
+<div class="crow"><span>进度</span><b>2/24 期</b></div>
+<div class="crow"><span>待还</span><b>22 期 · ¥18,770.18</b></div>
+<div class="crow"><span>还清</span><b>2028-07-07</b></div>
+</div></div>
+
+<div class="sec">逐笔明细（点开看每期）</div>
+<div><details><summary><b>2026-10</b><span class="st">¥9,960.75</span></summary>
+<ul class="lines"><li><span class="d">10-07</span><span class="n">e招贷</span><span class="c">第10/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">10-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第9/24期</span><span class="a">¥517.14</span></li><li><span class="d">10-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第3/24期</span><span class="a">¥853.19</span></li><li><span class="d">10-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第2/12期</span><span class="a">¥873.89</span></li><li><span class="d">10-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第48/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-11</b><span class="st">¥9,961.47</span></summary>
+<ul class="lines"><li><span class="d">11-07</span><span class="n">e招贷</span><span class="c">第11/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">11-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第10/24期</span><span class="a">¥517.14</span></li><li><span class="d">11-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第4/24期</span><span class="a">¥853.19</span></li><li><span class="d">11-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第3/12期</span><span class="a">¥874.61</span></li><li><span class="d">11-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第49/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-12</b><span class="st">¥9,962.19</span></summary>
+<ul class="lines"><li><span class="d">12-07</span><span class="n">e招贷</span><span class="c">第12/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">12-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第11/24期</span><span class="a">¥517.14</span></li><li><span class="d">12-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第5/24期</span><span class="a">¥853.19</span></li><li><span class="d">12-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第4/12期</span><span class="a">¥875.33</span></li><li><span class="d">12-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第50/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-01</b><span class="st">¥5,726.38</span></summary>
+<ul class="lines"><li><span class="d">01-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第12/24期</span><span class="a">¥517.14</span></li><li><span class="d">01-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第6/24期</span><span class="a">¥853.19</span></li><li><span class="d">01-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第5/12期</span><span class="a">¥876.05</span></li><li><span class="d">01-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第51/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-02</b><span class="st">¥5,727.10</span></summary>
+<ul class="lines"><li><span class="d">02-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第13/24期</span><span class="a">¥517.14</span></li><li><span class="d">02-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第7/24期</span><span class="a">¥853.19</span></li><li><span class="d">02-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第6/12期</span><span class="a">¥876.77</span></li><li><span class="d">02-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第52/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-03</b><span class="st">¥5,727.82</span></summary>
+<ul class="lines"><li><span class="d">03-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第14/24期</span><span class="a">¥517.14</span></li><li><span class="d">03-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第8/24期</span><span class="a">¥853.19</span></li><li><span class="d">03-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第7/12期</span><span class="a">¥877.49</span></li><li><span class="d">03-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第53/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-04</b><span class="st">¥5,728.54</span></summary>
+<ul class="lines"><li><span class="d">04-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第15/24期</span><span class="a">¥517.14</span></li><li><span class="d">04-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第9/24期</span><span class="a">¥853.19</span></li><li><span class="d">04-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第8/12期</span><span class="a">¥878.21</span></li><li><span class="d">04-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第54/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-05</b><span class="st">¥5,729.26</span></summary>
+<ul class="lines"><li><span class="d">05-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第16/24期</span><span class="a">¥517.14</span></li><li><span class="d">05-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第10/24期</span><span class="a">¥853.19</span></li><li><span class="d">05-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第9/12期</span><span class="a">¥878.93</span></li><li><span class="d">05-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第55/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-06</b><span class="st">¥5,729.98</span></summary>
+<ul class="lines"><li><span class="d">06-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第17/24期</span><span class="a">¥517.14</span></li><li><span class="d">06-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第11/24期</span><span class="a">¥853.19</span></li><li><span class="d">06-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第10/12期</span><span class="a">¥879.65</span></li><li><span class="d">06-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第56/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-07</b><span class="st">¥5,730.70</span></summary>
+<ul class="lines"><li><span class="d">07-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第18/24期</span><span class="a">¥517.14</span></li><li><span class="d">07-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第12/24期</span><span class="a">¥853.19</span></li><li><span class="d">07-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第11/12期</span><span class="a">¥880.37</span></li><li><span class="d">07-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第57/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-08</b><span class="st">¥5,731.42</span></summary>
+<ul class="lines"><li><span class="d">08-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第19/24期</span><span class="a">¥517.14</span></li><li><span class="d">08-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第13/24期</span><span class="a">¥853.19</span></li><li><span class="d">08-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第12/12期</span><span class="a">¥881.09</span></li><li><span class="d">08-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第58/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-09</b><span class="st">¥4,850.33</span></summary>
+<ul class="lines"><li><span class="d">09-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第20/24期</span><span class="a">¥517.14</span></li><li><span class="d">09-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第14/24期</span><span class="a">¥853.19</span></li><li><span class="d">09-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第59/60期</span><span class="a">¥3,480.00</span></li></ul></details></div>
+
+<div class="sec">还清时间线</div>
+<div class="panel"><ul class="ms"><li>2026-12 · e招贷 还清（末次 ¥4,236.53）</li><li>2027-08 · 账单分期12期·¥10411.94 还清（末次 ¥873.17）</li><li>2027-10 · 汽车分期-上海特斯拉 还清（末次 ¥3,480.00）</li><li>2028-01 · 账单分期24期·¥12000 还清（末次 ¥517.14）</li><li>2028-07 · 账单分期24期·¥20000 还清（末次 ¥853.19）</li></ul></div>
+
+<div class="note">
+<b>口径与假设</b><br>
+· 「还款月」= 实际扣款月份：随信用卡账单的分期（e招贷 + 三笔账单分期）在账单月次月 <b>7 日</b>还款；汽车分期独立于每月 <b>28 日</b>还款。<br>
+· 月供为<b>恒定值</b>（已用库内多期数据验证）：e招贷 ¥4,236.53、汽车分期 ¥3,480.00（本金 3,000 + 息 480）、账单分期 ¥517.14 / ¥861.89 / ¥881.85。<br>
+· 账单分期 D、E 含<b>财政贴息</b>（D 每期 −¥8.70；E 贴息递减约 −0.72/期），故实还略低于名义月供。<br>
+· 汽车分期第 48–60 期、账单分期未出账期次为<b>按期次规律推演</b>，实际以招行账单为准。<br>
+· 本表仅含<b>分期与贷款</b>，不含信用卡日常消费、房租及生活固定支出。
+</div>
+</body>
+</html>
