@@ -27,13 +27,19 @@ h1{font-size:20px;font-weight:600;margin:0 0 6px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-bottom:6px}
 .legend span{display:flex;align-items:center;gap:5px}
 .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.legend .tip{margin-left:auto;color:#5f6b78;font-size:11.5px}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 th,td{padding:9px 6px;border-bottom:1px solid var(--line);font-size:13px;text-align:right;white-space:nowrap}
 th{color:var(--mu);font-weight:500;font-size:12px}
 th:first-child,td:first-child{text-align:left}
 tbody tr:last-child td{border-bottom:none}
 tr.peak td{background:rgba(242,193,78,.07)}
-td.mm{color:#b9c7d6}
+tr.done td{opacity:.55}
+tr.now td{background:rgba(242,193,78,.05)}
+td.mm{color:#b9c7d6;white-space:nowrap}
+td.mm .tag{display:inline-block;font-size:9.5px;line-height:1.6;padding:0 5px;border-radius:4px;
+ margin-left:5px;vertical-align:1px;background:rgba(242,193,78,.16);color:#f2c14e}
+tr.done td.mm .tag{background:rgba(90,169,247,.14);color:#8cc4fb}
 td.tot{font-weight:600;color:#fff}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
@@ -52,6 +58,8 @@ ul.lines .d{color:var(--mu);flex:0 0 42px;white-space:nowrap;font-variant-numeri
 ul.lines .n{flex:1 1 auto;color:#cfd9e4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 ul.lines .c{color:var(--mu);flex:0 0 auto;font-size:11.5px;white-space:nowrap}
 ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:tabular-nums}
+ul.lines li.paid{opacity:.5}
+ul.lines li.paid .a::after{content:" ✓";color:#4ade80;font-size:10px;opacity:.85}
 .ms{list-style:none;padding:0;margin:0}
 .ms li{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;color:#cfd9e4}
 .ms li:last-child{border-bottom:none}
@@ -76,13 +84,13 @@ ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:
 </head>
 <body>
 <h1>分期与贷款 · 月度还款时间表</h1>
-<div class="sub">统计基准 <b>2026-09-24</b> · 数据源 <b>CMB 账单库</b>（bill_installment / bill_statement_detail）· 口径 <b>按到期还款日归月</b></div>
+<div class="sub">统计基准 <b>2026-09-24</b> · 窗口 <b>2026-08 ~ 2027-09</b>（14 个月，含已发生）· 数据源 <b>CMB 账单库</b>（bill_installment / bill_statement_detail）· 口径 <b>按到期还款日归月</b></div>
 
 <div class="kpis">
-  <div class="kpi"><div class="l">未来 12 个月合计</div><div class="v">¥80,565.94</div></div>
-  <div class="kpi"><div class="l">月均还款</div><div class="v">¥6,713.83</div></div>
-  <div class="kpi"><div class="l">峰值月 · 2026-12</div><div class="v">¥9,962.19</div></div>
-  <div class="kpi"><div class="l">最近待还 · 汽车分期</div><div class="v">¥3,480.00<small>09-28</small></div></div>
+  <div class="kpi"><div class="l">合计 · 14 个月</div><div class="v">¥99,612.83</div></div>
+  <div class="kpi"><div class="l">已还 · 截至 09-24</div><div class="v">¥15,566.89</div></div>
+  <div class="kpi"><div class="l">待还 · 09-28 起</div><div class="v">¥84,045.94</div></div>
+  <div class="kpi"><div class="l">月均还款</div><div class="v">¥7,115.20</div></div>
 </div>
 
 <div class="sec">月度还款构成</div>
@@ -91,12 +99,13 @@ ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:
     <span><i style="background:#f2c14e"></i>e招贷</span>
     <span><i style="background:#5aa9f7"></i>汽车分期</span>
     <span><i style="background:#4ade80"></i>账单分期</span>
+    <span class="tip">柱体淡化 + ✓ = 已发生</span>
   </div>
-  <svg viewBox="0 0 420 232" role="img" aria-label="未来12个月分期还款柱状图" style="width:100%;max-width:520px;display:block;margin:0 auto">
-<title>未来 12 个月月度还款金额</title>
-<desc>按到期还款日归月，含 e招贷、汽车分期与账单分期三部分堆叠，虚线为月均水平。</desc>
-<line x1="42" y1="194.0" x2="410" y2="194.0" stroke="#24303d" stroke-width="1"/><text x="35" y="197.5" text-anchor="end" fill="#7c8b9c" font-size="10">0</text><line x1="42" y1="156.5" x2="410" y2="156.5" stroke="#24303d" stroke-width="1"/><text x="35" y="160.0" text-anchor="end" fill="#7c8b9c" font-size="10">2.5k</text><line x1="42" y1="119.0" x2="410" y2="119.0" stroke="#24303d" stroke-width="1"/><text x="35" y="122.5" text-anchor="end" fill="#7c8b9c" font-size="10">5k</text><line x1="42" y1="81.5" x2="410" y2="81.5" stroke="#24303d" stroke-width="1"/><text x="35" y="85.0" text-anchor="end" fill="#7c8b9c" font-size="10">7.5k</text><line x1="42" y1="44.0" x2="410" y2="44.0" stroke="#24303d" stroke-width="1"/><text x="35" y="47.5" text-anchor="end" fill="#7c8b9c" font-size="10">10k</text><line x1="42" y1="93.3" x2="410" y2="93.3" stroke="#f2c14e" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/><text x="408" y="88.3" text-anchor="end" fill="#f2c14e" font-size="9.5" opacity=".85">月均 6.7k</text>
-<rect x="47.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="47.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="47.3" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="57.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/10</text><rect x="78.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="78.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="78.0" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="88.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/11</text><rect x="108.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="108.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><rect x="108.7" y="44.6" width="20" height="63.5" fill="#f2c14e" rx="2"/><text x="118.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">26/12</text><rect x="139.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="139.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="149.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/01</text><rect x="170.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="170.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="180.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/02</text><rect x="200.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="200.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="210.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/03</text><rect x="231.3" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="231.3" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="241.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/04</text><rect x="262.0" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="262.0" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="272.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/05</text><rect x="292.7" y="160.3" width="20" height="33.7" fill="#4ade80" rx="2"/><rect x="292.7" y="108.1" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="302.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/06</text><rect x="323.3" y="160.2" width="20" height="33.8" fill="#4ade80" rx="2"/><rect x="323.3" y="108.0" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="333.3" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/07</text><rect x="354.0" y="160.2" width="20" height="33.8" fill="#4ade80" rx="2"/><rect x="354.0" y="108.0" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="364.0" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/08</text><rect x="384.7" y="173.4" width="20" height="20.6" fill="#4ade80" rx="2"/><rect x="384.7" y="121.2" width="20" height="52.2" fill="#5aa9f7" rx="2"/><text x="394.7" y="209" text-anchor="middle" fill="#8b9aab" font-size="9">27/09</text><text x="408" y="222" text-anchor="end" fill="#5f6b78" font-size="9">2026 → 2027</text>
+  <svg viewBox="0 0 420 244" role="img" aria-label="分期与贷款月度还款柱状图" style="width:100%;max-width:520px;display:block;margin:0 auto">
+<title>月度还款金额（2026-08 ~ 2027-09）</title>
+<desc>按到期还款日归月，含 e招贷、汽车分期与账单分期三部分堆叠，虚线为月均水平；已发生月份柱体淡化并标 ✓。</desc>
+<line x1="42" y1="196.0" x2="408" y2="196.0" stroke="#24303d" stroke-width="1"/><text x="35" y="199.5" text-anchor="end" fill="#7c8b9c" font-size="10">0</text><line x1="42" y1="159.0" x2="408" y2="159.0" stroke="#24303d" stroke-width="1"/><text x="35" y="162.5" text-anchor="end" fill="#7c8b9c" font-size="10">2.5k</text><line x1="42" y1="122.0" x2="408" y2="122.0" stroke="#24303d" stroke-width="1"/><text x="35" y="125.5" text-anchor="end" fill="#7c8b9c" font-size="10">5k</text><line x1="42" y1="85.0" x2="408" y2="85.0" stroke="#24303d" stroke-width="1"/><text x="35" y="88.5" text-anchor="end" fill="#7c8b9c" font-size="10">7.5k</text><line x1="42" y1="48.0" x2="408" y2="48.0" stroke="#24303d" stroke-width="1"/><text x="35" y="51.5" text-anchor="end" fill="#7c8b9c" font-size="10">10k</text><line x1="172.7" y1="40.0" x2="172.7" y2="196.0" stroke="#3a4757" stroke-width="1" stroke-dasharray="2 3"/><line x1="42" y1="90.7" x2="408" y2="90.7" stroke="#f2c14e" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/><text x="406" y="85.7" text-anchor="end" fill="#f2c14e" font-size="9.5" opacity=".85">月均 7.1k</text>
+<rect x="47.6" y="175.7" width="15" height="20.3" fill="#4ade80" rx="2" fill-opacity=".58"/><rect x="47.6" y="124.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity=".58"/><rect x="47.6" y="61.5" width="15" height="62.7" fill="#f2c14e" rx="2" fill-opacity=".58"/><text x="55.1" y="210" text-anchor="middle" fill="#c3b06a" font-size="8.5">08</text><text x="55.1" y="57.5" text-anchor="middle" fill="#4ade80" font-size="8.5" opacity=".9">✓</text><rect x="73.7" y="162.8" width="15" height="33.2" fill="#4ade80" rx="2" fill-opacity=".78"/><rect x="73.7" y="111.3" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity=".78"/><rect x="73.7" y="48.6" width="15" height="62.7" fill="#f2c14e" rx="2" fill-opacity=".78"/><text x="81.2" y="210" text-anchor="middle" fill="#c3b06a" font-size="8.5">09</text><rect x="99.9" y="162.8" width="15" height="33.2" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="99.9" y="111.3" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><rect x="99.9" y="48.6" width="15" height="62.7" fill="#f2c14e" rx="2" fill-opacity="1"/><text x="107.4" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">10</text><rect x="126.0" y="162.8" width="15" height="33.2" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="126.0" y="111.3" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><rect x="126.0" y="48.6" width="15" height="62.7" fill="#f2c14e" rx="2" fill-opacity="1"/><text x="133.5" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">11</text><rect x="152.1" y="162.8" width="15" height="33.2" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="152.1" y="111.3" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><rect x="152.1" y="48.6" width="15" height="62.7" fill="#f2c14e" rx="2" fill-opacity="1"/><text x="159.6" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">12</text><rect x="178.3" y="162.8" width="15" height="33.2" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="178.3" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="185.8" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">01</text><rect x="204.4" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="204.4" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="211.9" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">02</text><rect x="230.6" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="230.6" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="238.1" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">03</text><rect x="256.7" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="256.7" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="264.2" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">04</text><rect x="282.9" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="282.9" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="290.4" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">05</text><rect x="309.0" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="309.0" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="316.5" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">06</text><rect x="335.1" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="335.1" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="342.6" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">07</text><rect x="361.3" y="162.7" width="15" height="33.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="361.3" y="111.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="368.8" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">08</text><rect x="387.4" y="175.7" width="15" height="20.3" fill="#4ade80" rx="2" fill-opacity="1"/><rect x="387.4" y="124.2" width="15" height="51.5" fill="#5aa9f7" rx="2" fill-opacity="1"/><text x="394.9" y="210" text-anchor="middle" fill="#8b9aab" font-size="8.5">09</text><text x="34" y="222" text-anchor="start" fill="#5f6b78" font-size="8.5">2026</text><text x="177" y="222" text-anchor="start" fill="#5f6b78" font-size="8.5">2027</text>
 </svg>
 </div>
 
@@ -104,7 +113,17 @@ ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:
 <div class="panel tw">
 <table>
 <thead><tr><th>还款月</th><th>e招贷</th><th>汽车分期</th><th>账单分期</th><th>合计</th></tr></thead>
-<tbody><tr>
+<tbody><tr class="done">
+<td class="mm">2026-08<span class="tag">已还</span></td>
+<td class="num">4,236.53</td>
+<td class="num">3,480.00</td>
+<td class="num">1,370.33</td>
+<td class="num tot">9,086.86</td></tr><tr class="now">
+<td class="mm">2026-09<span class="tag">本月</span></td>
+<td class="num">4,236.53</td>
+<td class="num">3,480.00</td>
+<td class="num">2,243.50</td>
+<td class="num tot">9,960.03</td></tr><tr>
 <td class="mm">2026-10</td>
 <td class="num">4,236.53</td>
 <td class="num">3,480.00</td>
@@ -202,7 +221,9 @@ ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:
 </div></div>
 
 <div class="sec">逐笔明细（点开看每期）</div>
-<div><details><summary><b>2026-10</b><span class="st">¥9,960.75</span></summary>
+<div><details><summary><b>2026-08</b><span class="st">¥9,086.86 · 已还</span></summary>
+<ul class="lines"><li class="paid"><span class="d">08-07</span><span class="n">e招贷</span><span class="c">第8/12期</span><span class="a">¥4,236.53</span></li><li class="paid"><span class="d">08-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第7/24期</span><span class="a">¥517.14</span></li><li class="paid"><span class="d">08-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第1/24期</span><span class="a">¥853.19</span></li><li class="paid"><span class="d">08-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第46/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-09</b><span class="st">¥9,960.03 · 本月</span></summary>
+<ul class="lines"><li class="paid"><span class="d">09-07</span><span class="n">e招贷</span><span class="c">第9/12期</span><span class="a">¥4,236.53</span></li><li class="paid"><span class="d">09-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第8/24期</span><span class="a">¥517.14</span></li><li class="paid"><span class="d">09-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第2/24期</span><span class="a">¥853.19</span></li><li class="paid"><span class="d">09-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第1/12期</span><span class="a">¥873.17</span></li><li><span class="d">09-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第47/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-10</b><span class="st">¥9,960.75</span></summary>
 <ul class="lines"><li><span class="d">10-07</span><span class="n">e招贷</span><span class="c">第10/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">10-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第9/24期</span><span class="a">¥517.14</span></li><li><span class="d">10-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第3/24期</span><span class="a">¥853.19</span></li><li><span class="d">10-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第2/12期</span><span class="a">¥873.89</span></li><li><span class="d">10-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第48/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-11</b><span class="st">¥9,961.47</span></summary>
 <ul class="lines"><li><span class="d">11-07</span><span class="n">e招贷</span><span class="c">第11/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">11-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第10/24期</span><span class="a">¥517.14</span></li><li><span class="d">11-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第4/24期</span><span class="a">¥853.19</span></li><li><span class="d">11-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第3/12期</span><span class="a">¥874.61</span></li><li><span class="d">11-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第49/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2026-12</b><span class="st">¥9,962.19</span></summary>
 <ul class="lines"><li><span class="d">12-07</span><span class="n">e招贷</span><span class="c">第12/12期</span><span class="a">¥4,236.53</span></li><li><span class="d">12-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第11/24期</span><span class="a">¥517.14</span></li><li><span class="d">12-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第5/24期</span><span class="a">¥853.19</span></li><li><span class="d">12-07</span><span class="n">账单分期12期·¥10411.94</span><span class="c">第4/12期</span><span class="a">¥875.33</span></li><li><span class="d">12-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第50/60期</span><span class="a">¥3,480.00</span></li></ul></details><details><summary><b>2027-01</b><span class="st">¥5,726.38</span></summary>
@@ -217,13 +238,15 @@ ul.lines .a{color:var(--tx);flex:0 0 74px;text-align:right;font-variant-numeric:
 <ul class="lines"><li><span class="d">09-07</span><span class="n">账单分期24期·¥12000</span><span class="c">第20/24期</span><span class="a">¥517.14</span></li><li><span class="d">09-07</span><span class="n">账单分期24期·¥20000</span><span class="c">第14/24期</span><span class="a">¥853.19</span></li><li><span class="d">09-28</span><span class="n">汽车分期-上海特斯拉</span><span class="c">第59/60期</span><span class="a">¥3,480.00</span></li></ul></details></div>
 
 <div class="sec">还清时间线</div>
-<div class="panel"><ul class="ms"><li>2026-12 · e招贷 还清（末次 ¥4,236.53）</li><li>2027-08 · 账单分期12期·¥10411.94 还清（末次 ¥873.17）</li><li>2027-10 · 汽车分期-上海特斯拉 还清（末次 ¥3,480.00）</li><li>2028-01 · 账单分期24期·¥12000 还清（末次 ¥517.14）</li><li>2028-07 · 账单分期24期·¥20000 还清（末次 ¥853.19）</li></ul></div>
+<div class="panel"><ul class="ms"><li>2026-12 · e招贷 还清（末次 ¥4,236.53）</li><li>2027-08 · 账单分期12期·¥10411.94 还清（末次 ¥881.09）</li><li>2027-10 · 汽车分期-上海特斯拉 还清（末次 ¥3,480.00）</li><li>2028-01 · 账单分期24期·¥12000 还清（末次 ¥517.14）</li><li>2028-07 · 账单分期24期·¥20000 还清（末次 ¥853.19）</li></ul></div>
 
 <div class="note">
 <b>口径与假设</b><br>
+· <b>时间窗</b>：2026-08 ~ 2027-09（14 个月），<b>已并入已发生的 8、9 月</b>。8 月整月已还；09 月中 09-07 的 4 笔已还，09-28 汽车分期尚未到期。<br>
 · 「还款月」= 实际扣款月份：随信用卡账单的分期（e招贷 + 三笔账单分期）在账单月次月 <b>7 日</b>还款；汽车分期独立于每月 <b>28 日</b>还款。<br>
 · 月供为<b>恒定值</b>（已用库内多期数据验证）：e招贷 ¥4,236.53、汽车分期 ¥3,480.00（本金 3,000 + 息 480）、账单分期 ¥517.14 / ¥861.89 / ¥881.85。<br>
 · 账单分期 D、E 含<b>财政贴息</b>（D 每期 −¥8.70；E 贴息递减约 −0.72/期），故实还略低于名义月供。<br>
+· ⚠️ <b>8、9 月账单的实际扣款高于本表</b>：本表「账单分期」栏只统计<b>仍在还</b>的分期；这两月的月账单另含两笔已结清分期的尾款（8 月 +¥3,307.45 +¥467.88，9 月 +¥3,307.45）。<br>
 · 汽车分期第 48–60 期、账单分期未出账期次为<b>按期次规律推演</b>，实际以招行账单为准。<br>
 · 本表仅含<b>分期与贷款</b>，不含信用卡日常消费、房租及生活固定支出。
 </div>
