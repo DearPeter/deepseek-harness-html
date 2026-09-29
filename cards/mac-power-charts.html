@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电去哪了 · 8 天耗电折线</title>
+<meta name="color-scheme" content="light">
+<meta name="description" content="MacBook Air M4 最近 8 天耗电折线图：每日从电池取走的电量与平均功率，以及应用/服务能耗 Top 10 的逐日折线（WindowServer 45Wh、海马云电脑 33Wh、Chrome 6.5Wh）。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+/* ============================================================
+   8 天耗电折线 —— 同一套「仪器记录纸」语言，换一种读法
+   唯一大胆处 = 三块可交互的绘图面板（十字准线读数 / 图例开关 / 对数刻度）
+   色彩语义：铜青 = 电量与能量主体；烧橙 = 强度（平均功率）；
+             十色分类板仅用于多序列识别，不作装饰
+   ============================================================ */
+:root{
+  --paper:#e8ebee; --sheet:#f6f7f9; --sheet-lo:#eef1f3;
+  --ink:#14181c; --ink2:#454d56; --ink3:#79828c;
+  --rule:#ccd3da; --rule-hi:#a9b2bb;
+  --trace:#0f6f66; --flag:#b3521c;
+  --serif:"Noto Serif SC","Songti SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(15,111,102,.18)}
+
+.toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:9px 20px;background:rgba(232,235,238,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}
+.toolbar .stamp{font:600 11.5px/1 var(--mono);letter-spacing:.06em;color:var(--trace);
+  border:1px solid var(--rule-hi);padding:6px 10px;background:var(--sheet)}
+.toolbar button{font-family:var(--mono);font-size:12px;padding:6px 12px;cursor:pointer;
+  background:var(--sheet);color:var(--ink);border:1px solid var(--ink);transition:background .15s,color .15s}
+.toolbar button:hover{background:var(--ink);color:var(--sheet)}
+.toolbar button:focus-visible{outline:2px solid var(--flag);outline-offset:2px}
+.toolbar button.on{background:var(--trace);border-color:var(--trace);color:#fff}
+.toolbar .state{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--ink3)}
+#doc[contenteditable="true"]{outline:1px dashed var(--trace);outline-offset:16px}
+.edit-lock{pointer-events:none}
+
+.wrap{max-width:980px;margin:0 auto;padding:34px 22px 80px}
+@media(min-width:1240px){ .bleed{margin-left:-120px;margin-right:-120px} }
+p{margin:0 0 1.05em;max-width:74ch}
+strong{font-weight:600}
+
+.masthead{padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.masthead .meta{font:12px/1.7 var(--mono);color:var(--ink3);margin:0 0 18px}
+.masthead h1{margin:0 0 16px;font-family:var(--serif);font-weight:700;
+  font-size:clamp(29px,5vw,44px);line-height:1.24;letter-spacing:-.01em}
+.standfirst{font-family:var(--serif);font-size:17px;line-height:1.95;color:var(--ink2);margin-bottom:22px}
+.hint{font:12px/1.7 var(--mono);color:var(--ink3);border-left:3px solid var(--rule-hi);padding:2px 0 2px 12px;margin:0 0 8px}
+
+section{padding-top:44px}
+h2{font-family:var(--serif);font-size:21px;line-height:1.5;margin:0 0 6px;padding-top:14px;
+  border-top:1px solid var(--rule-hi);font-weight:700}
+h2 .r{font:600 12.5px/1 var(--mono);color:var(--trace);letter-spacing:.06em;display:block;margin-bottom:10px}
+.sub{font:12px/1.7 var(--mono);color:var(--ink3);margin:0 0 16px}
+
+/* ---------- 图表 ---------- */
+.panel{position:relative;background:var(--sheet);border:1px solid var(--rule);padding:0}
+.panel + .panel{margin-top:14px}
+.panel svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.grid{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 4}
+.grid.solid{stroke-dasharray:none}
+.axis{stroke:var(--rule-hi);stroke-width:1}
+.ax{font:11px var(--mono);fill:var(--ink3)}
+.ax.b{fill:var(--ink2)}
+.lvl-dis{fill:none;stroke:var(--trace);stroke-width:1.8;stroke-linejoin:round}
+.lvl-chg{fill:none;stroke:var(--ink3);stroke-width:1.7;stroke-dasharray:5 3}
+.area{fill:var(--trace);opacity:.06}
+.pt{stroke:var(--sheet);stroke-width:2}
+.pt.hollow{fill:var(--sheet);stroke:var(--ink3);stroke-width:1.6}
+.val{font:11px var(--mono);fill:var(--ink2);paint-order:stroke;stroke:var(--sheet);stroke-width:3.4px;stroke-linejoin:round}
+.watts{fill:none;stroke:var(--flag);stroke-width:1.8;stroke-dasharray:5 4}
+.wdot{fill:var(--flag);stroke:var(--sheet);stroke-width:1.6}
+.serie{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.sdot{stroke:var(--sheet);stroke-width:1.4}
+.serie.dim,.sdot.dim{opacity:.12}
+.cross{stroke:var(--ink2);stroke-width:1;stroke-dasharray:3 3;opacity:.75}
+.anchor{fill:var(--flag)}
+
+.legend{display:flex;flex-wrap:wrap;gap:4px 6px;padding:10px 12px 2px}
+.legend button{display:inline-flex;align-items:center;gap:6px;font:11.5px/1 var(--mono);cursor:pointer;
+  background:var(--sheet);color:var(--ink2);border:1px solid var(--rule);padding:5px 8px}
+.legend button:hover{border-color:var(--ink2)}
+.legend button[aria-pressed="false"]{opacity:.38;text-decoration:line-through}
+.legend button:focus-visible{outline:2px solid var(--flag);outline-offset:2px}
+.legend i{width:14px;height:3px;display:inline-block;flex:0 0 auto}
+.legend b{font-weight:600;color:var(--ink3);font-family:var(--mono);font-size:11px}
+
+.tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:rgba(20,24,28,.94);color:#eef1f3;font:11.5px/1.6 var(--mono);
+  padding:8px 10px;max-width:280px;z-index:20;white-space:pre}
+.tip.on{opacity:1}
+.tip u{color:#fff;text-decoration:none;font-weight:600}
+
+figcaption{font-size:13px;line-height:1.7;color:var(--ink3);margin:10px 0 0;max-width:74ch}
+
+table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:13.5px}
+caption{caption-side:top;text-align:left;font:12px/1.6 var(--mono);color:var(--ink3);padding-bottom:8px}
+th{font:11.5px/1.5 var(--mono);text-align:left;color:var(--ink3);font-weight:400;
+  border-bottom:1px solid var(--rule-hi);padding:7px 8px 7px 0;white-space:nowrap}
+td{padding:7px 8px 7px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--mono);white-space:nowrap}
+td.n b{font-weight:600}
+.swatch{display:inline-block;width:12px;height:3px;vertical-align:3px;margin-right:7px}
+.mut{color:var(--ink3)}
+.hot{color:var(--flag);font-weight:600}
+
+pre{margin:12px 0 10px;padding:14px 16px;background:var(--sheet-lo);border-left:3px solid var(--trace);
+  font:12.5px/1.75 var(--mono);color:var(--ink2);overflow-x:auto;white-space:pre}
+code{font-family:var(--mono);font-size:.93em;background:var(--sheet-lo);padding:1px 5px;border:1px solid var(--rule)}
+
+.foot{margin-top:52px;padding-top:18px;border-top:1px solid var(--rule-hi);font-size:13px;line-height:1.8;color:var(--ink3)}
+.foot h3{margin:0 0 6px;font-size:13px;font-family:var(--mono);font-weight:600;color:var(--ink2);letter-spacing:.04em}
+.foot ul{margin:6px 0 14px;padding-left:18px}
+
+@media print{
+  :root{--paper:#fff;--sheet:#fff;--sheet-lo:#f4f5f6;--ink:#000;--ink2:#222;--ink3:#555;
+        --rule:#bbb;--rule-hi:#888;--trace:#0b554e;--flag:#8f3f12}
+  .toolbar,.no-print,.tip{display:none!important}
+  body{font-size:10.5pt}
+  .wrap{max-width:none;padding:0}
+  .bleed{margin:0}
+  section{padding-top:22px}
+  .panel,table{break-inside:avoid}
+}
+@media (max-width:640px){
+  .wrap{padding:22px 14px 60px}
+  body{font-size:15px}
+  .legend button{font-size:11px;padding:5px 6px}
+  table{font-size:12.5px}
+  td,th{padding:6px 6px 6px 0}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar no-print" id="toolbar">
+  <span class="stamp">耗电折线 · 8 天</span>
+  <button id="btn-edit" type="button">✎ 开启编辑</button>
+  <button id="btn-reset" type="button">恢复原稿</button>
+  <button id="btn-save" type="button">下载当前版</button>
+  <button id="btn-print" type="button">打印 PDF</button>
+  <span class="state" id="edit-state">只读 · 改动自动存本机</span>
+</div>
+
+<div class="wrap">
+<article id="doc">
+
+  <header class="masthead">
+    <p class="meta">耗电折线　/　MacBook Air M4（Mac16,12，16GB）　/　2026-09-22 13:30 → 2026-09-29 17:45　/　共 8 天 · 652 个采样点</p>
+    <h1>电去哪了</h1>
+    <p class="standfirst">
+      这两张折线回答两个问题：<strong>每天从电池里取走了多少电</strong>，
+      以及 <strong>这些电被哪些应用和服务用掉了</strong>。
+      8 天里排第一的不是浏览器，是桌面合成服务 WindowServer（45.0 Wh）与一个还在跑的云电脑客户端（33.0 Wh）。
+    </p>
+    <p class="hint">把指针放到图上读具体数值 · 点图例可单独看某一条线 · 全页零依赖，离线可用</p>
+  </header>
+
+  <section>
+    <h2><span class="r">00</span>先看水位：8 天的电池电量</h2>
+    <p class="sub">实线铜青＝放电中 · 灰色虚线＝接着电源（充电或保持）· 纵轴 0–100%</p>
+    <figure class="bleed">
+      <div class="panel" id="chart-level"><div class="tip" id="tip-level"></div></div>
+      <figcaption>
+        锯齿的每一个「斜坡」就是一次电池放电，陡坡＝耗得快。9/25 与 9/27 几乎是一条贴着顶部的水平线——
+        那两天机器基本没离开过电源。
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="r">01</span>每天从电池里取走多少电</h2>
+    <p class="sub">铜青实线＝当日放电量（Wh，左轴）· 烧橙虚线＝当日平均功率（W，右轴）· 空心灰点＝当日基本插电</p>
+    <figure class="bleed">
+      <div class="panel" id="chart-daily"><div class="tip" id="tip-daily"></div></div>
+      <figcaption>
+        放电量 = 当天电量下降的总和 × 53.8Wh。看两条线的分工：<strong>9/23 拿了 68.6Wh</strong>——一天耗掉一块多电池，
+        但平均功率只有 5.97W，属于「跑得久」；<strong>9/22 只有 34.6Wh，平均功率却高达 9.88W</strong>——那是「跑得凶」。
+        9/29 是两者兼有：7.8 小时、5.54W、42.9Wh。
+      </figcaption>
+    </figure>
+
+    <table>
+      <caption>每日放电明细（电池供电时段）</caption>
+      <thead><tr><th>日期</th><th class="n">放电量</th><th class="n">放电时长</th><th class="n">平均功率</th><th class="n">掉电</th><th>说明</th></tr></thead>
+      <tbody id="tbody-daily"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="r">02</span>这些电被谁用掉了：Top 10</h2>
+    <p class="sub">纵轴为对数刻度（各条线相差几十倍）· 单位 Wh · 点图例可开关单条线</p>
+    <figure class="bleed">
+      <div class="panel" id="chart-apps">
+        <div class="legend no-print" id="legend-apps"></div>
+        <div class="tip" id="tip-apps"></div>
+      </div>
+      <figcaption>
+        口径：进程组归因能耗 = CPU + GPU + ANE（<strong>powerlog 的 <code>energy</code> 字段不含 GPU，必须另加
+        <code>gpu_energy_nj</code></strong>）。它只统计 SoC 内部，<em>不含屏幕、内存颗粒与整机基础功耗</em>——
+        所以这些数加不到整机耗电上去，只用来横向比高低。
+      </figcaption>
+    </figure>
+
+    <table>
+      <caption>8 天累计与逐日（Wh）</caption>
+      <thead><tr><th>应用 / 服务</th><th class="n">8 天累计</th><th class="n">占比</th><th>逐日走势</th></tr></thead>
+      <tbody id="tbody-apps"></tbody>
+    </table>
+
+    <p>
+      两条最值得注意的线：<strong>WindowServer（桌面合成）在 9/25–9/27 三天吃掉 8.1 / 14.4 / 13.5 Wh</strong>，
+      而它在纯电池日（9/29）只有 1.35 Wh——这是「高分辨率画面持续变化」的特征；同一时段
+      <strong>海马云电脑</strong>（<code>/Applications/海马云电脑.app</code>，v2.7.4，云电脑串流客户端）
+      在 9/26 一天就用了 9.92 Wh，8 天累计 33.0 Wh、34 小时 CPU 时间，而且<strong>此刻仍在运行</strong>。
+      至于浏览器：Chrome 8 天累计只有 6.5 Wh，排第三。
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="r">03</span>口径与复现</h2>
+    <p class="sub">这几张图怎么来的，以及怎么自己再跑一遍</p>
+<pre><b># 逐日放电量（电池下降总和 × 53.8Wh）与放电时长</b>
+sqlite3 /var/db/powerlog/Library/BatteryLife/CurrentPowerlog.PLSQL \
+ "select date(timestamp,'unixepoch','localtime') d, round(avg(Level),1), max(ExternalConnected)
+  from PLBatteryAgent_EventBackward_Battery where Level is not null
+  group by cast(timestamp/900 as int) order by timestamp;"
+
+<b># 应用级能耗（注意：energy 不含 GPU，总能耗要三项相加）</b>
+sqlite3 /var/db/powerlog/Library/BatteryLife/CurrentPowerlog.PLSQL \
+ "select BundleId, LaunchdName, energy, gpu_energy_nj, ane_energy_nj
+  from PLCoalitionAgent_EventInterval_CoalitionInterval;"</pre>
+    <p>
+      历史数据在 <code>/var/db/powerlog/Library/BatteryLife/Archives/*.PLSQL.gz</code>，
+      解压后与当前库 <code>CurrentPowerlog.PLSQL</code> 拼接即可覆盖 8 天（各库时间范围首尾相接、不重叠）。
+      二者都是世界可读文件，<strong>不需要 root</strong>。
+    </p>
+  </section>
+
+  <div class="foot">
+    <h3>局限</h3>
+    <ul>
+      <li>放电量按「15 分钟桶」累计，跨睡眠的大跨度不计入；一天内多次充电再放电会累计（所以 9/23 的 128% 超过一块电池）。</li>
+      <li>归因能耗是 SoC 内部计数（CPU/GPU/ANE），不含屏幕背光、DRAM 颗粒、Wi-Fi/蓝牙射频与整机基础功耗，
+        因此不能与「整机放电量」求和或相减。</li>
+      <li>各应用能耗与当天使用强度强相关，横向比较同一条线的逐日变化比比较不同线更有意义。</li>
+      <li>数据来自 2026-09-29 17:45 的一次读取；页面可编辑，改动只存在你自己的浏览器里。</li>
+    </ul>
+  </div>
+
+</article>
+</div>
+
+<script>
+(function(){
+  var DATA = {"level":[[1790055000,38.2,0],[1790055900,35.1,0],[1790056800,25.1,0],[1790057700,14.9,0],[1790058600,17.7,1],[1790059500,41.0,1],[1790060400,62.5,1],[1790061300,77.3,1],[1790062200,88.0,1],[1790063100,95.1,1],[1790064000,98.4,1],[1790064900,99.3,1],[1790065800,100.0,1],[1790066700,100.0,1],[1790067600,100.0,1],[1790068500,100.0,1],[1790069400,100.0,1],[1790070300,100.0,1],[1790071200,100.0,1],[1790072100,100.0,1],[1790073900,100.0,0],[1790074800,100.0,0],[1790075700,100.0,0],[1790076600,100.0,0],[1790077500,100.0,0],[1790078400,100.0,0],[1790079300,100.0,0],[1790080200,100.0,0],[1790081100,100.0,0],[1790082000,100.0,0],[1790082900,99.3,0],[1790083800,96.9,0],[1790084700,94.2,0],[1790085600,91.8,0],[1790086500,89.3,0],[1790087400,86.7,0],[1790088300,82.4,0],[1790089200,76.6,0],[1790090100,70.8,0],[1790091000,64.8,0],[1790091900,59.0,0],[1790092800,55.7,0],[1790093700,46.7,0],[1790094600,40.7,0],[1790095500,34.3,0],[1790096400,28.0,0],[1790097300,21.8,0],[1790098200,15.8,0],[1790099100,9.9,0],[1790100000,4.3,0],[1790100900,1.2,0],[1790123400,3.8,1],[1790124300,12.5,1],[1790125200,21.1,1],[1790126100,31.2,1],[1790127000,34.7,1],[1790127900,44.8,1],[1790128800,56.0,1],[1790129700,65.7,1],[1790130600,68.9,1],[1790131500,80.3,1],[1790132400,81.6,1],[1790133300,90.7,1],[1790134200,91.0,0],[1790135100,91.0,0],[1790136000,90.1,0],[1790136900,87.7,1],[1790137800,86.1,0],[1790138700,83.4,0],[1790139600,80.6,0],[1790140500,77.9,0],[1790141400,75.1,0],[1790142300,72.2,0],[1790143200,70.3,0],[1790144100,68.3,0],[1790145000,66.1,0],[1790145900,64.4,0],[1790146800,62.8,0],[1790147700,61.4,0],[1790148600,60.0,0],[1790149500,58.4,0],[1790150400,56.7,0],[1790151300,54.9,0],[1790152200,53.0,0],[1790153100,51.4,0],[1790154000,49.6,0],[1790154900,48.3,0],[1790155800,46.2,0],[1790156700,43.9,0],[1790157600,42.0,0],[1790158500,40.4,0],[1790159400,38.4,0],[1790160300,35.3,0],[1790161200,31.9,0],[1790162100,28.7,0],[1790163000,25.5,0],[1790163900,22.3,0],[1790164800,19.5,0],[1790165700,17.5,0],[1790166600,15.9,0],[1790167500,15.0,0],[1790168400,15.0,0],[1790170200,15.0,0],[1790171100,15.0,0],[1790172000,15.0,0],[1790172900,15.0,0],[1790173800,14.6,0],[1790174700,14.0,0],[1790175600,14.0,0],[1790176500,14.0,0],[1790177400,14.0,0],[1790178300,14.0,0],[1790179200,14.0,0],[1790180100,14.0,0],[1790181000,14.0,0],[1790182800,14.0,0],[1790183700,14.0,0],[1790184600,14.0,0],[1790185500,14.0,0],[1790187300,14.0,0],[1790188200,13.9,0],[1790189100,13.0,0],[1790190000,13.0,0],[1790190900,13.0,0],[1790191800,13.0,0],[1790192700,13.0,0],[1790193600,13.0,0],[1790194500,13.0,0],[1790195400,13.0,0],[1790196300,13.0,0],[1790198100,13.0,0],[1790199000,13.0,0],[1790199900,13.0,0],[1790200800,13.0,0],[1790201700,13.0,0],[1790202600,13.0,0],[1790204400,12.6,0],[1790205300,12.0,0],[1790206200,12.0,0],[1790207100,12.0,0],[1790208000,12.0,0],[1790208900,12.0,0],[1790209800,12.0,0],[1790210700,12.0,0],[1790212500,12.0,0],[1790213400,12.0,0],[1790214300,12.0,0],[1790215200,12.0,0],[1790216100,12.0,0],[1790217000,21.5,1],[1790217900,43.5,1],[1790218800,63.9,1],[1790219700,77.7,1],[1790220600,88.6,1],[1790221500,95.1,1],[1790222400,98.1,1],[1790223300,99.6,1],[1790224200,100.0,1],[1790225100,100.0,1],[1790226000,100.0,1],[1790226900,100.0,1],[1790227800,100.0,1],[1790228700,100.0,1],[1790229600,100.0,1],[1790230500,100.0,1],[1790231400,100.0,1],[1790232300,100.0,1],[1790233200,100.0,1],[1790234100,100.0,1],[1790235000,100.0,1],[1790235900,100.0,1],[1790236800,100.0,1],[1790237700,100.0,1],[1790238600,100.0,1],[1790239500,100.0,1],[1790240400,100.0,1],[1790241300,100.0,0],[1790242200,100.0,0],[1790243100,100.0,0],[1790244000,100.0,0],[1790244900,100.0,0],[1790245800,100.0,0],[1790246700,100.0,0],[1790247600,100.0,0],[1790248500,100.0,0],[1790249400,100.0,0],[1790250300,99.1,0],[1790251200,96.5,0],[1790252100,93.8,0],[1790253000,90.9,0],[1790253900,88.0,0],[1790254800,84.9,0],[1790255700,81.8,0],[1790256600,78.1,0],[1790257500,74.5,1],[1790258400,79.0,1],[1790259300,80.0,1],[1790260200,80.0,1],[1790261100,80.0,1],[1790262000,80.0,1],[1790262900,80.0,1],[1790263800,80.0,1],[1790264700,80.0,1],[1790265600,80.0,1],[1790266500,80.0,1],[1790267400,80.0,1],[1790268300,80.0,1],[1790269200,80.0,1],[1790270100,80.0,1],[1790271000,80.0,1],[1790271900,80.0,1],[1790272800,80.0,1],[1790273700,80.0,1],[1790274600,80.0,1],[1790275500,80.0,1],[1790276400,80.0,1],[1790277300,80.0,1],[1790278200,80.0,1],[1790279100,80.0,1],[1790280000,80.0,1],[1790280900,81.0,1],[1790281800,93.8,1],[1790283600,99.0,1],[1790284500,100.0,1],[1790285400,100.0,1],[1790286300,100.0,1],[1790287200,100.0,1],[1790289000,100.0,1],[1790289900,100.0,1],[1790290800,100.0,1],[1790291700,100.0,1],[1790292600,100.0,1],[1790293500,100.0,1],[1790294400,100.0,1],[1790296200,100.0,1],[1790297100,100.0,1],[1790298000,100.0,1],[1790298900,100.0,1],[1790299800,100.0,1],[1790300700,100.0,1],[1790301600,100.0,1],[1790302500,100.0,1],[1790303400,100.0,1],[1790304300,100.0,1],[1790305200,100.0,1],[1790306100,100.0,1],[1790307000,100.0,0],[1790307900,100.0,0],[1790308800,100.0,0],[1790309700,100.0,0],[1790310600,100.0,1],[1790311500,100.0,1],[1790312400,100.0,1],[1790313300,100.0,1],[1790314200,100.0,1],[1790315100,100.0,1],[1790316000,100.0,1],[1790316900,100.0,1],[1790317800,100.0,1],[1790318700,100.0,1],[1790319600,100.0,1],[1790320500,100.0,1],[1790321400,100.0,1],[1790322300,100.0,1],[1790323200,100.0,1],[1790324100,100.0,1],[1790325000,100.0,1],[1790325900,100.0,1],[1790326800,100.0,1],[1790327700,100.0,1],[1790328600,100.0,1],[1790329500,100.0,1],[1790330400,100.0,1],[1790331300,100.0,1],[1790332200,100.0,1],[1790333100,100.0,1],[1790334000,100.0,1],[1790334900,100.0,1],[1790335800,100.0,1],[1790336700,100.0,1],[1790337600,100.0,1],[1790338500,100.0,1],[1790339400,100.0,1],[1790340300,100.0,1],[1790341200,100.0,1],[1790342100,100.0,1],[1790343000,100.0,1],[1790343900,100.0,1],[1790344800,100.0,1],[1790345700,100.0,1],[1790346600,100.0,1],[1790347500,100.0,1],[1790348400,100.0,1],[1790349300,100.0,1],[1790350200,100.0,1],[1790351100,100.0,1],[1790352000,100.0,1],[1790352900,100.0,1],[1790353800,100.0,1],[1790354700,100.0,1],[1790355600,100.0,1],[1790356500,100.0,1],[1790357400,100.0,1],[1790358300,100.0,1],[1790359200,100.0,1],[1790360100,100.0,1],[1790361000,100.0,0],[1790361900,98.7,0],[1790362800,96.4,0],[1790363700,94.1,0],[1790364600,91.7,0],[1790365500,89.2,0],[1790366400,86.9,0],[1790367300,84.7,0],[1790368200,82.2,0],[1790369100,79.9,0],[1790370000,77.5,0],[1790370900,75.1,0],[1790371800,72.8,0],[1790372700,70.5,1],[1790373600,78.5,1],[1790374500,89.2,1],[1790375400,96.7,1],[1790376300,99.0,1],[1790377200,99.7,1],[1790378100,100.0,1],[1790379000,100.0,1],[1790379900,100.0,1],[1790380800,100.0,1],[1790381700,100.0,1],[1790382600,100.0,1],[1790383500,100.0,1],[1790384400,100.0,1],[1790385300,100.0,1],[1790386200,100.0,1],[1790387100,100.0,1],[1790388000,100.0,1],[1790388900,100.0,1],[1790389800,100.0,1],[1790390700,100.0,1],[1790391600,100.0,1],[1790392500,100.0,1],[1790393400,100.0,1],[1790394300,100.0,1],[1790395200,100.0,1],[1790396100,100.0,1],[1790397000,100.0,1],[1790397900,100.0,1],[1790398800,100.0,1],[1790399700,100.0,1],[1790400600,100.0,1],[1790401500,100.0,1],[1790402400,100.0,1],[1790403300,100.0,1],[1790404200,100.0,1],[1790405100,100.0,1],[1790406000,100.0,1],[1790406900,100.0,1],[1790407800,100.0,1],[1790408700,100.0,1],[1790409600,100.0,1],[1790410500,100.0,1],[1790411400,100.0,1],[1790412300,100.0,1],[1790413200,100.0,1],[1790414100,100.0,1],[1790415000,100.0,1],[1790415900,100.0,1],[1790416800,100.0,1],[1790417700,100.0,1],[1790418600,100.0,1],[1790419500,100.0,1],[1790420400,100.0,1],[1790421300,100.0,1],[1790422200,100.0,0],[1790423100,100.0,0],[1790424000,99.7,0],[1790424900,97.8,0],[1790425800,95.5,0],[1790426700,93.2,0],[1790427600,90.9,0],[1790428500,88.6,0],[1790429400,87.0,0],[1790430300,87.0,0],[1790431200,88.0,1],[1790432100,94.2,1],[1790433000,98.1,1],[1790433900,99.3,1],[1790434800,100.0,1],[1790435700,100.0,1],[1790436600,100.0,1],[1790437500,100.0,1],[1790438400,100.0,1],[1790439300,100.0,1],[1790440200,100.0,1],[1790441100,100.0,1],[1790442000,100.0,1],[1790442900,100.0,1],[1790443800,100.0,1],[1790444700,100.0,1],[1790445600,100.0,1],[1790446500,100.0,1],[1790447400,100.0,1],[1790448300,100.0,1],[1790449200,100.0,1],[1790450100,100.0,0],[1790451000,100.0,0],[1790451900,100.0,0],[1790452800,100.0,0],[1790453700,100.0,0],[1790455500,100.0,0],[1790456400,100.0,0],[1790457300,100.0,0],[1790458200,100.0,0],[1790459100,100.0,0],[1790460000,100.0,0],[1790460900,100.0,0],[1790461800,100.0,0],[1790462700,100.0,0],[1790463600,100.0,0],[1790464500,100.0,0],[1790465400,100.0,0],[1790466300,100.0,0],[1790467200,100.0,0],[1790468100,100.0,0],[1790469000,100.0,0],[1790469900,100.0,0],[1790470800,100.0,1],[1790471700,100.0,1],[1790472600,100.0,1],[1790473500,100.0,1],[1790474400,100.0,1],[1790475300,100.0,1],[1790476200,100.0,1],[1790477100,100.0,1],[1790478000,100.0,1],[1790478900,100.0,1],[1790479800,100.0,1],[1790480700,100.0,1],[1790481600,100.0,1],[1790482500,100.0,1],[1790483400,100.0,1],[1790484300,100.0,1],[1790485200,100.0,1],[1790486100,100.0,1],[1790487000,100.0,1],[1790487900,100.0,1],[1790488800,100.0,1],[1790489700,100.0,1],[1790490600,100.0,1],[1790491500,100.0,1],[1790492400,100.0,1],[1790493300,100.0,1],[1790494200,100.0,1],[1790495100,100.0,1],[1790496000,100.0,1],[1790496900,100.0,1],[1790497800,100.0,1],[1790498700,100.0,1],[1790499600,100.0,1],[1790500500,100.0,1],[1790501400,100.0,1],[1790502300,100.0,1],[1790503200,100.0,1],[1790504100,100.0,1],[1790505000,100.0,1],[1790505900,100.0,1],[1790506800,100.0,1],[1790507700,100.0,1],[1790508600,100.0,1],[1790509500,100.0,1],[1790510400,100.0,1],[1790511300,100.0,1],[1790512200,100.0,1],[1790513100,100.0,1],[1790514000,100.0,1],[1790514900,100.0,1],[1790515800,100.0,1],[1790516700,100.0,1],[1790517600,100.0,1],[1790518500,100.0,1],[1790519400,100.0,1],[1790520300,100.0,1],[1790521200,100.0,1],[1790522100,100.0,1],[1790523000,100.0,1],[1790523900,100.0,1],[1790524800,100.0,1],[1790525700,100.0,1],[1790526600,100.0,1],[1790527500,100.0,1],[1790528400,100.0,1],[1790529300,100.0,1],[1790530200,100.0,1],[1790531100,100.0,1],[1790532000,100.0,1],[1790532900,100.0,1],[1790533800,100.0,1],[1790534700,100.0,1],[1790535600,100.0,1],[1790536500,100.0,1],[1790537400,100.0,1],[1790538300,100.0,1],[1790539200,100.0,1],[1790540100,100.0,1],[1790541000,100.0,1],[1790541900,100.0,1],[1790542800,100.0,1],[1790543700,100.0,1],[1790544600,100.0,1],[1790545500,100.0,1],[1790546400,100.0,1],[1790547300,100.0,1],[1790548200,100.0,1],[1790549100,100.0,1],[1790550000,100.0,1],[1790550900,100.0,1],[1790551800,100.0,1],[1790552700,100.0,0],[1790553600,100.0,0],[1790554500,100.0,0],[1790555400,100.0,0],[1790556300,100.0,0],[1790557200,100.0,1],[1790558100,100.0,1],[1790559000,100.0,1],[1790559900,100.0,1],[1790560800,100.0,1],[1790561700,100.0,0],[1790562600,100.0,0],[1790563500,100.0,0],[1790564400,99.4,0],[1790565300,96.9,0],[1790566200,94.6,0],[1790567100,92.6,0],[1790568000,90.5,0],[1790568900,89.9,0],[1790569800,89.0,0],[1790570700,88.3,0],[1790571600,87.7,0],[1790572500,87.5,1],[1790573400,92.9,1],[1790574300,97.1,1],[1790575200,99.1,1],[1790576100,100.0,1],[1790577000,100.0,1],[1790577900,100.0,1],[1790578800,100.0,1],[1790579700,100.0,1],[1790580600,100.0,1],[1790581500,100.0,1],[1790582400,100.0,1],[1790583300,100.0,1],[1790584200,100.0,1],[1790585100,100.0,1],[1790586000,100.0,1],[1790586900,100.0,1],[1790587800,100.0,1],[1790588700,100.0,1],[1790589600,100.0,1],[1790590500,100.0,0],[1790591400,100.0,0],[1790592300,100.0,0],[1790593200,100.0,0],[1790594100,100.0,0],[1790595000,100.0,0],[1790595900,100.0,0],[1790596800,100.0,0],[1790597700,100.0,0],[1790598600,100.0,0],[1790599500,100.0,0],[1790600400,100.0,0],[1790601300,100.0,0],[1790602200,100.0,0],[1790603100,100.0,0],[1790604000,100.0,0],[1790604900,100.0,0],[1790605800,100.0,0],[1790606700,100.0,0],[1790607600,100.0,0],[1790608500,100.0,0],[1790609400,100.0,0],[1790611200,100.0,0],[1790612100,100.0,0],[1790613000,100.0,0],[1790614800,100.0,0],[1790615700,100.0,0],[1790616600,100.0,0],[1790618400,100.0,0],[1790619300,100.0,0],[1790620200,100.0,0],[1790621100,100.0,0],[1790622000,100.0,0],[1790622900,100.0,0],[1790623800,100.0,0],[1790624700,100.0,0],[1790625600,100.0,0],[1790626500,100.0,0],[1790627400,100.0,0],[1790628300,100.0,0],[1790629200,100.0,0],[1790630100,100.0,0],[1790631000,100.0,0],[1790631900,100.0,0],[1790632800,100.0,0],[1790633700,100.0,0],[1790634600,100.0,0],[1790635500,100.0,0],[1790636400,100.0,0],[1790637300,100.0,0],[1790638200,100.0,0],[1790639100,100.0,0],[1790640000,98.4,0],[1790640900,96.8,0],[1790641800,95.3,0],[1790642700,93.6,0],[1790643600,92.1,0],[1790644500,90.4,0],[1790645400,88.6,0],[1790646300,86.8,0],[1790647200,84.5,0],[1790648100,81.4,0],[1790649000,78.3,0],[1790649900,75.9,0],[1790650800,73.4,0],[1790651700,71.1,0],[1790652600,67.9,0],[1790653500,63.9,0],[1790654400,60.1,0],[1790655300,56.5,0],[1790656200,53.3,0],[1790657100,51.2,0],[1790658000,49.0,0],[1790658900,46.9,0],[1790659800,44.7,0],[1790660700,42.5,0],[1790661600,39.8,0],[1790662500,36.7,0],[1790663400,33.2,0],[1790664300,29.4,1],[1790665200,32.1,1],[1790666100,40.5,1],[1790667000,50.0,1],[1790667900,59.5,1],[1790668800,64.9,1],[1790669700,64.1,0],[1790670600,60.8,0],[1790671500,57.5,0],[1790672400,54.3,0],[1790673300,51.1,0],[1790674200,51.1,1],[1790675100,54.4,1]],"battery":[{"date":"2026-09-22","wh":34.6,"hours":3.5,"watts":9.88,"drop":64},{"date":"2026-09-23","wh":68.6,"hours":11.5,"watts":5.97,"drop":128},{"date":"2026-09-24","wh":12.9,"hours":3.2,"watts":3.96,"drop":24},{"date":"2026-09-25","wh":0.0,"hours":0.0,"watts":null,"drop":0},{"date":"2026-09-26","wh":21.6,"hours":4.8,"watts":4.55,"drop":40},{"date":"2026-09-27","wh":0.0,"hours":0.0,"watts":null,"drop":0},{"date":"2026-09-28","wh":6.6,"hours":2.2,"watts":2.94,"drop":12},{"date":"2026-09-29","wh":42.9,"hours":7.8,"watts":5.54,"drop":80}],"days":["2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29"],"series":[{"id":"com.apple.WindowServer","name":"WindowServer（桌面合成）","wh":[1.22,1.95,1.23,8.09,14.42,13.46,3.31,1.39],"total":45.1},{"id":"com.haima.cloudpc","name":"海马云电脑","wh":[7.21,11.81,1.28,0.65,9.92,1.76,0.18,0.18],"total":33.0},{"id":"com.google.Chrome","name":"Google Chrome","wh":[0.73,0.83,0.55,0.42,0.68,0.49,0.63,2.13],"total":6.5},{"id":"com.apple.Terminal","name":"终端 Terminal","wh":[0.57,0.49,0.62,0.86,0.88,0.66,0.44,0.0],"total":4.5},{"id":"com.tencent.workbuddy.mac","name":"WorkBuddy（腾讯）","wh":[0.3,0.19,1.08,0.19,0.29,0.03,0.26,1.98],"total":4.3},{"id":"com.apple.audio.coreaudiod","name":"coreaudiod（音频）","wh":[0.21,0.58,0.23,0.54,0.41,0.49,0.11,0.41],"total":3.0},{"id":"com.apple.dasd","name":"dasd（后台调度）","wh":[0.0,0.0,0.0,0.01,0.13,1.93,0.0,0.0],"total":2.1},{"id":"com.apple.videoconference.camera","name":"视频会议摄像头","wh":[0.08,0.0,0.0,0.0,0.0,0.83,0.94,0.0],"total":1.9},{"id":"com.apple.kernel_task","name":"kernel_task","wh":[0.1,0.15,0.1,0.11,0.29,0.67,0.15,0.13],"total":1.7},{"id":"io.dsh.desktop","name":"DSH Desktop","wh":[0.0,0.0,0.0,0.0,0.0,0.0,0.87,0.29],"total":1.2}]};
+  var PALETTE = ["#0f6f66","#b3521c","#2f5d8a","#7a5ea8","#4b7f2f",
+                 "#a8324a","#1f7a99","#8a6d1f","#5c6470","#96566b"];
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  function el(n, a){ var e=document.createElementNS(SVGNS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  function txt(x,y,s,cls,anchor){ var t=el("text",{x:x,y:y,class:cls||"ax"}); if(anchor)t.setAttribute("text-anchor",anchor); t.textContent=s; return t; }
+  function fmt(n,d){ return n.toFixed(d===undefined?1:d); }
+  function dayLabel(d){ var p=d.split("-"); return p[1]+"/"+p[2]; }
+
+  /* ---------- 面板 A：8 天电量水位 ---------- */
+  (function(){
+    var host=document.getElementById("chart-level"), tip=document.getElementById("tip-level");
+    var W=1000,H=190,L=46,R=54,T=18,B=32;
+    var pts=DATA.level, t0=pts[0][0], t1=pts[pts.length-1][0];
+    var X=function(t){ return L+(t-t0)/(t1-t0)*(W-L-R); };
+    var Y=function(v){ return H-B-(v/100)*(H-T-B); };
+    var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"8 天电池电量水位曲线"});
+
+    [0,25,50,75,100].forEach(function(v){
+      svg.appendChild(el("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"grid"}));
+      svg.appendChild(txt(L-10,Y(v)+4,v+"%","ax","end"));
+    });
+    // 日期分隔线
+    for(var i=1;i<DATA.days.length;i++){
+      var d=DATA.days[i], mid=new Date(d+"T00:00:00").getTime()/1000;
+      if(mid>t0&&mid<t1){
+        svg.appendChild(el("line",{x1:X(mid),y1:T-8,x2:X(mid),y2:H-B,class:"grid solid"}));
+        svg.appendChild(txt(X(mid),H-B+16,dayLabel(d),"ax","middle"));
+      }
+    }
+    // 面积
+    var area="M"+X(pts[0][0])+","+Y(0);
+    pts.forEach(function(p){ area+=" L"+X(p[0])+","+Y(p[1]); });
+    area+=" L"+X(pts[pts.length-1][0])+","+Y(0)+" Z";
+    svg.appendChild(el("path",{d:area,class:"area"}));
+    // 按充/放分段
+    var runs=[];
+    pts.forEach(function(p){
+      var s=p[2]?"chg":"dis";
+      if(!runs.length||runs[runs.length-1].s!==s) runs.push({s:s,pts:[]});
+      runs[runs.length-1].pts.push(p);
+    });
+    runs.forEach(function(r,j){
+      var seq=r.pts.slice();
+      if(j>0) seq=[runs[j-1].pts[runs[j-1].pts.length-1]].concat(seq);
+      var d="M"+seq.map(function(p){ return X(p[0])+","+Y(p[1]); }).join(" L");
+      svg.appendChild(el("path",{d:d,class:r.s==="chg"?"lvl-chg":"lvl-dis"}));
+    });
+    svg.appendChild(el("line",{x1:L,y1:Y(0),x2:W-R,y2:Y(0),class:"axis"}));
+
+    var cross=el("line",{x1:0,y1:T-8,x2:0,y2:H-B,class:"cross",style:"opacity:0"});
+    var dot=el("circle",{r:4,class:"anchor",style:"opacity:0"});
+    svg.appendChild(cross); svg.appendChild(dot);
+
+    host.insertBefore(svg, tip);
+    var total=t1-t0;
+    function move(ev){
+      var box=svg.getBoundingClientRect();
+      var cx=((ev.touches?ev.touches[0].clientX:ev.clientX)-box.left)/box.width*W;
+      var tt=t0+(cx-L)/(W-L-R)*total;
+      var best=pts[0], bd=1e18;
+      pts.forEach(function(p){ var d=Math.abs(p[0]-tt); if(d<bd){bd=d;best=p;} });
+      var x=X(best[0]), y=Y(best[1]);
+      cross.setAttribute("x1",x); cross.setAttribute("x2",x); cross.style.opacity=1;
+      dot.setAttribute("cx",x); dot.setAttribute("cy",y); dot.style.opacity=1;
+      var dt=new Date(best[0]*1000);
+      tip.textContent=dt.toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"})
+        +"\n电量 "+best[1]+"%  "+(best[2]?"（接着电源）":"（放电中）");
+      tip.classList.add("on");
+      var px=(x/W)*box.width;
+      tip.style.left=Math.min(box.width-260,Math.max(4,px+14))+"px";
+      tip.style.top="16px";
+    }
+    svg.addEventListener("mousemove",move);
+    svg.addEventListener("touchmove",function(e){move(e);e.preventDefault();},{passive:false});
+    svg.addEventListener("mouseleave",function(){ tip.classList.remove("on"); cross.style.opacity=0; dot.style.opacity=0; });
+  })();
+
+  /* ---------- 面板 B：每日耗电量 + 平均功率 ---------- */
+  (function(){
+    var host=document.getElementById("chart-daily"), tip=document.getElementById("tip-daily");
+    var W=1000,H=330,L=52,R=58,T=30,B=42;
+    var rows=DATA.battery, n=rows.length;
+    var maxWh=Math.max.apply(null,rows.map(function(r){return r.wh;}))*1.18;
+    var maxW=12;
+    var X=function(i){ return L+i*(W-L-R)/(n-1); };
+    var Y=function(v){ return H-B-(v/maxWh)*(H-T-B); };
+    var Y2=function(v){ return H-B-(v/maxW)*(H-T-B); };
+    var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"每日电池放电量与平均功率折线图"});
+    [0,20,40,60,80].forEach(function(v){
+      if(v>maxWh) return;
+      svg.appendChild(el("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"grid"}));
+      svg.appendChild(txt(L-10,Y(v)+4,v,"ax","end"));
+    });
+    [0,3,6,9,12].forEach(function(v){
+      svg.appendChild(txt(W-R+10,Y2(v)+4,v,"ax"));
+    });
+    svg.appendChild(txt(L-10,T-12,"Wh","ax","end"));
+    svg.appendChild(txt(W-R+10,T-12,"W","ax"));
+
+    var line="", draw=line;
+    rows.forEach(function(r,i){ if(r.wh>0) line+=(line?" L":"M")+X(i)+","+Y(r.wh); });
+    svg.appendChild(el("path",{d:line,class:"serie",stroke:"var(--trace)",style:"stroke-width:2.4"}));
+    // 功率线：仅连接相邻且都有值的日子，缺值处断开
+    var run=null, wd="";
+    rows.forEach(function(r,i){
+      if(r.watts===null){ run=null; return; }
+      wd+=(run===null?"M":" L")+X(i)+","+Y2(r.watts);
+      run=i;
+    });
+    if(wd) svg.appendChild(el("path",{d:wd,class:"watts"}));
+    rows.forEach(function(r,i){
+      var cx=X(i);
+      svg.appendChild(txt(cx,H-B+20,dayLabel(r.date),"ax","middle"));
+      if(r.wh>0){
+        svg.appendChild(el("circle",{cx:cx,cy:Y(r.wh),r:4,class:"pt",fill:"var(--trace)"}));
+        svg.appendChild(txt(cx,Y(r.wh)-12,fmt(r.wh,1)+" Wh","val","middle"));
+      }else{
+        svg.appendChild(el("circle",{cx:cx,cy:Y(0),r:4,class:"pt hollow"}));
+        svg.appendChild(txt(cx,Y(0)-12,"插电","val","middle"));
+      }
+      if(r.watts!==null) svg.appendChild(el("circle",{cx:cx,cy:Y2(r.watts),r:3.2,class:"wdot"}));
+    });
+    svg.appendChild(el("line",{x1:L,y1:Y(0),x2:W-R,y2:Y(0),class:"axis"}));
+
+    var cross=el("line",{x1:0,y1:T-8,x2:0,y2:H-B,class:"cross",style:"opacity:0"});
+    svg.appendChild(cross);
+    host.insertBefore(svg,tip);
+    function move(ev){
+      var box=svg.getBoundingClientRect();
+      var cx=((ev.touches?ev.touches[0].clientX:ev.clientX)-box.left)/box.width*W;
+      var i=Math.round((cx-L)/((W-L-R)/(n-1)));
+      i=Math.max(0,Math.min(n-1,i));
+      var r=rows[i], x=X(i);
+      cross.setAttribute("x1",x); cross.setAttribute("x2",x); cross.style.opacity=1;
+      tip.textContent=r.date+(r.wh>0
+        ? "\n放电 "+fmt(r.wh,1)+" Wh　平均 "+fmt(r.watts,2)+" W"
+          +"\n时长 "+fmt(r.hours,1)+" h　掉电 "+r.drop+"%"
+        : "\n当日基本接着电源，没有从电池取电");
+      tip.classList.add("on");
+      var px=(x/W)*box.width;
+      tip.style.left=Math.min(box.width-280,Math.max(4,px+14))+"px";
+      tip.style.top="12px";
+    }
+    svg.addEventListener("mousemove",move);
+    svg.addEventListener("touchmove",function(e){move(e);e.preventDefault();},{passive:false});
+    svg.addEventListener("mouseleave",function(){ tip.classList.remove("on"); cross.style.opacity=0; });
+
+    // 明细表
+    var tb=document.getElementById("tbody-daily"), notes={
+      "2026-09-22":"装机 / 跑安装脚本，功率最高的一天",
+      "2026-09-23":"全天在电池上，跑掉一块多电池",
+      "2026-09-24":"前夜持续轻抽搐，白天短暂放电",
+      "2026-09-25":"基本插电，无放电",
+      "2026-09-26":"常规工作日",
+      "2026-09-27":"基本插电，无放电",
+      "2026-09-28":"白天正常，19:00 后进入唤醒风暴",
+      "2026-09-29":"上午 10.1%/h + 傍晚再放一轮 12%/h"
+    };
+    rows.forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+dayLabel(r.date)+"</td>"
+        +"<td class='n'><b>"+(r.wh>0?fmt(r.wh,1):"—")+"</b> Wh</td>"
+        +"<td class='n'>"+(r.hours>0?fmt(r.hours,1)+" h":"—")+"</td>"
+        +"<td class='n'"+(r.watts>=8?" style='color:var(--flag);font-weight:600'":"")+">"
+          +(r.watts!==null?fmt(r.watts,2)+" W":"—")+"</td>"
+        +"<td class='n'>"+(r.drop>0?r.drop+"%":"—")+"</td>"
+        +"<td class='mut'>"+(notes[r.date]||"")+"</td>";
+      tb.appendChild(tr);
+    });
+  })();
+
+  /* ---------- 面板 C：Top 10 应用（对数刻度） ---------- */
+  (function(){
+    var host=document.getElementById("chart-apps"), tip=document.getElementById("tip-apps");
+    var series=DATA.series, days=DATA.days, n=days.length;
+    var W=1000,H=400,L=56,R=132,T=22,B=40;
+    var vmin=0.05, vmax=22;
+    var X=function(i){ return L+i*(W-L-R)/(n-1); };
+    var Y=function(v){ return H-B-(Math.log10(Math.max(v,vmin))-Math.log10(vmin))/
+                              (Math.log10(vmax)-Math.log10(vmin))*(H-T-B); };
+    var svg=el("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Top 10 应用与服务逐日能耗折线图，对数刻度"});
+    [0.1,0.3,1,3,10].forEach(function(v){
+      svg.appendChild(el("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"grid"}));
+      svg.appendChild(txt(L-10,Y(v)+4,v,"ax","end"));
+    });
+    svg.appendChild(txt(L-10,T-8,"Wh（对数）","ax","end"));
+    days.forEach(function(d,i){ svg.appendChild(txt(X(i),H-B+20,dayLabel(d),"ax","middle")); });
+    svg.appendChild(el("line",{x1:L,y1:Y(vmin),x2:W-R,y2:Y(vmin),class:"axis"}));
+
+    var groups=[];
+    series.forEach(function(s,i){
+      var g=el("g",{"data-i":i});
+      var d="", first=true;
+      s.wh.forEach(function(v,j){
+        if(v<=0){ first=true; return; }
+        d+=(first?"M":" L")+X(j)+","+Y(v); first=false;
+      });
+      g.appendChild(el("path",{d:d,class:"serie","data-role":"line",stroke:PALETTE[i%10]}));
+      s.wh.forEach(function(v,j){
+        if(v<=0) return;
+        g.appendChild(el("circle",{cx:X(j),cy:Y(v),r:3.2,class:"sdot","data-role":"dot",fill:PALETTE[i%10]}));
+      });
+      svg.appendChild(g); groups.push(g);
+    });
+
+    // 末端直接标注（先收集，再按列分组纵向避让）
+    var ends=[];
+    series.forEach(function(s,i){
+      var last=-1;
+      for(var j=s.wh.length-1;j>=0;j--){ if(s.wh[j]>0){ last=j; break; } }
+      if(last<0) return;
+      ends.push({x:X(last), y:Y(s.wh[last]), i:i,
+                 text:(s.name.length>13?s.name.slice(0,12)+"…":s.name)});
+    });
+    var cols={};
+    ends.forEach(function(e){ var k=Math.round(e.x/40); (cols[k]=cols[k]||[]).push(e); });
+    Object.keys(cols).forEach(function(k){
+      var arr=cols[k].sort(function(a,b){ return a.y-b.y; });
+      var MIN=13.5;
+      for(var j=1;j<arr.length;j++) if(arr[j].y-arr[j-1].y<MIN) arr[j].y=arr[j-1].y+MIN;
+      for(var j=arr.length-2;j>=0;j--) if(arr[j+1].y-arr[j].y<MIN) arr[j].y=arr[j+1].y-MIN;
+      arr.forEach(function(e){
+        e.y=Math.max(T+6,Math.min(H-B-2,e.y));
+        var t=txt(e.x+9,e.y+4,e.text,"ax");
+        t.setAttribute("fill",PALETTE[e.i%10]);
+        t.setAttribute("style","font-weight:600");
+        svg.appendChild(t);
+        svg.appendChild(el("line",{x1:e.x+3,y1:Y(series[e.i].wh[series[e.i].wh.length-1]||0),
+                                   x2:e.x+7,y2:e.y,stroke:PALETTE[e.i%10],"stroke-width":1,opacity:.5}));
+      });
+    });
+
+    var cross=el("line",{x1:0,y1:T-6,x2:0,y2:H-B,class:"cross",style:"opacity:0"});
+    svg.appendChild(cross);
+    host.insertBefore(svg,tip);
+
+    // 图例
+    var legend=document.getElementById("legend-apps"), hidden={};
+    series.forEach(function(s,i){
+      var b=document.createElement("button");
+      b.type="button"; b.setAttribute("aria-pressed","true");
+      b.innerHTML="<i style='background:"+PALETTE[i%10]+"'></i>"+s.name+" <b>"+fmt(s.total,1)+"</b>";
+      b.addEventListener("click",function(){
+        hidden[i]=!hidden[i];
+        b.setAttribute("aria-pressed",hidden[i]?"false":"true");
+        groups[i].style.display=hidden[i]?"none":"";
+      });
+      legend.appendChild(b);
+    });
+
+    function move(ev){
+      var box=svg.getBoundingClientRect();
+      var cx=((ev.touches?ev.touches[0].clientX:ev.clientX)-box.left)/box.width*W;
+      var i=Math.round((cx-L)/((W-L-R)/(n-1)));
+      i=Math.max(0,Math.min(n-1,i));
+      var x=X(i);
+      cross.setAttribute("x1",x); cross.setAttribute("x2",x); cross.style.opacity=1;
+      var list=series.map(function(s,k){ return {s:s,v:s.wh[i],k:k}; })
+                     .filter(function(o){ return !hidden[o.k] && o.v>0; })
+                     .sort(function(a,b){ return b.v-a.v; })
+                     .slice(0,7)
+                     .map(function(o){ return "  "+o.s.name+"  "+fmt(o.v,2)+" Wh"; }).join("\n");
+      tip.textContent=days[i]+"\n"+(list||"  （该日无归因数据）");
+      tip.classList.add("on");
+      var px=(x/W)*box.width;
+      tip.style.left=Math.min(box.width-250,Math.max(4,px+14))+"px";
+      tip.style.top="8px";
+    }
+    svg.addEventListener("mousemove",move);
+    svg.addEventListener("touchmove",function(e){move(e);e.preventDefault();},{passive:false});
+    svg.addEventListener("mouseleave",function(){ tip.classList.remove("on"); cross.style.opacity=0; });
+
+    // 表格：8 天累计 + 逐日走势迷你条
+    var tb=document.getElementById("tbody-apps");
+    var grand=series.reduce(function(a,s){ return a+s.total; },0);
+    var mx=Math.max.apply(null,series.map(function(s){return s.total;}));
+    series.forEach(function(s,i){
+      var spark="<svg viewBox='0 0 160 22' style='width:160px;height:22px'>";
+      var m=Math.max.apply(null,s.wh);
+      s.wh.forEach(function(v,j){
+        var x=6+j*(148/(n-1)), h=Math.max(1,(v/(m||1))*16);
+        spark+="<rect x='"+(x-4).toFixed(1)+"' y='"+(19-h).toFixed(1)+"' width='7' height='"+h.toFixed(1)+"' fill='"
+             +PALETTE[i%10]+"' opacity='"+(v>0?0.85:0.15)+"'/>";
+      });
+      spark+="</svg>";
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td><span class='swatch' style='background:"+PALETTE[i%10]+"'></span>"+s.name+"</td>"
+        +"<td class='n'><b>"+fmt(s.total,1)+"</b> Wh</td>"
+        +"<td class='n'>"+fmt(s.total/grand*100,0)+"%</td>"
+        +"<td>"+spark+"</td>";
+      tb.appendChild(tr);
+    });
+  })();
+
+  /* ---------- 可编辑交付基线 ---------- */
+  var KEY='mac-power-charts-20260929-edits-v1';
+  var doc=document.getElementById('doc');
+  var btnEdit=document.getElementById('btn-edit'), btnReset=document.getElementById('btn-reset');
+  var btnDownload=document.getElementById('btn-save'), btnPrint=document.getElementById('btn-print');
+  var state=document.getElementById('edit-state'), pristine=doc.innerHTML, timer=null;
+  try{ var saved=localStorage.getItem(KEY); if(saved){ doc.innerHTML=saved; state.textContent='已从本地恢复你的编辑稿'; } }catch(e){}
+  function setEditing(on){
+    doc.contentEditable=on?'true':'false';
+    btnEdit.classList.toggle('on',on);
+    btnEdit.textContent=on?'■ 退出编辑':'✎ 开启编辑';
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('edit-lock',on); });
+    if(on) state.textContent='编辑中 · 改动自动存本机';
+  }
+  btnEdit.addEventListener('click',function(){ setEditing(doc.getAttribute('contenteditable')!=='true'); });
+  doc.addEventListener('input',function(){
+    if(doc.getAttribute('contenteditable')!=='true')return;
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      try{ localStorage.setItem(KEY,doc.innerHTML); state.textContent='已保存 · '+new Date().toLocaleTimeString(); }catch(e){}
+    },500);
+  });
+  btnReset.addEventListener('click',function(){
+    if(!confirm('放弃本地修改，恢复原始稿件？'))return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    doc.innerHTML=pristine; setEditing(false); state.textContent='已恢复原稿';
+  });
+  btnDownload.addEventListener('click',function(){
+    var clone=document.documentElement.cloneNode(true);
+    var d=clone.querySelector('#doc'); if(d) d.removeAttribute('contenteditable');
+    var t=clone.querySelector('#toolbar'); if(t) t.remove();
+    var blob=new Blob(['<!doctype html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='mac-power-charts-当前版.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
+  });
+  btnPrint.addEventListener('click',function(){ window.print(); });
+})();
+</script>
+</body>
+</html>
