@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 国庆 · 10 月 4 日 · 清华园亲子一日 · 真实方案</title>
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="../assets/frame.css">
+  <style>
+    /* ============================================================
+       2026 国庆 · 清华园亲子一日
+       取材:旧宣纸底 + 紫荆紫(校色) + 老建筑砖红 + 荷绿
+       唯一大胆处:顶部一张基于 2026 国庆官方公告的入校路线 SVG
+       信息源:[清华官方公告] + [本地宝 2026 国庆清华汇总]
+       ============================================================ */
+    :root{
+      --paper:#faf7f1;
+      --paper-2:#f3eee2;
+      --card:#ffffff;
+      --ink:#3a3530;
+      --ink-soft:#6b645a;
+      --muted:#9a938a;
+      --line:#e8e2d4;
+      --line-hi:#d6cdb8;
+      --zijing:#660874;
+      --zijing-soft:#a78bb6;
+      --brick:#a8401f;
+      --lotus:#4d6a4d;
+      --warn:#b85c00;       /* 公告/提醒用橙 */
+      --sun:#c89b4a;
+      --serif:"Noto Serif SC","Songti SC","STSong","Source Han Serif SC",serif;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+      font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased;margin:0}
+    a{color:var(--zijing);text-decoration:none;border-bottom:1px dotted rgba(102,8,116,.35)}
+    a:hover{color:var(--brick);border-bottom-color:var(--brick)}
+    ::selection{background:rgba(102,8,116,.18);color:var(--ink)}
+
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
+      padding:10px 22px;background:rgba(250,247,241,.94);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);font-family:var(--sans)}
+    .topbar .mark{font:600 12px/1 var(--mono);letter-spacing:.22em;color:var(--zijing);
+      text-transform:uppercase}
+    .topbar .btn{font-size:12.5px;padding:6px 13px;border-radius:2px;border:1px solid var(--line);
+      background:transparent;color:var(--ink-soft);cursor:pointer;transition:.15s;font-family:inherit}
+    .topbar .btn:hover{border-color:var(--zijing);color:var(--zijing)}
+    .topbar .btn.active{background:var(--zijing);border-color:var(--zijing);color:#fff;font-weight:600}
+    .topbar .status{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--muted)}
+
+    .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+
+    .hero{position:relative;padding:60px 0 28px;border-bottom:1px solid var(--line);
+      margin-bottom:30px}
+    .hero .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.32em;color:var(--zijing);
+      text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+    .hero .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--zijing),transparent)}
+    .hero h1.title{font-family:var(--serif);font-size:44px;font-weight:700;line-height:1.2;
+      margin:0 0 12px;letter-spacing:.02em;color:var(--ink)}
+    .hero h1.title .accent{color:var(--zijing)}
+    .hero .subtitle{font-family:var(--serif);font-size:17px;color:var(--ink-soft);
+      margin:0 0 22px;max-width:720px}
+    .hero .meta-row{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;
+      color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+    .hero .meta-row b{color:var(--ink);font-weight:500}
+    .hero .meta-row .sep{color:var(--line-hi)}
+
+    /* 官方公告摘要卡 */
+    .official{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--zijing);
+      padding:16px 20px;margin:0 0 26px;border-radius:0 4px 4px 0}
+    .official h3{font-family:var(--serif);font-size:15px;margin:0 0 10px;color:var(--zijing);
+      font-weight:600;letter-spacing:.04em}
+    .official .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 24px}
+    .official .kv{font-size:13px;color:var(--ink)}
+    .official .kv .k{display:block;font:600 10px/1.4 var(--mono);letter-spacing:.18em;
+      color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+    .official .kv .v{color:var(--ink)}
+
+    .map-card{background:var(--card);border:1px solid var(--line);border-radius:6px;
+      padding:20px;margin:0 0 32px;position:relative;overflow:hidden}
+    .map-card::before{content:"";position:absolute;inset:0;pointer-events:none;
+      background-image:radial-gradient(circle at 20% 30%,rgba(102,8,116,.04) 0,transparent 35%),
+        radial-gradient(circle at 80% 70%,rgba(77,106,77,.05) 0,transparent 40%)}
+    .map-card .map-title{font:600 11px/1 var(--mono);letter-spacing:.22em;color:var(--ink-soft);
+      text-transform:uppercase;margin-bottom:14px}
+    .map-svg{width:100%;height:auto;display:block}
+
+    .timeline{position:relative;margin:30px 0}
+    .timeline::before{content:"";position:absolute;left:96px;top:8px;bottom:8px;width:2px;
+      background:linear-gradient(180deg,var(--zijing) 0%,var(--lotus) 60%,var(--brick) 100%);
+      opacity:.35}
+    .slot{position:relative;display:grid;grid-template-columns:96px 1fr;gap:22px;
+      padding:18px 0 22px;border-bottom:1px solid var(--line)}
+    .slot:last-child{border-bottom:none}
+    .slot .time{font-family:var(--mono);font-size:13px;color:var(--ink-soft);
+      padding-top:2px;font-variant-numeric:tabular-nums;text-align:right;line-height:1.6}
+    .slot .time .dur{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .slot .time .dur::before{content:"· "}
+
+    .slot .dot{position:absolute;left:91px;top:22px;width:10px;height:10px;border-radius:50%;
+      background:var(--zijing);border:2px solid var(--paper);box-shadow:0 0 0 1px var(--zijing)}
+    .slot.child .dot{background:var(--sun);box-shadow:0 0 0 1px var(--sun)}
+    .slot.lotus .dot{background:var(--lotus);box-shadow:0 0 0 1px var(--lotus)}
+    .slot.brick .dot{background:var(--brick);box-shadow:0 0 0 1px var(--brick)}
+    .slot.warn .dot{background:var(--warn);box-shadow:0 0 0 1px var(--warn)}
+
+    .slot .body{background:var(--card);border:1px solid var(--line);border-radius:4px;
+      padding:18px 20px 16px;position:relative}
+    .slot .body::before{content:"";position:absolute;left:-6px;top:22px;width:10px;height:10px;
+      background:var(--card);border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+      transform:rotate(45deg)}
+
+    .slot h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 6px;
+      color:var(--ink);letter-spacing:.02em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+    .slot h2 .tag{font:500 10px/1 var(--mono);letter-spacing:.16em;color:var(--zijing);
+      padding:3px 8px;border:1px solid var(--zijing-soft);border-radius:2px;text-transform:uppercase}
+    .slot.child h2 .tag{color:var(--sun);border-color:#d6b078}
+    .slot.lotus h2 .tag{color:var(--lotus);border-color:#8aa48a}
+    .slot.brick h2 .tag{color:var(--brick);border-color:#c98878}
+    .slot.warn h2 .tag{color:var(--warn);border-color:#dda070}
+
+    .slot .place{font-size:13px;color:var(--ink-soft);margin:0 0 10px;font-family:var(--sans)}
+    .slot .place b{color:var(--ink);font-weight:500}
+
+    .slot p{margin:0 0 10px;font-size:15px;color:var(--ink)}
+    .slot p:last-child{margin-bottom:0}
+    .slot ul{margin:6px 0 8px;padding-left:18px;font-size:14px;color:var(--ink-soft)}
+    .slot ul li{margin-bottom:4px}
+    .slot ul li b{color:var(--ink);font-weight:500}
+
+    .kid-tip{background:var(--paper-2);border-left:2px solid var(--sun);padding:8px 12px;
+      margin-top:10px;font-size:13px;color:var(--ink-soft);border-radius:0 3px 3px 0}
+    .kid-tip b{color:var(--brick);font-weight:600}
+    .source{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic}
+
+    .notice{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warn);
+      padding:16px 20px;margin:30px 0;border-radius:0 4px 4px 0}
+    .notice h3{font-family:var(--serif);font-size:16px;margin:0 0 8px;color:var(--warn);
+      font-weight:600}
+    .notice ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink)}
+    .notice ul li{margin-bottom:4px}
+    .notice ul li b{color:var(--ink);font-weight:500}
+
+    .alt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;margin:20px 0 36px}
+    .alt{background:var(--card);border:1px solid var(--line);border-radius:4px;
+      padding:14px 16px}
+    .alt .label{font:600 10px/1 var(--mono);letter-spacing:.18em;color:var(--zijing);
+      text-transform:uppercase;margin-bottom:6px}
+    .alt h4{font-family:var(--serif);font-size:15px;margin:0 0 6px;color:var(--ink);
+      font-weight:600}
+    .alt p{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.65}
+
+    .checklist{background:var(--card);border:1px solid var(--line);border-radius:4px;
+      padding:18px 22px;margin:24px 0 40px;columns:2;column-gap:36px}
+    .checklist h3{font-family:var(--serif);font-size:16px;margin:0 0 10px;color:var(--ink);
+      font-weight:600;break-inside:avoid}
+    .checklist ul{margin:0 0 12px;padding-left:0;list-style:none;font-size:13.5px;
+      color:var(--ink-soft);break-inside:avoid}
+    .checklist ul li{padding:3px 0;position:relative;padding-left:18px}
+    .checklist ul li::before{content:"·";position:absolute;left:6px;top:3px;
+      color:var(--zijing);font-weight:700}
+
+    .exh{background:var(--card);border:1px solid var(--line);border-radius:4px;
+      padding:16px 20px;margin:0 0 24px}
+    .exh h3{font-family:var(--serif);font-size:15px;margin:0 0 10px;color:var(--ink);
+      font-weight:600}
+    .exh .row{display:grid;grid-template-columns:auto 1fr auto;gap:8px 14px;
+      font-size:13px;color:var(--ink);padding:5px 0;border-top:1px dashed var(--line)}
+    .exh .row:first-of-type{border-top:none}
+    .exh .row .d{color:var(--muted);font-family:var(--mono);font-size:12px}
+    .exh .row .n{color:var(--ink);font-weight:500}
+    .exh .row .t{color:var(--warn);font-family:var(--mono);font-size:12px}
+
+    #doc[contenteditable="true"]{outline:1px dashed var(--line-hi);outline-offset:4px}
+    @media print{
+      .topbar,.no-print{display:none !important}
+      body{background:#fff;color:#000;font-size:13px;line-height:1.6}
+      .wrap{max-width:100%;padding:0}
+      .slot .body,.notice,.checklist,.alt,.map-card,.official,.exh{break-inside:avoid;
+        border-color:#ccc;box-shadow:none}
+      a{color:#000;border-bottom:none}
+      .timeline::before{background:#999}
+    }
+    @media (max-width:640px){
+      .timeline::before{left:64px}
+      .slot{grid-template-columns:64px 1fr;gap:14px}
+      .slot .time{font-size:12px}
+      .slot .dot{left:59px}
+      .hero h1.title{font-size:32px}
+      .checklist{columns:1}
+      .official .grid{grid-template-columns:1fr 1fr}
+    }
+
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .slot{animation:rise .5s ease both}
+    .slot:nth-child(1){animation-delay:.05s}
+    .slot:nth-child(2){animation-delay:.1s}
+    .slot:nth-child(3){animation-delay:.15s}
+    .slot:nth-child(4){animation-delay:.2s}
+    .slot:nth-child(5){animation-delay:.25s}
+    .slot:nth-child(6){animation-delay:.3s}
+    .slot:nth-child(7){animation-delay:.35s}
+    .slot:nth-child(8){animation-delay:.4s}
+    @media (prefers-reduced-motion: reduce){.slot{animation:none}}
+  </style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <span class="mark">Tsinghua · 2026 国庆</span>
+  <button class="btn" onclick="toggleEdit()">✎ 开启编辑</button>
+  <button class="btn" onclick="resetDoc()">恢复原稿</button>
+  <button class="btn" onclick="downloadDoc()">下载当前版</button>
+  <button class="btn" onclick="window.print()">打印 PDF</button>
+  <span class="status" id="status">未编辑</span>
+</div>
+
+<article id="doc" class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Beijing Trip · 10.04 · 校园参观</div>
+    <h1 class="title">清华园<span class="accent">亲子</span>一日 · 2026 国庆版</h1>
+    <p class="subtitle">10 月 4 日(周六)是清华国庆开放日 — 但也是预约最难抢的节假日之一。按 2026 年清华官方公告走,先把入校、抽签、艺博票定下,再谈路线。</p>
+    <div class="meta-row">
+      <span><b>日期</b> 2026-10-04(周六,国庆假期第 4 天)</span>
+      <span class="sep">/</span>
+      <span><b>对象</b> 1 大人 1 小孩</span>
+      <span class="sep">/</span>
+      <span><b>预约入口</b> 「参观清华」微信小程序</span>
+      <span class="sep">/</span>
+      <span><b>咨询电话</b> 010-62793001</span>
+    </div>
+  </header>
+
+  <!-- 2026 国庆官方公告核心信息 -->
+  <div class="official">
+    <h3>2026 国庆 · 清华校园参观官方要点</h3>
+    <div class="grid">
+      <div class="kv"><span class="k">开放期</span><span class="v">10/1–10/7(10/5 周一休整不开放)</span></div>
+      <div class="kv"><span class="k">10/4 时段</span><span class="v">上午 8:00–11:00 / 下午 13:00–16:00</span></div>
+      <div class="kv"><span class="k">每日名额</span><span class="v">1.5 万(个人 8000 + 团队 7000)</span></div>
+      <div class="kv"><span class="k">个人通道</span><span class="v">西门南侧专用通道</span></div>
+      <div class="kv"><span class="k">新增通道</span><span class="v">艺术博物馆专用通道(人少优先)</span></div>
+      <div class="kv"><span class="k">讲解</span><span class="v">每天 4 场 9/10/14/15 时,日晷集合</span></div>
+      <div class="kv"><span class="k">预约机制</span><span class="v">抽签 + 即时预约,各占一半</span></div>
+      <div class="kv"><span class="k">抽签时间</span><span class="v">提前 8 天 17:00 申请,22:00 出结果</span></div>
+    </div>
+  </div>
+
+  <!-- 入校路线图(基于官方公告的西门 + 艺博通道双入口) -->
+  <div class="map-card no-print">
+    <div class="map-title">推荐路线 · 艺博专用通道入校 → 校园核心 → 西门离校</div>
+    <svg class="map-svg" viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" aria-label="清华10月4日入校路线">
+      <defs>
+        <pattern id="paperPat" width="6" height="6" patternUnits="userSpaceOnUse">
+          <path d="M0 0 L6 6" stroke="#e8e2d4" stroke-width="0.4" opacity="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="880" height="320" fill="#fbf9f3"/>
+      <rect width="880" height="320" fill="url(#paperPat)"/>
+
+      <!-- 主路线(艺博入校 → 西门出) -->
+      <path d="M 60 250 Q 110 240 165 215 Q 235 195 290 165 Q 360 145 410 175 Q 470 200 520 175 Q 600 145 660 175 Q 720 195 800 175"
+            fill="none" stroke="#660874" stroke-width="2.5" stroke-dasharray="6 4" opacity="0.55"/>
+
+      <g font-family="-apple-system, PingFang SC, sans-serif" font-size="12" fill="#3a3530">
+        <!-- 1. 艺博专用通道(推荐起点) -->
+        <circle cx="60" cy="250" r="10" fill="#660874"/>
+        <text x="60" y="282" text-anchor="middle" font-weight="600">09:00 艺博专用通道</text>
+        <text x="60" y="296" text-anchor="middle" fill="#6b645a" font-size="10">13 号线五道口 A 口</text>
+
+        <!-- 2. 艺博馆内(自由活动) -->
+        <circle cx="165" cy="215" r="8" fill="#660874"/>
+        <text x="165" y="198" text-anchor="middle" font-weight="600">09:10 艺术博物馆</text>
+        <text x="165" y="240" text-anchor="middle" fill="#6b645a" font-size="10">「清华人文百年」特展</text>
+
+        <!-- 3. 主楼广场 -->
+        <circle cx="290" cy="165" r="8" fill="#660874"/>
+        <text x="290" y="148" text-anchor="middle" font-weight="600">10:20 主楼广场</text>
+
+        <!-- 4. 二校门 -->
+        <circle cx="410" cy="175" r="9" fill="#a8401f"/>
+        <text x="410" y="200" text-anchor="middle" font-weight="600">10:50 二校门</text>
+
+        <!-- 5. 清华学堂 / 大礼堂 -->
+        <circle cx="520" cy="175" r="8" fill="#a8401f"/>
+        <text x="520" y="155" text-anchor="middle" font-weight="600">11:15 清华学堂/大礼堂</text>
+
+        <!-- 6. 午餐 -->
+        <circle cx="600" cy="145" r="8" fill="#9a938a"/>
+        <text x="600" y="128" text-anchor="middle" fill="#6b645a" font-size="10">11:45 食堂/午休</text>
+
+        <!-- 7. 工字厅 / 荷塘 -->
+        <circle cx="720" cy="195" r="9" fill="#4d6a4d"/>
+        <text x="720" y="220" text-anchor="middle" font-weight="600">13:30 工字厅 + 荷塘</text>
+
+        <!-- 8. 西门离校 -->
+        <circle cx="820" cy="175" r="10" fill="#a8401f"/>
+        <text x="820" y="152" text-anchor="middle" font-weight="600">15:30 西门离校</text>
+        <text x="820" y="206" text-anchor="middle" fill="#6b645a" font-size="10">4 号线圆明园站 330 m</text>
+      </g>
+
+      <g opacity="0.55" stroke-linecap="round">
+        <g stroke="#4d6a4d" fill="none" stroke-width="1.2">
+          <path d="M 30 290 Q 40 280 50 290"/>
+          <ellipse cx="40" cy="278" rx="5" ry="3" fill="#a8401f" opacity="0.5"/>
+          <path d="M 90 295 Q 100 285 110 295"/>
+          <ellipse cx="100" cy="283" rx="5" ry="3" fill="#660874" opacity="0.5"/>
+        </g>
+        <path d="M 600 20 L 640 35 L 690 18 L 740 32 L 800 22 L 860 30" fill="none" stroke="#9a938a" stroke-width="1" opacity="0.4"/>
+      </g>
+
+      <g font-family="ui-monospace, SF Mono, monospace" font-size="10" fill="#6b645a">
+        <rect x="20" y="20" width="170" height="62" fill="#faf7f1" stroke="#e8e2d4" rx="2"/>
+        <circle cx="36" cy="36" r="4" fill="#660874"/><text x="46" y="40">主节点</text>
+        <circle cx="36" cy="54" r="4" fill="#4d6a4d"/><text x="46" y="58">自然 / 荷塘</text>
+        <circle cx="36" cy="72" r="4" fill="#a8401f"/><text x="46" y="76">老建筑 / 入口</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- 关键提醒:必须在 10/4 前完成 -->
+  <div class="notice">
+    <h3>10/4 前必办 · 4 件预约</h3>
+    <ul>
+      <li><b>校园参观预约</b>微信小程序「参观清华」→ 选 10/4 → 上午 8:00–11:00 或下午 13:00–16:00 任一时段。节假日每天 1.5 万名额,一半要抽签</li>
+      <li><b>艺博门票</b>艺博普通门票 50 元/人(普通展),特展另购。当日 16:00 前可预约 8 日内门票,「清华人文百年」特展强烈推荐</li>
+      <li><b>艺博票 ≠ 入校凭证</b>艺博需从清华艺博专用通道(东四门)刷证入馆,不能作为校园参观凭证 — 想逛主校区仍需做「参观清华」预约</li>
+      <li><b>代约与同行</b>10 岁以下儿童须监护人代约并陪同;16 岁以上每人最多可代 2 人同行</li>
+    </ul>
+  </div>
+
+  <!-- 主行程 -->
+  <section class="timeline">
+
+    <div class="slot warn">
+      <div class="time">09:00<span class="dur">10 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>艺博专用通道入校 <span class="tag">推荐入口</span></h2>
+        <p class="place"><b>地点 · </b>清华大学艺术博物馆东四门(艺博专用通道) — 走 13 号线五道口站 A 出口最近</p>
+        <p>这是 2025 起新增的个人入校通道,假期高峰专门分流,排队明显比西门短。到达后:先在艺博门口扫「参观清华」预约码 → 安检 → 刷身份证入校(队伍约 5–15 分钟,比西门少一半)。</p>
+        <ul>
+          <li><b>先做艺博预约</b>在「清华大学艺术博物馆」官方小程序买当日门票(普通展 50 元/人)</li>
+          <li><b>再做校园预约</b>同一天上午时段「参观清华」小程序</li>
+          <li><b>证件</b>每位入校者均需身份证;儿童带户口本或身份证</li>
+        </ul>
+        <div class="kid-tip"><b>带娃提示</b>艺博专用通道在清华东侧,五道口方向;西门则在圆明园站方向 — 别走错</div>
+        <p class="source">信息源:北京日报 2025/09/29 国庆公告 + 本地宝 2026/09/30 国庆清华参观汇总</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="time">09:10<span class="dur">70 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>艺术博物馆 · 重点看「清华人文百年」<span class="tag">室内</span></h2>
+        <p class="place"><b>地点 · </b>清华大学艺术博物馆 1–4 层展厅(艺博专用通道旁,入校即到)</p>
+        <p>艺博是当天人流最猛的室内点,先于它就解决了「上午段不走丢、风吹不着」。10/4 期间正在展的 5 个特展/常设:</p>
+        <div class="exh">
+          <h3>2026 国庆期间在展</h3>
+          <div class="row"><span class="d">展期至 10/29</span><span class="n">清华人文百年</span><span class="t">★ 重点</span></div>
+          <div class="row"><span class="d">展期至 10/13</span><span class="n">巨匠光华:庞薰琹特展</span><span class="t">特展</span></div>
+          <div class="row"><span class="d">展期至 11/15</span><span class="n">知境寻源:明清家具文化艺术展</span><span class="t"></span></div>
+          <div class="row"><span class="d">展期至 12/6</span><span class="n">帕拉第奥的中国对话</span><span class="t"></span></div>
+          <div class="row"><span class="d">长期</span><span class="n">陶融万象:中国现代民间陶瓷艺术展</span><span class="t"></span></div>
+        </div>
+        <ul>
+          <li><b>「清华人文百年」</b>讲清华百年文史,带娃最合适 — 把「清华是什么」说清楚</li>
+          <li><b>庞薰琹特展</b>工艺美术大师,适合有点美术基础的孩子</li>
+          <li><b>普通展</b>50 元/人;3 岁以下免、3–6 岁儿童免普通票但需成人陪同</li>
+        </ul>
+        <div class="kid-tip"><b>带娃玩法</b>艺博内不能用闪光灯、三脚架,带娃逛 70 分钟正好,可在 2 层休息区补水</div>
+        <p class="source">信息源:清华大学艺术博物馆官网展览列表(访问 2026/09/30)</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="time">10:20<span class="dur">30 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>主楼广场 + 跟一场志愿讲解 <span class="tag">讲解</span></h2>
+        <p class="place"><b>地点 · </b>主楼广场 → 步行至日晷(讲解集合点)</p>
+        <p>每天 4 场志愿讲解(9/10/14/15 时),从日晷出发,每场约 1 小时,身着红马甲的清华学生志愿者带队。10/4 是周六,学生志愿讲解几乎一定开,但建议提前 5–10 分钟到日晷集合,9 场免讲.</p>
+        <ul>
+          <li><b>10:00 场</b>已开,赶不上就等下午 14:00 场</li>
+          <li><b>三条精品线</b>(1)探索无垠·敢为人先(2)栉风沐雨·无问西东(3)风物长宜·博古通今</li>
+          <li><b>两条红色主题线</b>「祖国儿女·清华英烈」「大国崛起·历史长河」</li>
+        </ul>
+        <div class="kid-tip"><b>带娃玩法</b>10 岁以上孩子独立听得津津有味,带本小本子记几个地标名(科学馆、同方部、自清亭)</div>
+      </div>
+    </div>
+
+    <div class="slot brick">
+      <div class="time">10:50<span class="dur">25 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>二校门 · 清华最早的门 <span class="tag">必看</span></h2>
+        <p class="place"><b>地点 · </b>主楼南侧 — 跟着讲解或沿主路南行 8 分钟</p>
+        <p>二校门是清华最具辨识度的画面:1909 年建校初期的白色三联牌楼,正面「清华园」三字是清末军机大臣那桐手书。站在门外往里看,可看到主楼方向纵深,出片极稳。</p>
+        <ul>
+          <li>门两侧石狮子,小朋友可数一数有几只</li>
+          <li>10/4 国庆期间人肯定多 — 在路沿石上拍一张「我的清华第一照」即可,别占住正门拍 5 分钟</li>
+        </ul>
+        <div class="kid-tip"><b>带娃玩法</b>让孩子站在门正中线拍一张「我的清华第一照」,回家做成长纪念册素材</div>
+      </div>
+    </div>
+
+    <div class="slot brick">
+      <div class="time">11:15<span class="dur">30 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>清华学堂 & 大礼堂 <span class="tag">老建筑</span></h2>
+        <p class="place"><b>地点 · </b>二校门北 — 大草坪两侧</p>
+        <p>两个 1910 年代建成的地标挨在一起,一趟看完。清华学堂灰砖红墙两层小楼,曾用作教室,梁启超、王国维等都在这里讲过课 — 可以给孩子讲「四大导师」的故事。大礼堂罗马式圆顶+希腊式石柱,内部一般不对游客开放。</p>
+        <ul>
+          <li><b>大草坪</b>是孩子们跑跳的安全区,可让他们在草地上跑两圈放放电</li>
+          <li><b>日晷</b>位于大礼堂前,正面刻「行胜于言」 — 清华校风出自这里</li>
+        </ul>
+        <div class="kid-tip"><b>带娃提示</b>大礼堂内部不开放,只在外部参观,别买票被骗</div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="time">11:45<span class="dur">100 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>午餐 + 午休 <span class="tag">必休</span></h2>
+        <p class="place"><b>推荐 · </b>清芬园食堂(三层,游客可用) 或 校外东门/西门餐厅</p>
+        <p>带小朋友最大的坑就是硬撑 — 上午走了 2.5 小时,午餐后必须休整。10/4 是假期,校内食堂人相对多,也可出校吃(再次进校需重新预约)。</p>
+        <ul>
+          <li><b>清芬园</b>校内游客食堂,三楼小吃多,支付宝/微信均可,人均 20–35 元</li>
+          <li><b>西门圆明园站周边</b>选择更多(出校后西门出去,不再返回校园,直接结束)</li>
+          <li><b>午休</b>大草坪边的长椅、图书馆台阶都行 — 让娃睡 30 分钟,下午才有力气</li>
+        </ul>
+        <div class="kid-tip"><b>带娃提示</b>10/4 北京中午预计 22–24℃,但礼堂和食堂空调偏冷,带件薄外套</div>
+      </div>
+    </div>
+
+    <div class="slot lotus">
+      <div class="time">13:30<span class="dur">90 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>工字厅 + 荷塘 · 朱自清《荷塘月色》原址 <span class="tag">自然段</span></h2>
+        <p class="place"><b>地点 · </b>工字厅(图书馆北侧小院)/ 荷塘(近春园)</p>
+        <p>下午跟 14:00 场讲解(从日晷出发,1 小时),这段是清华最有文学气的地方。1927 年夏夜朱自清散步写下「这几天心里颇不宁静」,描述的就是这片荷塘。10 月初 4 日,北京秋意初显,荷塘有残荷、莲蓬、睡莲,正是「秋荷」摄影好时机。</p>
+        <ul>
+          <li><b>水木清华</b>匾额在工字厅北侧,是清华「水木清华」一词的实物出处,必合影</li>
+          <li><b>古月堂</b>工字厅对面,梁思成林徽因曾暂住 — 可顺带讲古建筑保护的故事</li>
+          <li><b>荷塘朗读</b>家长念几段原文,孩子找对应的景 — 最有效的语文启蒙</li>
+        </ul>
+        <div class="kid-tip"><b>带娃玩法</b>让孩子用随身小本子画一张「我心中的荷塘」,回家对照原文</div>
+      </div>
+    </div>
+
+    <div class="slot brick">
+      <div class="time">15:30<span class="dur">30 min</span></div>
+      <span class="dot"></span>
+      <div class="body">
+        <h2>西门离校 <span class="tag">终点</span></h2>
+        <p class="place"><b>路线 · </b>从荷塘往西北 → 图书馆 → 西门出</p>
+        <p>从校园西北侧离校,经过李文正图书馆新馆(可在台阶上坐一坐),沿清华路到西门。西门正对圆明园南门,若傍晚还有体力,可加 1 小时逛圆明园遗址公园(联游安排)。</p>
+        <ul>
+          <li><b>西门离校时间</b>15:30 距下午时段(13:00–16:00)结束还有 30 分钟,完全在预约窗口内</li>
+          <li><b>4 号线圆明园站</b>步行 330 米 — 离西门最近</li>
+          <li><b>联游</b>圆明园南门正对清华西门,步行 5 分钟可达 — 10/4 圆明园假期开放,但门票另购(10 元)</li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 备选/加塞 -->
+  <h2 style="font-family:var(--serif);font-size:22px;font-weight:600;margin:36px 0 4px;color:var(--ink);letter-spacing:.02em">雨天 / 体力差 / 加塞方案</h2>
+  <p style="font-size:14px;color:var(--ink-soft);margin:0 0 14px">根据 10/4 当天情况二选一,不必硬走完全部 8 段</p>
+  <div class="alt-grid">
+    <div class="alt">
+      <div class="label">A · 雨天版</div>
+      <h4>艺博深逛 + 校史馆</h4>
+      <p>雨天主打室内:艺博 5 个展慢慢看 2.5 小时,顺道走校史馆(周一闭馆,周六开)。二校门可打伞快速拍,跳过荷塘。</p>
+    </div>
+    <div class="alt">
+      <div class="label">B · 加塞版</div>
+      <h4>+ 圆明园半日</h4>
+      <p>15:30 西门出,步行 5 分钟到圆明园南门,加 1.5 小时看西洋楼遗址与大水法。儿童对「大水法」石柱很感兴趣,圆明园门票 10 元。</p>
+    </div>
+    <div class="alt">
+      <div class="label">C · 体力差版</div>
+      <h4>只走前 5 段</h4>
+      <p>艺博(慢)→ 主楼 → 清华学堂/大礼堂 → 食堂。13:00 直接从西门出,跳过工字厅与荷塘 — 适合 6 岁以下、走久了就闹的孩子。</p>
+    </div>
+  </div>
+
+  <!-- 物品清单 -->
+  <div class="checklist">
+    <h3>大人背包</h3>
+    <ul>
+      <li>身份证(每人)+ 「参观清华」预约码截图</li>
+      <li>艺博门票二维码(微信小程序里)</li>
+      <li>现金 200 元(部分食堂旧窗口只收现金)</li>
+      <li>充电宝 + 数据线</li>
+      <li>遮阳伞 / 雨伞(10/4 北京午后多变)</li>
+      <li>薄外套(空调房用)</li>
+      <li>纸巾、湿巾、免洗洗手液</li>
+    </ul>
+    <h3>孩子随身</h3>
+    <ul>
+      <li>户口本或身份证原件</li>
+      <li>水壶 1 个(校内可接直饮水)</li>
+      <li>小零食 2–3 样(巧克力/小面包)</li>
+      <li>备用衣 1 套(出汗或淋雨后换)</li>
+      <li>小本子 + 彩笔(荷塘写生用)</li>
+      <li>儿童口罩 2 个</li>
+    </ul>
+    <h3>10/4 国庆特别加塞</h3>
+    <ul>
+      <li>孩子写有监护人电话的纸条(防假期走丢)</li>
+      <li>备用口罩(人流密集)</li>
+      <li>一次性雨衣 2 件(优于雨伞,解放双手)</li>
+      <li>湿厕纸 / 消毒湿巾(假期洗手间排队)</li>
+    </ul>
+    <h3>到达方式</h3>
+    <ul>
+      <li><b>推荐 · 13 号线五道口站 A 出口</b> → 步行至清华艺博专用通道(艺博入馆最近)</li>
+      <li><b>备选 · 4 号线圆明园站 C 出口</b> → 步行 330 米至清华西门(从西门入校)</li>
+      <li>公交「清华大学西门」:305/320/331/365/375/438/508/579/601/614/681/982 等</li>
+      <li>打车定位「清华大学西门」或「清华大学艺术博物馆」,假期不让进校门</li>
+    </ul>
+  </div>
+
+  <!-- 询问/不确定的事项 -->
+  <div class="notice">
+    <h3>真实但请自行二次确认的事项</h3>
+    <ul>
+      <li><b>节假日放票节奏</b> — 抽签 / 即时预约的当日具体放号,小程序内可能有微调,以预约系统当日提示为准</li>
+      <li><b>志愿讲解</b> — 4 场/天是 2025 起的安排,2026 国庆是否完全等同,以校园开放公告为准</li>
+      <li><b>艺博国庆开馆</b> — 9/28 艺博官网发布「国庆节开馆公告」,未公开完整时间表,出行前请在艺博官方公众号或小程序查当日时段</li>
+      <li><b>天气</b> — 10/4 北京午后可能 22–24℃,早晚 12–15℃,着装按秋季准备</li>
+    </ul>
+  </div>
+
+</article>
+
+<script>
+  const STORAGE_KEY = 'tsinghua-family-day-2026-v1';
+  let editing = false;
+  let timer = null;
+
+  function status(msg){ document.getElementById('status').textContent = msg; }
+
+  function applySaved(){
+    try{
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(saved){
+        document.getElementById('doc').innerHTML = saved;
+        status('已恢复上次编辑 · ' + new Date().toLocaleTimeString());
+      }
+    }catch(e){}
+  }
+
+  function persist(){
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      try{
+        localStorage.setItem(STORAGE_KEY, document.getElementById('doc').innerHTML);
+        status('已自动保存 · ' + new Date().toLocaleTimeString());
+      }catch(e){ status('保存失败:' + e.message); }
+    }, 500);
+  }
+
+  function toggleEdit(){
+    const doc = document.getElementById('doc');
+    editing = !editing;
+    doc.contentEditable = editing ? 'true' : 'false';
+    const btns = document.querySelectorAll('.topbar .btn');
+    btns[0].classList.toggle('active', editing);
+    btns[0].textContent = editing ? '✓ 退出编辑' : '✎ 开启编辑';
+    if(editing){ doc.focus(); status('编辑模式 · 修改会自动保存'); }
+    else { status('退出编辑'); }
+  }
+
+  function resetDoc(){
+    if(!confirm('恢复原稿会清空所有本地修改,确定继续吗?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  function downloadDoc(){
+    const clone = document.getElementById('doc').cloneNode(true);
+    clone.removeAttribute('contenteditable');
+    const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>清华园亲子一日</title>'
+      + '<style>body{font-family:-apple-system,PingFang SC,sans-serif;max-width:960px;margin:0 auto;padding:24px;line-height:1.8;color:#3a3530;background:#faf7f1}'
+      + 'h1,h2,h3{font-family:Noto Serif SC,Songti SC,serif}</style></head><body>'
+      + clone.innerHTML + '</body></html>';
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '清华园亲子一日-2026-1004-' + new Date().toISOString().slice(0,10) + '.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    status('已下载');
+  }
+
+  document.getElementById('doc').addEventListener('input', persist);
+  document.addEventListener('DOMContentLoaded', applySaved);
+</script>
+
+</body>
+</html>
