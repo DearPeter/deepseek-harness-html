@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>暗黑4 · S15 地狱遗赠 · 纯召死灵后期伤害来源 · 调研档案</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="stylesheet" href="../assets/frame.css">
+  <style>
+    /* ============================================================
+       Diablo IV · S15 · Pure Minion Necromancer · 调研档案
+       设计原则:墓碑刻字感 / 紫粉 + 骨黄双色(死灵能量 + 骨质)
+       / "已核实 vs 未核实"是结构本身,不是装饰
+       ============================================================ */
+    :root{
+      --ink:#0e0c14;        /* 死灵暗紫黑 */
+      --ink2:#15111c;       /* 次层 */
+      --panel:#1a1320;      /* 面板 */
+      --panel-hi:#221829;   /* 面板高亮 */
+      --line:#2a2230;       /* 边线 */
+      --line-hi:#3a2e44;    /* 边线高亮 */
+      --paper:#ece5d3;      /* 骨白正文 */
+      --dim:#b5ad9a;        /* 灰骨 */
+      --muted:#7e7585;       /* 弱化 */
+      --rune:#9c4a6a;       /* 死灵紫粉 · 主强调(Black Shroud 黑袍套装 光感) */
+      --rune-hi:#c6688a;    /* 高亮 */
+      --bone:#a89b6a;       /* 骨黄 · "已核实" */
+      --blood:#8b3a3a;      /* 血纹 · "未核实 / 冲突" */
+      --moss:#3a5d4a;       /* 腐绿 · 链接 / hover */
+      --serif:"Songti SC","STSongti-SC","STSong","Noto Serif SC",serif;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{background:var(--ink);color:var(--paper);font-family:var(--sans);
+      font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased;margin:0;
+      background-image:
+        radial-gradient(900px 600px at 12% -10%, rgba(156,74,106,.10), transparent 60%),
+        radial-gradient(800px 500px at 110% 10%, rgba(168,155,106,.06), transparent 65%);
+      background-attachment:fixed}
+    a{color:var(--bone);text-decoration:none;border-bottom:1px dotted rgba(168,155,106,.4)}
+    a:hover{color:var(--rune-hi);border-bottom-color:var(--rune-hi)}
+    ::selection{background:rgba(156,74,106,.35);color:var(--paper)}
+
+    /* ---------- 顶部场记条 ---------- */
+    .slatebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
+      padding:9px 18px;background:rgba(14,12,20,.92);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);font-family:var(--sans)}
+    .slatebar .mark{font:600 12px/1 var(--mono);letter-spacing:.18em;color:var(--rune-hi);
+      text-transform:uppercase}
+    .slatebar .btn{font-size:12.5px;padding:6px 13px;border-radius:2px;border:1px solid var(--line);
+      background:transparent;color:var(--dim);cursor:pointer;transition:.15s;font-family:inherit}
+    .slatebar .btn:hover{border-color:var(--rune);color:var(--paper)}
+    .slatebar .btn.active{background:var(--rune);border-color:var(--rune);color:var(--paper);font-weight:600}
+    .slatebar .status{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--muted)}
+
+    /* ---------- 容器 ---------- */
+    .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+
+    /* ---------- HERO · 墓碑 ---------- */
+    .hero{position:relative;padding:64px 22px 36px;border-bottom:1px solid var(--line);
+      margin-bottom:36px}
+    .hero .rune-mark{font:600 11px/1 var(--mono);letter-spacing:.32em;color:var(--rune-hi);
+      text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+    .hero .rune-mark::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--rune),transparent)}
+    .hero h1.title{font-family:var(--serif);font-size:46px;font-weight:700;line-height:1.18;
+      margin:0 0 14px;letter-spacing:.02em;color:var(--paper)}
+    .hero h1.title .sigil{display:inline-block;color:var(--rune-hi);margin-right:6px;
+      text-shadow:0 0 16px rgba(156,74,106,.4)}
+    .hero .subtitle{font-family:var(--serif);font-size:18px;color:var(--dim);
+      font-style:italic;margin:0 0 22px}
+    .hero .meta-row{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;
+      color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+    .hero .meta-row b{color:var(--bone);font-weight:500}
+    .hero .meta-row .sep{color:var(--line-hi)}
+
+    /* ---------- TL;DR ---------- */
+    .tldr{background:linear-gradient(180deg,var(--panel-hi),var(--panel));
+      border-left:3px solid var(--rune);padding:18px 22px;margin-bottom:42px;
+      font-family:var(--serif);font-size:17px;line-height:1.7;color:var(--paper)}
+    .tldr .label{font:600 11px/1 var(--mono);letter-spacing:.28em;color:var(--rune-hi);
+      text-transform:uppercase;display:block;margin-bottom:10px}
+
+    /* ---------- 章节头 ---------- */
+    .sec-head{display:flex;align-items:baseline;gap:14px;margin:48px 0 22px;
+      padding-bottom:10px;border-bottom:1px solid var(--line-hi)}
+    .sec-head .sec-no{font:600 11px/1 var(--mono);letter-spacing:.28em;color:var(--rune-hi);
+      text-transform:uppercase;flex-shrink:0}
+    .sec-head h2{font-family:var(--serif);font-size:28px;margin:0;font-weight:700;
+      letter-spacing:.01em}
+    .sec-head .en{font:italic 13px/1 var(--serif);color:var(--muted);margin-left:auto}
+    .sec-head .roman{font-family:var(--serif);font-size:32px;color:var(--rune);
+      margin-right:6px;font-style:italic;line-height:1;flex-shrink:0}
+
+    section{margin-bottom:18px}
+
+    /* ---------- 时间线(改动一) ---------- */
+    .timeline{position:relative;padding-left:24px;border-left:1px solid var(--line-hi);
+      margin:18px 0}
+    .timeline .item{position:relative;margin-bottom:22px;padding-left:10px}
+    .timeline .item::before{content:"";position:absolute;left:-28px;top:7px;
+      width:9px;height:9px;background:var(--rune);transform:rotate(45deg);
+      box-shadow:0 0 10px rgba(156,74,106,.5)}
+    .timeline .item .what{font-family:var(--serif);font-size:17px;color:var(--paper);
+      font-weight:600;margin-bottom:4px}
+    .timeline .item .from{font-family:var(--mono);font-size:12px;color:var(--muted);
+      margin-bottom:6px}
+    .timeline .item .from a{color:var(--bone)}
+    .timeline .item .desc{color:var(--dim);font-size:14.5px}
+    .timeline .item .desc code{font-family:var(--mono);font-size:13px;background:var(--ink2);
+      padding:1px 6px;border-radius:2px;color:var(--bone);margin:0 2px}
+    .timeline .item .desc del{color:#7a6a6a;text-decoration:line-through;opacity:.7}
+
+    /* ---------- 来源卡(BD 站)---------- */
+    .src-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:14px;margin:18px 0}
+    .src{background:var(--panel);border:1px solid var(--line);padding:16px 18px;
+      transition:.15s}
+    .src:hover{border-color:var(--rune);background:var(--panel-hi)}
+    .src .title{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--paper);
+      margin-bottom:6px;line-height:1.4}
+    .src .meta{font:11.5px/1.5 var(--mono);color:var(--muted);margin-bottom:10px;
+      display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+    .src .meta .pill{padding:2px 7px;border:1px solid var(--line-hi);color:var(--dim);
+      letter-spacing:.04em;font-size:10.5px;text-transform:uppercase}
+    .src .body{font-size:14px;color:var(--dim);line-height:1.75}
+    .src .body strong{color:var(--bone);font-weight:600}
+    .src a.go{font:600 11.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+      color:var(--rune-hi);border-bottom:none;display:inline-block;margin-top:8px}
+
+    /* ---------- 证据等级标签(墓碑小盾)---------- */
+    .seal{display:inline-flex;align-items:center;gap:4px;padding:2px 7px 2px 5px;
+      font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+      border:1px solid;vertical-align:baseline;white-space:nowrap;margin-left:6px}
+    .seal.ve{color:var(--bone);border-color:var(--bone);background:rgba(168,155,106,.08)}
+    .seal.ve::before{content:"✦";color:var(--bone);font-size:10px;line-height:1}
+    .seal.un{color:var(--blood);border-color:var(--blood);background:rgba(139,58,58,.08)}
+    .seal.un::before{content:"✝";color:var(--blood);font-size:9px;line-height:1}
+    .seal.conflict{color:#c66c3a;border-color:#c66c3a;background:rgba(198,108,58,.08)}
+    .seal.conflict::before{content:"⚔";color:#c66c3a;font-size:10px;line-height:1}
+
+    /* ---------- 表格(伤害来源汇总)---------- */
+    table.sources{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;
+      background:var(--panel);border:1px solid var(--line)}
+    table.sources thead th{background:var(--ink2);color:var(--muted);font:600 11px/1.4 var(--mono);
+      letter-spacing:.14em;text-transform:uppercase;text-align:left;padding:12px 14px;
+      border-bottom:1px solid var(--line-hi)}
+    table.sources td{padding:13px 14px;border-bottom:1px solid var(--line);
+      vertical-align:top;color:var(--dim)}
+    table.sources tr:last-child td{border-bottom:none}
+    table.sources td.src-cell{font-size:13px;color:var(--bone)}
+    table.sources td.src-cell a{font-size:12.5px}
+    table.sources tr:hover td{background:var(--panel-hi)}
+
+    /* ---------- Pullquote(关键论断)---------- */
+    .pullquote{font-family:var(--serif);font-size:19px;color:var(--paper);
+      font-style:italic;line-height:1.7;border-left:3px solid var(--bone);
+      padding:14px 22px;margin:18px 0;background:rgba(168,155,106,.04)}
+    .pullquote .who{display:block;margin-top:8px;font:600 11px/1 var(--mono);
+      letter-spacing:.16em;color:var(--muted);font-style:normal;text-transform:uppercase}
+
+    /* ---------- 章节内小标题 ---------- */
+    h3{font-family:var(--serif);font-size:19px;color:var(--paper);margin:22px 0 8px;
+      font-weight:600}
+    h4{font-family:var(--serif);font-size:16px;color:var(--rune-hi);margin:18px 0 6px;
+      font-weight:600;font-style:italic}
+
+    p{margin:10px 0}
+    code{font-family:var(--mono);font-size:13.5px;background:var(--ink2);
+      padding:1px 6px;border-radius:2px;color:var(--bone)}
+
+    /* ---------- 引用列表(NGA / 论坛)---------- */
+    ul.nga{list-style:none;padding:0;margin:14px 0}
+    ul.nga li{background:var(--panel);border:1px solid var(--line);padding:12px 16px;
+      margin-bottom:8px;font-size:14px}
+    ul.nga li .t{font-family:var(--serif);font-size:15.5px;color:var(--paper);
+      font-weight:600;margin-bottom:4px}
+    ul.nga li .n{font:11.5px/1 var(--mono);color:var(--muted)}
+    ul.nga li .n a{color:var(--bone)}
+
+    /* ---------- 未核实清单 ---------- */
+    .caveat{background:rgba(139,58,58,.06);border:1px solid rgba(139,58,58,.35);
+      padding:18px 20px;margin:18px 0}
+    .caveat h3{color:var(--blood);margin-top:0}
+    .caveat p{color:var(--dim)}
+
+    /* ---------- 来源索引 ---------- */
+    .ref-list{font-size:13.5px;line-height:1.9;margin:14px 0}
+    .ref-list li{padding:4px 0;border-bottom:1px dotted var(--line)}
+    .ref-list .lbl{font:600 11px/1 var(--mono);letter-spacing:.16em;color:var(--rune-hi);
+      text-transform:uppercase;margin-right:6px}
+
+    /* ---------- 工具栏编辑态 ---------- */
+    body.editing #doc{outline:1px dashed rgba(156,74,106,.4);outline-offset:4px}
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width:680px){
+      .hero h1.title{font-size:34px}
+      .hero{padding-top:48px}
+      .sec-head h2{font-size:22px}
+      .sec-head .roman{font-size:24px}
+      table.sources{font-size:13px}
+      table.sources thead{display:none}
+      table.sources tr{display:block;border-bottom:1px solid var(--line-hi);padding:10px 0}
+      table.sources td{display:block;padding:6px 14px}
+      table.sources td::before{content:attr(data-th) " · ";font:600 10.5px/1 var(--mono);
+        color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+    }
+    /* ---------- 打印:反转成纸面 ---------- */
+    @media print{
+      :root{--ink:#fff;--ink2:#fff;--panel:#f6f1e6;--panel-hi:#f0ead9;
+        --line:#c9bfa8;--line-hi:#a89878;--paper:#1f1a14;--dim:#3d352a;
+        --muted:#6e6353;--rune:#7e2e4a;--rune-hi:#9c4a6a;--bone:#7a6b1f;
+        --blood:#7a2828;--moss:#3a5d4a}
+      body{background-image:none}
+      .slatebar,.src a.go{display:none!important}
+      .hero,.tldr,.timeline .item,table.sources,section,ul.nga li,.caveat{break-inside:avoid}
+      a{color:var(--rune);border-bottom-color:var(--rune)}
+      .timeline .item::before{box-shadow:none}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slatebar">
+    <span class="mark">D4 · S15 · 死灵 · 纯召</span>
+    <button class="btn" id="btn-edit">✎ 开启编辑</button>
+    <button class="btn" id="btn-reset">恢复原稿</button>
+    <button class="btn" id="btn-download">下载当前版</button>
+    <button class="btn" id="btn-print">打印 / PDF</button>
+    <span class="status" id="status">只读 · 开启编辑后改动自动存入本浏览器</span>
+  </div>
+
+<article id="doc">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div class="rune-mark">暗黑破坏神 IV · 第 15 赛季 · 地狱遗赠 · 死灵法师（Necromancer）</div>
+    <h1 class="title"><span class="sigil">⛧</span>纯召死灵后期伤害来源 · 调研档案</h1>
+    <p class="subtitle">"我不要你猜。我要网上谁说的,谁附底谁的。"</p>
+    <div class="meta-row">
+      <span>调研日期 <b>2026-09-30</b></span>
+      <span class="sep">·</span>
+      <span>来源数 <b>9</b> 处已访问正文 + 5 条标题层(登录拦截)</span>
+      <span class="sep">·</span>
+      <span>记录方式 <b>已核实 / 未核实 / 冲突</b></span>
+      <span class="sep">·</span>
+      <span>不做推断</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+  <!-- ================= TL;DR ================= -->
+  <div class="tldr">
+    <span class="label">一句话结论</span>
+    S15 蓝帖把 <strong>Rathma's Waking Touch（拉思玛苏醒之触 · 护符套装）</strong> 从"只对 <strong>Army of the Dead（亡者大军）</strong> 加 450%[x]"改写成"<strong>玩家自身 60% + 200% Summoning Damage（召唤伤害）</strong>"——这是把"纯召只能绑死 AotD（亡者大军缩写）"变成"<strong>通用召喚兵（Minion） + 可选压制流（Overpower Route）</strong>"分叉的根因。maxroll 与 mobalytics 给出的标准后期乘区排序一致,但 <strong>Army of the Dead（亡者大军）</strong> 与 <strong>Skeleton Mage: Singularity（骷髅法师 · 奇点变体）</strong> 的后期实测被官方论坛证伪打折。
+  </div>
+
+  <!-- ================= I. 蓝帖改了什么 ================= -->
+  <section id="i">
+    <div class="sec-head"><span class="roman">I</span><span class="sec-no">PATCH 3.2.1</span><h2>蓝帖改了什么</h2><span class="en">2026-09-15 · 地狱遗赠（S15）</span></div>
+
+    <p>S15 蓝帖对<strong>死灵法师（Necromancer）</strong>的核心改写全部集中在 <strong>Rathma's Waking Touch（拉思玛苏醒之触 · 护符套装）</strong>与 <strong>Army of the Dead（亡者大军 · 终极技能）</strong>。来源:[<a href="https://news.blizzard.com/en-gb/article/24295394/celebrate-30-years-of-diablo-in-season-of-hell-s-legacy">Celebrate 30 Years of Diablo in Season of Hell's Legacy</a>] Necromancer Changes 段。<span class="seal ve">已核实</span></p>
+
+    <div class="timeline">
+      <div class="item">
+        <div class="what">Rathma's Waking Touch（拉思玛苏醒之触）· 2 件改写</div>
+        <div class="from">来源 · Blizzard 官方蓝帖 3.2.1 · Necromancer Talisman（死灵护符）</div>
+        <div class="desc">
+          原 <code>Minion（召唤兵） 60%[x] + 每次 Minion 伤害 −1s CD（冷却）</code><br>
+          现 <code>玩家自身 60% Summoning Damage（召唤伤害） + 每次 Minion 伤害 −0.25s CD</code><br>
+          —— 角色从"加成 <strong>Minion（召唤兵）</strong> 本体"改成"加成玩家自身 <strong>Summoning Damage（召唤伤害乘区）</strong>",对所有 <strong>Minion（召唤兵）</strong> 都生效。
+        </div>
+      </div>
+      <div class="item">
+        <div class="what">Rathma's Waking Touch（拉思玛苏醒之触）· 5 件改写</div>
+        <div class="from">来源 · Blizzard 官方蓝帖 3.2.1 · Necromancer Talisman（死灵护符）</div>
+        <div class="desc">
+          原 <code>Army of the Dead（亡者大军） 450%[x] + AotD 期间 Minion 大型/100% 血/25% 攻速</code><br>
+          现 <code>玩家自身 200% Summoning Damage + AotD 期间 Minion 大型/100% 血/25% 攻速</code><br>
+          —— <strong>Army of the Dead（亡者大军） 的 450% 专属被移除</strong>,改给"通用召傷 200%"。
+        </div>
+      </div>
+      <div class="item">
+        <div class="what">Army of the Dead（亡者大军） · Unyielding Commander（不屈指挥官强化）改写</div>
+        <div class="from">来源 · Blizzard 官方蓝帖 3.2.1 · Necromancer Skills（死灵技能）</div>
+        <div class="desc">
+          原 <code>AotD（亡者大军） 期间玩家自身 50% Summon 增伤</code><br>
+          现 <code>AotD 期间 Minion 自身 30% 增伤(随技能等级缩放)</code><br>
+          —— AotD 期间所有 <strong>Minion（召唤兵）</strong> 都吃到 30% 增伤,不再是只给玩家本人。
+        </div>
+      </div>
+      <div class="item">
+        <div class="what">Army of the Dead（亡者大军） 自身 · 允许再次施法叠加</div>
+        <div class="from">来源 · Blizzard 官方蓝帖 3.2.1 · Necromancer Skills（死灵技能）</div>
+        <div class="desc">
+          在 <strong>AotD（亡者大军）</strong> 激活期间再次施法,AotD 本身可叠加最多 <code>5 次</code>。每次额外召唤 <strong>Volatile Skeleton（爆裂骷髅）</strong>。<br>
+          —— AotD 从"一次性终极"变成"循环刷新型"主伤技能。
+        </div>
+      </div>
+      <div class="item">
+        <div class="what">Necromancer Core stat scalar（死灵核心属性系数）全类放大</div>
+        <div class="from">来源 · Blizzard 官方蓝帖 3.2.1 · Necromancer Skills（死灵技能）</div>
+        <div class="desc">
+          <strong>Intelligence（智力）</strong> 每 10 点的伤害加成 <code>1.25%</code> → <code>1.625%</code>。<br>
+          —— 死灵整体被加 buff(对比<strong>野蛮人（Barbarian）</strong>从 1.1% 降到 0.8%)。
+        </div>
+      </div>
+    </div>
+
+    <div class="pullquote">
+      "Rathma's Waking Touch Talisman Set is being adjusted to move it away from strictly an Army of the Dead-based set to supporting Summoning builds more broadly. Army of the Dead will now stack if you cast it multiple times, which should be a net increase in damage for builds that want it to be their primary damaging source."
+      <span class="who">— Blizzard 开发者注释 · 蓝帖 3.2.1</span>
+    </div>
+  </section>
+
+  <!-- ================= II. 主流 BD 怎么写 ================= -->
+  <section id="ii">
+    <div class="sec-head"><span class="roman">II</span><span class="sec-no">BUILD SOURCES</span><h2>主流 BD 怎么写</h2><span class="en">maxroll · mobalytics</span></div>
+
+    <p>两家独立 BD 站给出的"标准后期乘区排序"高度一致。下面 8 张卡就是 S15 后期纯召的全部主伤来源。</p>
+
+    <div class="src-grid">
+      <div class="src">
+        <div class="title">The Undercrown（暗冠 · 神话独特） <span style="font-weight:400;color:var(--muted);font-size:13px">（头盔）</span></div>
+        <div class="meta"><span class="pill">Mythic Unique 神话·独特</span><span class="pill">+Shadow Mages 暗影骷髅法师</span></div>
+        <div class="body">额外 <strong>Skeleton Mages - Shadow（骷髅法师 · 暗影变体）</strong> + 自身增伤乘区。maxroll 写"a massive 4 additional warriors and mages in place of Heir of Perdition"。</div>
+        <a class="go" href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll · Endgame variant →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">The Hand of Naz（纳兹之手 · 独特） <span style="font-weight:400;color:var(--muted);font-size:13px">（手套）</span></div>
+        <div class="meta"><span class="pill">Unique 独特</span><span class="pill">+1 Mage +1 骷髅法师</span></div>
+        <div class="body">额外 1 个 <strong>Skeleton Mage（骷髅法师）</strong> + 大范围 AOE 增伤。maxroll:"grants you one additional mage and an aoe with huge damage"。</div>
+        <a class="go" href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics · Fervor →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Aspect of Reanimation（复生之姿 · 传奇威能） <span style="font-weight:400;color:var(--muted);font-size:13px">（戒指 1）</span></div>
+        <div class="meta"><span class="pill">Legendary Aspect 传奇威能</span><span class="pill">90%[x]</span></div>
+        <div class="body">只要 <strong>Minion（召唤兵）</strong> 不死就常驻 <strong>90% Minion 增伤</strong>。maxroll:"the minions are insanely tanky and do not typically die unless you do so, this buff is maintained"。</div>
+        <a class="go" href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Exploiter's Aspect（剥削者之姿 · 传奇威能） <span style="font-weight:400;color:var(--muted);font-size:13px">（鞋）</span></div>
+        <div class="meta"><span class="pill">Legendary Aspect 传奇威能</span><span class="pill">Unstoppable 不可阻挡 ×</span></div>
+        <div class="body">对 <strong>Unstoppable（不可阻挡）</strong> 敌人的大乘区。"huge multiplier when mobs are Unstoppable"——清密集怪和高 HP 精英的主力乘区。</div>
+        <a class="go" href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Blood Moon Breeches（血月马裤 · 神话独特）</div>
+        <div class="meta"><span class="pill">Mythic Unique 神话·独特</span><span class="pill">双诅咒投递</span></div>
+        <div class="body"><strong>Minion（召唤兵）</strong> 命中即可施加诅咒(双诅咒位)+ 裤子位独立大乘区。"curse delivery system... massive damage multiplier in pants slot"。</div>
+        <a class="go" href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Black Shroud Talisman Set（黑袍套装 · 5 件套）</div>
+        <div class="meta"><span class="pill">Talisman Set 护符套装</span><span class="pill">main path 主路线</span></div>
+        <div class="body">maxroll 写"5 piece multiplier, <strong>this set out performs the other sets</strong>"。<strong>Berú of the Black Shroud（黑袍贝鲁 · 印记）</strong> 2 件也是"great damage boost"。召傷流派核心 <strong>Talisman（护符）</strong> 套。</div>
+        <a class="go" href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Banished Lord's Talisman + Red Blessing + Tidal Aspect <span style="font-weight:400;color:var(--muted);font-size:13px">（压制流）</span></div>
+        <div class="meta"><span class="pill">Overpower Route 压制流</span><span class="pill">Blood Lance 血矛</span></div>
+        <div class="body">maxroll:"<strong>the most devastating increases in damage for this build</strong>"。触发手段 = <strong>Blood Lance: Festering Wound（血矛 · 溃烂之创变体）</strong> 消耗 <strong>Overpower（压制）</strong> 栈。</div>
+        <a class="go" href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll · Endgame →</a>
+      </div>
+
+      <div class="src">
+        <div class="title">Cult Leader Paragon（教派领袖 · 巅峰盘节点） <span style="font-weight:400;color:var(--muted);font-size:13px">（基石节点）</span></div>
+        <div class="meta"><span class="pill">Paragon 巅峰盘</span><span class="pill">100% AS 攻速门槛</span></div>
+        <div class="body">要求 <strong>100% 攻速（Attack Speed）</strong> 才能满吃 <strong>Cult Leader（教派领袖）</strong>。凑法(原文):<br>paragon 8% 召唤攻速 + 6.5% 攻速 + <strong>Ferocity（霜怒）</strong> 4 层 20% + <strong>Pact of Bone（骨之契约）</strong> 最多 46% + <strong>Golem Aura（魔像光环）</strong>。</div>
+        <a class="go" href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll · FAQ →</a>
+      </div>
+    </div>
+
+    <h3>后期变体的两条路</h3>
+    <h4>A · 标准 Mages 路线(Maxroll Endgame / Mobalytics Fervor)</h4>
+    <p><strong>Undercrown（暗冠）</strong> + <strong>Hand of Naz（纳兹之手）</strong> + <strong>Blood Moon Breeches（血月马裤）</strong> + <strong>Exploiter's Aspect（剥削者之姿）</strong> + <strong>Aspect of Reanimation（复生之姿）</strong> + <strong>Black Shroud（黑袍套装）</strong> 套。<strong>Mythic Unique（神话·独特）</strong> 优先级:Undercrown → Hand of Naz → Blood Moon Breeches → <strong>Infinity（无穷）</strong> → <strong>Enigma（谜团）</strong>。<strong>Soul Splinter（灵魂碎片）</strong> 优先级:Black Soulstone → Anguish → Pain。<span class="seal ve">已核实</span></p>
+
+    <h4>B · Singularity 高峰路线(Maxroll 单独 variant)</h4>
+    <p>Mage 换 <strong>Skeleton Mage: Singularity（骷髅法师 · 奇点变体）</strong>(替代 <strong>Skeleton Mage: Coven（骷髅法师 · 女巫会变体）</strong>),Golem 换 <strong>Golem: Gargantua（魔像 · 巨人型）</strong>(填 <strong>Cult Leader（教派领袖）</strong> 攻速门槛),Warrior 升级 <strong>Skeleton Warrior: Litany of Death（骷髅战士 · 亡者连祷变体）</strong>(24% 暴击)。<strong>Paragon glyph（巅峰雕文）</strong> 顺序 <strong>Dominate（压制）→ Mage（法师）→ Essence（精魂）→ Warrior（战士）→ Abyssal（深渊）</strong>——把 <strong>Overpower（压制）</strong>/Damage 词缀顶到第一。<span class="seal ve">已核实</span></p>
+
+    <div class="pullquote">
+      "The changes to the Rathma set has seen a massive boost to Minion builds, especially Mage Minions. Whether you're going full sweat mode with Singularity, or enjoying a more laid back play style, minion builds of all types are enjoying a super easy Seasons Journey and pushing experience."
+      <span class="who">— Maxroll · Week 1 Guide Updates · MacroBioBoi · 2026-09-25</span>
+    </div>
+  </section>
+
+  <!-- ================= III. 玩家实测怎么说 ================= -->
+  <section id="iii">
+    <div class="sec-head"><span class="roman">III</span><span class="sec-no">FIELD REPORTS</span><h2>玩家实测怎么说</h2><span class="en">官方论坛 · NGA 标题层</span></div>
+
+    <h3>官方论坛(S15 上线后)<span class="seal conflict">冲突</span></h3>
+
+    <p>蓝帖与玩家实测在以下三处出现直接冲突——这正是"哪些乘区能信"的判断点。</p>
+
+    <ul class="nga">
+      <li>
+        <div class="t">"Singularity talent node is not scaling correctly"（奇点天赋节点未正确缩放）</div>
+        <div class="n">Diablo IV 官方论坛 · Bug Report · 2026-05-03 · <a href="https://us.forums.blizzard.com/en/d4/t/necromancer-singularity-talent-node-is-not-scaling-correctly/249172">原文</a></div>
+        玩家实测:957 最大精华本应给 2871% multiplicative,但 <strong>Skeleton Mage: Singularity（骷髅法师 · 奇点变体）</strong> <strong>实际伤害低于直接堆 Overpower（压制） 倍率的 build</strong>。→ <strong>Singularity（奇点）</strong> 后期扩展倍率存疑。
+      </li>
+      <li>
+        <div class="t">"Waking Touch talisman for Necro is bugged"（拉思玛苏醒之触护符有 bug）</div>
+        <div class="n">Diablo IV 官方论坛 · Bug Report · 2026-09-19 · <a href="https://us.forums.blizzard.com/en/d4/t/waking-touch-talisman-for-necro-is-bugged/267483/2">原文</a></div>
+        上线后玩家实测:0.25s/次 <strong>Minion（召唤兵）</strong> 伤害减 CD <strong>比设计意图慢太多</strong>,体感 <strong>Waking Touch（拉思玛苏醒之触）</strong> 不像蓝帖那么强。→ maxroll 把 <strong>Waking Touch（拉思玛苏醒之触）</strong> 当后期核心,理论正确但实际打折。
+      </li>
+      <li>
+        <div class="t">"Army of the Dead is broken"（亡者大军坏了）</div>
+        <div class="n">Diablo IV 官方论坛 · Bug Report · 2026-05-26 · <a href="https://us.forums.blizzard.com/en/d4/t/army-of-the-dead-is-broken/256752">原文</a></div>
+        玩家实测:<strong>AotD（亡者大军）</strong> 是 SUMMON skill,但 <strong>拿不到 Hellbent Commander Aspect（地狱指挥官之姿） / Waking Touch（拉思玛苏醒之触） / Mage-Warrior glyph（法师-战士雕文）</strong> 的加成。→ AotD 后期是否仍是主要伤害来源,蓝帖乐观、实测打折。
+      </li>
+      <li>
+        <div class="t">"Is there no Minion based Talisman Set?" #5 (pre-S15)（没有基于召唤兵的护符套吗？）</div>
+        <div class="n">Diablo IV 官方论坛 · 2026-05-03 · <a href="https://us.forums.blizzard.com/en/d4/t/is-there-no-minion-based-talisman-set/248876/5">原文</a></div>
+        S15 蓝帖改版前的玩家体感:<strong>Darkness set（暗影套装 = Black Shroud 黑袍套装）</strong>给 <strong>Minion（召唤兵）</strong> 175%[x](shadow minions 暗影召唤兵 路线);<strong>Rathma（拉思玛）</strong> 5件 450% 仅作用于 <strong>AotD（亡者大军）</strong>。"post-S15" Rathma 改成 200% <strong>Summoning Damage（召唤伤害）</strong>(玩家自身)后,纯召脱绑 AotD——这与 maxroll 完全一致。
+      </li>
+    </ul>
+
+    <h3>NGA 中文端<span class="seal un">未核实(登录拦截)</span></h3>
+    <p>下面 5 条 NGA 帖子因登录拦截只看到标题层,正文未拿到。但标题本身就印证了纯召后期存在"<strong>压制流（Overpower Route） vs 召傷流（Summoning 流）</strong>"分叉,以及"<strong>回火（Tempering）每层压制伤害 / 召傷</strong>"的实际取舍。</p>
+
+    <ul class="nga">
+      <li>
+        <div class="t">「压制流纯召,10秒 K彼列,伤害破兆」(已附暗黑核链接)</div>
+        <div class="n">NGA · <a href="https://ngabbs.com/read.php?tid=46698237">tid 46698237</a></div>
+        标题层:<strong>Overpower（压制）</strong> 路线 10 秒击杀彼列、伤害数字破兆。
+      </li>
+      <li>
+        <div class="t">「[不懂就问] 所以现在纯招是回火召唤伤还是压制伤」</div>
+        <div class="n">NGA · <a href="https://ngabbs.com/read.php?tid=46707290">tid 46707290</a></div>
+        标题层:两条流派的回火方向之争。
+      </li>
+      <li>
+        <div class="t">「求问回火每层压制伤害还有召唤伤害」</div>
+        <div class="n">NGA · <a href="https://ngabbs.com/read.php?tid=46880017">tid 46880017</a></div>
+        标题层:<strong>Tempering（淬火）</strong> 系统下"每层 <strong>OP（Overpower 压制）</strong> 伤害"和"每层召傷"的实际权重。
+      </li>
+      <li>
+        <div class="t">「压制纯召装备加点讨论」</div>
+        <div class="n">NGA · <a href="https://ngabbs.com/read.php?tid=46716887">tid 46716887</a></div>
+        标题层:压制纯召加点争议。
+      </li>
+      <li>
+        <div class="t">「[不懂就问] 纯召 200 巅峰不到,打折磨 10 的 BOSS 各种被秒」</div>
+        <div class="n">NGA · <a href="https://ngabbs.com/read.php?tid=46722066">tid 46722066</a></div>
+        标题层:印证 maxroll "Can be squishy / Final version is very gear specific"(容易猝死 / 终版装备门槛极高)。
+      </li>
+    </ul>
+  </section>
+
+  <!-- ================= IV. 伤害来源汇总 ================= -->
+  <section id="iv">
+    <div class="sec-head"><span class="roman">IV</span><span class="sec-no">CONSOLIDATED</span><h2>伤害来源汇总 · 证据等级</h2><span class="en">源 × 玩家实测交叉</span></div>
+
+    <table class="sources">
+      <thead>
+        <tr><th>伤害乘区 / 来源</th><th style="width:90px">证据等级</th><th>出处</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Skeleton Mages（骷髅法师 · 尤指 Shadow 暗影变体）本体伤害</strong> + <strong>Undercrown（暗冠）</strong> 额外法师 + <strong>Hand of Naz（纳兹之手）</strong> +1 法师 + <strong>Blood Moon Breeches（血月马裤）</strong> 双诅咒投递乘区</td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell"><a href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll</a> + <a href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics</a> 一致</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Aspect of Reanimation（复生之姿） 90%[x] Minion 增伤</strong>（只要 <strong>Minion（召唤兵）</strong> 不死就常驻）</td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell">Maxroll 明确写"the minions are insanely tanky... this buff is maintained with the insane damage multiplier it provides"</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Black Shroud set（黑袍套装） 5 件倍率</strong> "out performs the other sets"（优于其他套装）</td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell"><a href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll</a> + <a href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics</a> 一致</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Rathma's Waking Touch（拉思玛苏醒之触） 2 件 + 5 件 = 玩家自身 60% + 200% = 260% Summoning Damage（召唤伤害）玩家加成型倍率</strong></td>
+          <td data-th="证据等级"><span class="seal conflict">冲突</span></td>
+          <td data-th="出处" class="src-cell"><a href="https://news.blizzard.com/en-gb/article/24295394/celebrate-30-years-of-diablo-in-season-of-hell-s-legacy">蓝帖数值</a> vs <a href="https://us.forums.blizzard.com/en/d4/t/waking-touch-talisman-for-necro-is-bugged/267483/2">官方论坛 9/19 实测</a> 折扣</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Overpower（压制）乘区</strong>（<strong>Banished Lord's Talisman（流放领主之符）</strong> + <strong>Red Blessing（红色祝福）</strong> + <strong>Tidal Aspect（潮汐之姿）</strong> + <strong>Blood Lance: Festering Wound（血矛 · 溃烂之创变体）</strong> 消耗）</td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell">Maxroll Endgame variant 写"the most devastating increases in damage for this build"</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Cult Leader Paragon（教派领袖 · 巅峰盘基石节点，要求 100% 攻速）</strong>——凑法:paragon 8% 召唤攻速 + 6.5% 攻速 + <strong>Ferocity（霜怒）</strong> 4 层 20% + <strong>Pact of Bone（骨之契约）</strong> 最多 46% + <strong>Golem Aura（魔像光环）</strong></td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell">Maxroll FAQ 段</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Exploiter's Aspect（剥削者之姿 · 对 Unstoppable 不可阻挡 倍率）</strong></td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell"><a href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Maxroll</a> + <a href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Mobalytics</a> 一致</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Skeleton Warrior: Litany of Death（骷髅战士 · 亡者连祷变体 · 24% 暴击）+ Golem: Gargantua（魔像 · 巨人型 · 填 Cult Leader 教派领袖 攻速门槛）</strong>——<strong>Singularity（奇点）</strong> 变体</td>
+          <td data-th="证据等级"><span class="seal ve">已核实</span></td>
+          <td data-th="出处" class="src-cell">Maxroll Singularity variant</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Skeleton Mage: Singularity（骷髅法师 · 奇点变体） 3[x]% per essence（每点精魂） 后期扩展倍率</strong></td>
+          <td data-th="证据等级"><span class="seal conflict">冲突</span></td>
+          <td data-th="出处" class="src-cell">蓝帖设计 vs <a href="https://us.forums.blizzard.com/en/d4/t/necromancer-singularity-talent-node-is-not-scaling-correctly/249172">官方论坛 5/3 实测</a> 不达预期</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Army of the Dead（亡者大军） 后期伤害占比</strong></td>
+          <td data-th="证据等级"><span class="seal conflict">冲突</span></td>
+          <td data-th="出处" class="src-cell"><a href="https://news.blizzard.com/en-gb/article/24295394/celebrate-30-years-of-diablo-in-season-of-hell-s-legacy">蓝帖"叠加 5x 是净增伤"</a> vs <a href="https://us.forums.blizzard.com/en/d4/t/army-of-the-dead-is-broken/256752">官方论坛 5/26 实测"拿不到 Hellbent（地狱指挥官之姿） / Waking Touch（拉思玛苏醒之触） / glyph（雕文） 加成"</a></td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>Mage Minion（骷髅法师） vs Warrior（骷髅战士） vs Golem（魔像） vs AotD（亡者大军） 各占 % 比例</strong></td>
+          <td data-th="证据等级"><span class="seal un">未核实</span></td>
+          <td data-th="出处" class="src-cell">无任何来源给出实测伤害比例分布</td>
+        </tr>
+        <tr>
+          <td data-th="伤害乘区 / 来源"><strong>NGA 5 条帖子正文</strong>（46698237 / 46707290 / 46880017 / 46716887 / 46722066）</td>
+          <td data-th="证据等级"><span class="seal un">未核实</span></td>
+          <td data-th="出处" class="src-cell">NGA 需登录,只确认标题层存在"<strong>压制流 vs 召傷流 vs 回火方向</strong>"之争</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= V. 未核实清单 ================= -->
+  <section id="v">
+    <div class="sec-head"><span class="roman">V</span><span class="sec-no">UNVERIFIED</span><h2>未核实 / 留白清单</h2><span class="en">不编</span></div>
+
+    <div class="caveat">
+      <h3>明确留白 · 不补猜测</h3>
+      <p>① <strong>纯召后期伤害的具体 % 分布</strong>(<strong>Mage Minion（骷髅法师） / Warrior（骷髅战士） / Golem（魔像） / AotD（亡者大军）</strong> 各占几成)——三家 BD 站与蓝帖均未给出实测比例分布。</p>
+      <p>② <strong>Singularity（奇点） 后期扩展倍率</strong>——蓝帖设计 3[x]% per essence,官方论坛实测 957 essence 应给 2871% 但被证伪"低于 <strong>OP（Overpower 压制）</strong> build"。是否真能当后期主伤 <strong>等补丁后再说</strong>。</p>
+      <p>③ <strong>Army of the Dead（亡者大军） 后期伤害占比</strong>——蓝帖乐观(叠加 5x = 净增伤),玩家实测打折(拿不到 <strong>Hellbent Commander（地狱指挥官之姿）</strong> / <strong>Waking Touch（拉思玛苏醒之触）</strong> / <strong>Mage-Warrior glyph（法师-战士雕文）</strong> 加成),<strong>两边直接冲突</strong>。</p>
+      <p>④ <strong>NGA 中文圈 5 条帖子正文</strong>——NGA 必须登录才能看楼,本调研只拿到了标题层信息(<strong>压制流 / 召傷流 / 回火方向</strong>之争),<strong>没有数字</strong>。若需要一手楼,需 P哥登录后让 agent 再过一遍。</p>
+      <p>⑤ <strong>中文端的 17173 / 巴哈姆特 / 知乎 / 百度贴吧 等</strong>——本轮 <strong>web_search</strong> 因搜索端点报错,没能交叉覆盖到。补全需要 <strong>web_search</strong> 端点恢复后另行调研。</p>
+    </div>
+  </section>
+
+  <!-- ================= VI. 来源索引 ================= -->
+  <section id="vi">
+    <div class="sec-head"><span class="roman">VI</span><span class="sec-no">SOURCES</span><h2>来源索引</h2><span class="en">all original links</span></div>
+
+    <ol class="ref-list">
+      <li><span class="lbl">BLIZZARD</span><a href="https://news.blizzard.com/en-gb/article/24295394/celebrate-30-years-of-diablo-in-season-of-hell-s-legacy">Celebrate 30 Years of Diablo in Season of Hell's Legacy</a> — 官方 S15 蓝帖,Necromancer Changes 段,PATCH 3.2.1,2026-09-15。<span class="seal ve">已核实</span></li>
+      <li><span class="lbl">MAXROLL</span><a href="https://maxroll.gg/d4/build-guides/minion-necromancer-guide">Minion Necromancer Endgame Build Guide · Season 15 — Hell's Legacy</a> — by Seroc Ifkre,Last Updated 2026-09-27。<span class="seal ve">已核实</span></li>
+      <li><span class="lbl">MAXROLL</span><a href="https://maxroll.gg/d4/news/season-15-week-1-guide-updates-thoughts">Season 15 Week 1 Guide Updates &amp; Thoughts</a> — Necromancer 段 by MacroBioBoi,2026-09-25。<span class="seal ve">已核实</span></li>
+      <li><span class="lbl">MOBALYTICS</span><a href="https://mobalytics.gg/diablo-4/builds/minion-necromancer-s15-fervor">Pure Minion Necromancer S15</a> — by Fervor,Updated 2026-09-29。<span class="seal ve">已核实</span></li>
+      <li><span class="lbl">BLIZZARD</span><a href="https://us.forums.blizzard.com/en/d4/t/is-there-no-minion-based-talisman-set/248876/5">Is there no Minion based Talisman Set? #5</a> — by Ralph-22604,2026-05-03。<span class="seal ve">已核实(pre-S15)</span></li>
+      <li><span class="lbl">BLIZZARD</span><a href="https://us.forums.blizzard.com/en/d4/t/necromancer-singularity-talent-node-is-not-scaling-correctly/249172">Necromancer Singularity talent node is not scaling correctly</a> — by PlsNurfMe-21662,2026-05-03。<span class="seal conflict">冲突</span></li>
+      <li><span class="lbl">BLIZZARD</span><a href="https://us.forums.blizzard.com/en/d4/t/waking-touch-talisman-for-necro-is-bugged/267483/2">Waking Touch talisman for Necro is bugged #2</a> — by Kagitaar-1546,2026-09-19(S15 上线后)。<span class="seal conflict">冲突</span></li>
+      <li><span class="lbl">BLIZZARD</span><a href="https://us.forums.blizzard.com/en/d4/t/army-of-the-dead-is-broken/256752">Army of the Dead is broken</a> — by RxChaos-11963,2026-05-26。<span class="seal conflict">冲突</span></li>
+      <li><span class="lbl">BLIZZARD</span><a href="https://us.forums.blizzard.com/en/d4/t/necromancer-waking-touch-set-broken/255913/3">Necromancer Waking Touch Set broken #3</a> — by SomeGuy-1470,2026-05-26。<span class="seal ve">已核实(同主题讨论)</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46698237">压制流纯召,10秒 K 彼列,伤害破兆</a> — tid 46698237。<span class="seal un">未核实(登录拦截)</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46707290">[不懂就问] 所以现在纯招是回火召唤伤还是压制伤</a> — tid 46707290。<span class="seal un">未核实</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46880017">求问回火每层压制伤害还有召唤伤害</a> — tid 46880017。<span class="seal un">未核实</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46716887">压制纯召装备加点讨论</a> — tid 46716887。<span class="seal un">未核实</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46722066">[不懂就问] 纯召 200 巅峰不到,打折磨 10 的 BOSS 各种被秒</a> — tid 46722066。<span class="seal un">未核实</span></li>
+      <li><span class="lbl">NGA</span><a href="https://ngabbs.com/read.php?tid=46749031">纯招死灵有几个问题求助</a> — tid 46749031。<span class="seal un">未核实</span></li>
+    </ol>
+
+    <p style="margin-top:32px;font:12.5px/1.7 var(--mono);color:var(--muted);text-align:center;
+      padding-top:18px;border-top:1px solid var(--line)">
+      暗黑破坏神 IV · 第 15 赛季 · 地狱遗赠 · 死灵法师（Necromancer） · 纯召 · 2026-09-30<br>
+      设计原则:anthropics/skills · frontend-design · cinematic-dark · 墓碑刻字感<br>
+      调研原则:已核实 / 未核实 / 冲突 —— 结构本身即是证据等级<br>
+      翻译规则:所有英文术语括注中文译名,链接标题保留原文
+    </p>
+  </section>
+
+  </div><!-- /.wrap -->
+</article>
+
+<script>
+(function () {
+  var KEY = 'd4-s15-necro-minion-v2';
+  var doc = document.getElementById('doc');
+  var btnEdit = document.getElementById('btn-edit');
+  var btnReset = document.getElementById('btn-reset');
+  var btnDl = document.getElementById('btn-download');
+  var btnPrint = document.getElementById('btn-print');
+  var status = document.getElementById('status');
+  var original = doc.innerHTML;
+  var editing = false, timer = null;
+
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved && saved !== original) {
+      doc.innerHTML = saved;
+      status.textContent = '已载入你上次的本地修改';
+    } else {
+      // 旧版本 v1 key 兼容:如果 v2 没数据而 v1 有,清掉避免误恢复
+      try { localStorage.removeItem('d4-s15-necro-minion-v1'); } catch (e) {}
+    }
+  } catch (e) {}
+
+  function setEditing(on) {
+    editing = on;
+    doc.contentEditable = on ? 'true' : 'false';
+    document.body.classList.toggle('editing', on);
+    btnEdit.classList.toggle('active', on);
+    btnEdit.textContent = on ? '✓ 编辑中 · 点此退出' : '✎ 开启编辑';
+    if (on) { status.textContent = '编辑中 · 输入即自动保存'; doc.focus(); }
+    else { status.textContent = '只读 · 开启编辑后改动自动存入本浏览器'; }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, doc.innerHTML);
+      var t = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      status.textContent = '已自动保存 ' + t;
+    } catch (e) { status.textContent = '⚠ 保存失败(存储已满或隐私模式)'; }
+  }
+
+  doc.addEventListener('input', function () {
+    if (!editing) return;
+    clearTimeout(timer);
+    timer = setTimeout(function () { timer = null; save(); }, 500);
+  });
+
+  btnEdit.addEventListener('click', function () { setEditing(!editing); });
+
+  btnReset.addEventListener('click', function () {
+    if (!confirm('恢复原稿将丢弃本浏览器内的全部修改,确定?')) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    doc.innerHTML = original;
+    setEditing(false);
+    status.textContent = '已恢复服务器原稿';
+  });
+
+  btnDl.addEventListener('click', function () {
+    var clone = document.documentElement.cloneNode(true);
+    var a = clone.querySelector('#doc');
+    if (a) a.removeAttribute('contenteditable');
+    clone.querySelector('body').classList.remove('editing');
+    var st = clone.querySelector('#status');
+    if (st) st.textContent = '导出于 ' + new Date().toLocaleString('zh-CN');
+    var blob = new Blob(['<!doctype html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url; link.download = 'd4-s15-pure-minion-necro-edited.html'; link.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  });
+
+  btnPrint.addEventListener('click', function () { window.print(); });
+})();
+</script>
+</body>
+</html>
