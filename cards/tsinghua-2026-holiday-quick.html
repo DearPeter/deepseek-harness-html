@@ -327,7 +327,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img data-src="../assets/img/west-gate_001.jpg" alt="清华西门灰石牌坊与秋日银杏" decoding="async" referrerpolicy="no-referrer">
+          <img src="../assets/img/west-gate_001.jpg" alt="清华西门灰石牌坊与秋日银杏" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>西门 · 灰石三孔门 · 秋</figcaption>
         </figure>
         <h4>西门 · 落客 + 校门打卡</h4>
@@ -350,7 +350,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img data-src="../assets/img/second-gate_001.jpg" alt="清华二校门白拱门与秋叶" decoding="async" referrerpolicy="no-referrer">
+          <img src="../assets/img/second-gate_001.jpg" alt="清华二校门白拱门与秋叶" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>二校门 · 清华最经典标志</figcaption>
         </figure>
         <h4>二校门 · 经典机位</h4>
@@ -374,7 +374,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img data-src="../assets/img/tsinghua-school_001.jpg" alt="清华学堂红砖欧式建筑与拱窗" decoding="async" referrerpolicy="no-referrer">
+          <img src="../assets/img/tsinghua-school_001.jpg" alt="清华学堂红砖欧式建筑与拱窗" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>清华学堂 · 红砖老建筑</figcaption>
         </figure>
         <h4>清华学堂 + 图书馆 · 老建筑群</h4>
@@ -398,7 +398,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img data-src="../assets/img/lotus-pond_001.jpg" alt="近春园荷塘小石桥与残荷" decoding="async" referrerpolicy="no-referrer">
+          <img src="../assets/img/lotus-pond_001.jpg" alt="近春园荷塘小石桥与残荷" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>近春园荷塘 · 残荷 + 小石桥</figcaption>
         </figure>
         <h4>近春园荷塘 · 走神专用</h4>
@@ -496,56 +496,28 @@
   applySaved();
   status.textContent=saved?'已从本地还原':'原始版本';
 
-  // 图片:IntersectionObserver 手做懒加载 + 失败重试(规避 Chrome 154 loading=lazy 的 bug)
-  function loadImg(img){
-    if(!img.dataset.src || img.dataset.loaded) return;
+  // 图片:直接 src + onerror 重试(简单粗暴,避开 IO/lazy bug)
+  document.querySelectorAll('.stop figure img.lazy-img').forEach(img=>{
     const placeholder = img.previousElementSibling;
-    const tryLoad = (src, cb) => {
-      const t = new Image();
-      t.onload = () => {
-        img.src = src;
-        img.dataset.loaded = '1';
-        if(placeholder) placeholder.style.display='none';
-        if(cb) cb(true);
-      };
-      t.onerror = () => { if(cb) cb(false); };
-      t.src = src + (src.includes('?')?'&':'?') + 't=' + Date.now();
-    };
-    let tries = 0;
-    const attempt = () => {
-      tryLoad(img.dataset.src, ok => {
-        if(ok) return;
+    const hidePlaceholder = ()=>{ if(placeholder) placeholder.style.display='none'; };
+    const markFailed = ()=>{ if(placeholder){ placeholder.textContent='图片加载失败'; placeholder.style.color='var(--warn)'; } };
+    if(img.complete && img.naturalWidth > 0){
+      hidePlaceholder();
+    }else{
+      let tries = 0;
+      img.addEventListener('load', hidePlaceholder);
+      img.addEventListener('error', ()=>{
         tries++;
         if(tries < 3){
-          setTimeout(attempt, 500 * tries);
-        }else if(placeholder){
-          placeholder.textContent = '图片加载失败';
-          placeholder.style.color = 'var(--warn)';
+          setTimeout(()=>{
+            img.src = img.getAttribute('src').split('?')[0] + '?t=' + Date.now();
+          }, 600 * tries);
+        }else{
+          markFailed();
         }
       });
-    };
-    attempt();
-  }
-  if('IntersectionObserver' in window){
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
-          loadImg(e.target);
-          io.unobserve(e.target);
-        }
-      });
-    },{rootMargin:'300px'});
-    document.querySelectorAll('.stop figure img').forEach(img=>io.observe(img));
-  }else{
-    document.querySelectorAll('.stop figure img').forEach(loadImg);
-  }
-  // 首屏兜底:避免 IntersectionObserver 触发延迟造成视觉空洞
-  setTimeout(()=>{
-    document.querySelectorAll('.stop figure img').forEach(img=>{
-      const r = img.getBoundingClientRect();
-      if(r.top < window.innerHeight + 400) loadImg(img);
-    });
-  },100);
+    }
+  });
 </script>
 
 </body>
