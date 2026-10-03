@@ -82,7 +82,6 @@
     .budget .cell.play .h{color:var(--brick)}
     .budget .cell.return .h{color:var(--warn)}
     .budget .cell .note{font-size:11px;color:var(--ink-soft);margin-top:4px;line-height:1.5}
-    @media(max-width:720px){.budget{grid-template-columns:1fr 1fr}.budget .cell{border-right:none;border-bottom:1px solid var(--line)}}
 
     /* 动线 SVG 容器 */
     .map{margin:0 0 30px;background:var(--card);border:1px solid var(--line);border-radius:3px;
@@ -139,10 +138,6 @@
     .stop figure .img-loading{position:absolute;inset:0;display:flex;align-items:center;
       justify-content:center;color:var(--muted);font-family:var(--mono);font-size:11px;
       letter-spacing:.18em;text-transform:uppercase}
-    @media(max-width:680px){
-      .stop{grid-template-columns:48px 1fr;gap:12px}
-      .stop .time{grid-column:2;text-align:left;padding-top:0;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
-    }
 
     /* 节奏提醒条 */
     .pace{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 28px}
@@ -150,7 +145,6 @@
     .pace .tip .icon{font-family:var(--serif);font-size:20px;color:var(--brick);margin-bottom:6px}
     .pace .tip h5{font-family:var(--serif);font-size:14px;margin:0 0 4px;color:var(--ink);font-weight:600}
     .pace .tip p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.65}
-    @media(max-width:680px){.pace{grid-template-columns:1fr}}
 
     /* 时间轴收尾 */
     .timeline{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:18px 22px;margin:0 0 26px}
@@ -167,6 +161,87 @@
     .foot{font-size:12px;color:var(--muted);text-align:center;padding:18px 0 28px;
       border-top:1px solid var(--line);font-family:var(--mono);letter-spacing:.04em}
     .foot a{color:var(--zijing);border-bottom:1px dotted rgba(102,8,116,.4)}
+
+    /* ============================================================
+       移动端适配(≤760px 单栏 / ≤380px 紧凑 / 触屏去 hover)
+       目标:手机上不横向溢出、字号可读、节奏条一眼看完
+       ============================================================ */
+    @media(max-width:760px){
+      body{font-size:15.5px;line-height:1.75}
+      .wrap{padding:0 15px}
+
+      /* 顶栏:允许横向滚动,避免按钮被挤断行 */
+      .topbar{padding:8px 14px;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+        scrollbar-width:none}
+      .topbar::-webkit-scrollbar{display:none}
+      .topbar .mark{flex:0 0 auto;font-size:11px;letter-spacing:.16em}
+      .topbar .btn{flex:0 0 auto;font-size:12px;padding:6px 11px}
+      .topbar .status{display:none}
+
+      .hero{padding:34px 0 18px;margin-bottom:22px}
+      .hero .eyebrow{font-size:10px;letter-spacing:.22em;margin-bottom:12px}
+      .hero h1.title{font-size:29px;line-height:1.28}
+      .hero .subtitle{font-size:14.5px;margin-bottom:16px}
+      .hero .meta-row{gap:8px 14px;font-size:11px;padding-top:12px}
+
+      /* 时间预算:5 步竖排,每步「标签 + 内容」两栏 */
+      .budget{grid-template-columns:1fr;margin-bottom:22px}
+      .budget .cell{border-right:none;border-bottom:1px solid var(--line);
+        display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center;padding:12px 14px}
+      .budget .cell:last-child{border-bottom:none}
+      .budget .cell .t{margin:0;font-size:10px;letter-spacing:.14em}
+      .budget .cell .h{font-size:17px}
+      .budget .cell .note{margin-top:2px;font-size:10.5px}
+
+      .official{padding:13px 15px;margin-bottom:22px}
+      .official h3{font-size:13.5px}
+      .official ul{padding-left:16px;font-size:12.5px}
+      .official li{margin-bottom:5px}
+
+      .map{padding:14px 12px 6px;margin-bottom:22px}
+      .map h3{font-size:14px}
+      .map .legend{gap:8px 14px;font-size:10.5px}
+
+      .pace{grid-template-columns:1fr;gap:10px;margin-bottom:22px}
+      .pace .tip{padding:12px 14px}
+
+      /* 站点卡:单栏,编号与时间各自成行 */
+      .stop{grid-template-columns:1fr;gap:0;padding:15px 15px 13px}
+      .stop .num{font-size:25px;text-align:left;padding:0;display:flex;
+        align-items:baseline;gap:8px;margin-bottom:4px}
+      .stop .num small{margin:0;display:inline;font-size:10px}
+      .stop figure{margin:10px 0 12px}
+      .stop figure figcaption{font-size:10px;padding:5px 10px}
+      .stop .body h4{font-size:16.5px}
+      .stop .body .sub{font-size:11px;margin-bottom:7px}
+      .stop .body p{font-size:13.5px}
+      .stop .body ul{padding-left:16px;font-size:12.5px}
+      .stop .time{grid-column:auto;text-align:left;white-space:normal;
+        border-top:1px dashed var(--line);margin-top:10px;padding:9px 0 0;
+        display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline}
+      .stop .time .start{display:inline;margin:0;font-size:12.5px}
+      .stop .time .dur,.stop .time .end{display:inline;margin:0}
+
+      .timeline{padding:15px 15px;margin-bottom:22px}
+      .timeline h3{font-size:14px;margin-bottom:10px}
+      .timeline .row{grid-template-columns:56px 1fr;gap:10px;font-size:12.5px;padding:8px 0}
+
+      .foot{font-size:10.5px;letter-spacing:0;padding:16px 0 24px}
+    }
+
+    /* 超小屏(≤380px) */
+    @media(max-width:380px){
+      .hero h1.title{font-size:25px}
+      .topbar .mark{display:none}
+      .budget .cell{grid-template-columns:52px 1fr}
+      .timeline .row{grid-template-columns:50px 1fr;gap:8px;font-size:12px}
+      .stop{padding:13px 13px 11px}
+    }
+
+    /* 触屏:去掉 hover 位移,避免点击抖动 */
+    @media(hover:none){
+      .stop figure:hover img{transform:none}
+    }
   </style>
 </head>
 <body>
@@ -327,7 +402,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img src="../assets/img/west-gate_001.jpg" alt="清华西门灰石牌坊与秋日银杏" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
+          <img src="assets/img/west-gate_001.jpg" alt="清华西门灰石牌坊与秋日银杏" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>西门 · 灰石三孔门 · 秋</figcaption>
         </figure>
         <h4>西门 · 落客 + 校门打卡</h4>
@@ -350,7 +425,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img src="../assets/img/second-gate_001.jpg" alt="清华二校门白拱门与秋叶" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
+          <img src="assets/img/second-gate_001.jpg" alt="清华二校门白拱门与秋叶" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>二校门 · 清华最经典标志</figcaption>
         </figure>
         <h4>二校门 · 经典机位</h4>
@@ -374,7 +449,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img src="../assets/img/tsinghua-school_001.jpg" alt="清华学堂红砖欧式建筑与拱窗" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
+          <img src="assets/img/tsinghua-school_001.jpg" alt="清华学堂红砖欧式建筑与拱窗" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>清华学堂 · 红砖老建筑</figcaption>
         </figure>
         <h4>清华学堂 + 图书馆 · 老建筑群</h4>
@@ -398,7 +473,7 @@
       <div class="body">
         <figure>
           <div class="img-loading">载入中</div>
-          <img src="../assets/img/lotus-pond_001.jpg" alt="近春园荷塘小石桥与残荷" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
+          <img src="assets/img/lotus-pond_001.jpg" alt="近春园荷塘小石桥与残荷" decoding="async" referrerpolicy="no-referrer" class="lazy-img">
           <figcaption>近春园荷塘 · 残荷 + 小石桥</figcaption>
         </figure>
         <h4>近春园荷塘 · 走神专用</h4>
