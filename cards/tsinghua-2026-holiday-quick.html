@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 国庆 · 10 月 4 日 · 清华半日快闪攻略</title>
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="../assets/frame.css">
+  <style>
+    /* ============================================================
+       2026 国庆 · 清华半日快闪攻略
+       水岸雁栖 8:00 出发 → 13:30 前门还车
+       实际游玩窗口 10:00–11:45(约 1h45min),节假日缓节奏
+       配色沿用旧宣纸底 + 紫荆紫 + 砖红 + 荷绿,与亲子版区分靠节奏
+       ============================================================ */
+    :root{
+      --paper:#faf7f1;
+      --paper-2:#f3eee2;
+      --card:#ffffff;
+      --ink:#3a3530;
+      --ink-soft:#6b645a;
+      --muted:#9a938a;
+      --line:#e8e2d4;
+      --line-hi:#d6cdb8;
+      --zijing:#660874;
+      --zijing-soft:#a78bb6;
+      --brick:#a8401f;
+      --lotus:#4d6a4d;
+      --warn:#b85c00;
+      --sun:#c89b4a;
+      --serif:"Noto Serif SC","Songti SC","STSong","Source Han Serif SC",serif;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+      font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased;margin:0}
+    a{color:var(--zijing);text-decoration:none;border-bottom:1px dotted rgba(102,8,116,.35)}
+    a:hover{color:var(--brick);border-bottom-color:var(--brick)}
+    ::selection{background:rgba(102,8,116,.18);color:var(--ink)}
+
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
+      padding:10px 22px;background:rgba(250,247,241,.94);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);font-family:var(--sans)}
+    .topbar .mark{font:600 12px/1 var(--mono);letter-spacing:.22em;color:var(--zijing);
+      text-transform:uppercase}
+    .topbar .btn{font-size:12.5px;padding:6px 13px;border-radius:2px;border:1px solid var(--line);
+      background:transparent;color:var(--ink-soft);cursor:pointer;transition:.15s;font-family:inherit}
+    .topbar .btn:hover{border-color:var(--zijing);color:var(--zijing)}
+    .topbar .btn.active{background:var(--zijing);border-color:var(--zijing);color:#fff;font-weight:600}
+    .topbar .status{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--muted)}
+
+    .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+
+    .hero{position:relative;padding:54px 0 24px;border-bottom:1px solid var(--line);
+      margin-bottom:28px}
+    .hero .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.32em;color:var(--zijing);
+      text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+    .hero .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--zijing),transparent)}
+    .hero h1.title{font-family:var(--serif);font-size:42px;font-weight:700;line-height:1.2;
+      margin:0 0 10px;letter-spacing:.02em;color:var(--ink)}
+    .hero h1.title .accent{color:var(--zijing)}
+    .hero .subtitle{font-family:var(--serif);font-size:16px;color:var(--ink-soft);
+      margin:0 0 20px;max-width:720px}
+    .hero .meta-row{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;
+      color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+    .hero .meta-row b{color:var(--ink);font-weight:500}
+    .hero .meta-row .sep{color:var(--line-hi)}
+
+    /* 时间预算条 */
+    .budget{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:0 0 30px;
+      border:1px solid var(--line);background:var(--card);border-radius:3px;overflow:hidden}
+    .budget .cell{padding:14px 12px;border-right:1px solid var(--line);position:relative}
+    .budget .cell:last-child{border-right:none}
+    .budget .cell .t{font:600 11px/1 var(--mono);letter-spacing:.18em;color:var(--muted);
+      text-transform:uppercase;margin-bottom:6px}
+    .budget .cell .h{font-family:var(--serif);font-size:20px;color:var(--ink);font-weight:600}
+    .budget .cell .h small{font-family:var(--sans);font-size:11px;color:var(--muted);font-weight:400;
+      margin-left:4px}
+    .budget .cell.drive .h{color:var(--zijing)}
+    .budget .cell.play .h{color:var(--brick)}
+    .budget .cell.return .h{color:var(--warn)}
+    .budget .cell .note{font-size:11px;color:var(--ink-soft);margin-top:4px;line-height:1.5}
+    @media(max-width:720px){.budget{grid-template-columns:1fr 1fr}.budget .cell{border-right:none;border-bottom:1px solid var(--line)}}
+
+    /* 动线 SVG 容器 */
+    .map{margin:0 0 30px;background:var(--card);border:1px solid var(--line);border-radius:3px;
+      padding:18px 18px 8px}
+    .map h3{font-family:var(--serif);font-size:15px;margin:0 0 12px;color:var(--zijing);
+      font-weight:600;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+    .map h3::after{content:"";flex:1;height:1px;background:var(--line)}
+    .map svg{width:100%;height:auto;display:block}
+    .map .legend{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:10px;font-size:12px;color:var(--ink-soft);
+      font-family:var(--mono)}
+    .map .legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+    /* 入校公告卡 */
+    .official{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--zijing);
+      padding:14px 18px;margin:0 0 28px;border-radius:0 4px 4px 0}
+    .official h3{font-family:var(--serif);font-size:14px;margin:0 0 8px;color:var(--zijing);
+      font-weight:600;letter-spacing:.04em}
+    .official ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft)}
+    .official li{margin-bottom:3px}
+    .official li b{color:var(--ink);font-weight:500}
+
+    /* 站点卡(节奏卡) */
+    .stops{display:flex;flex-direction:column;gap:16px;margin:0 0 30px}
+    .stop{background:var(--card);border:1px solid var(--line);border-radius:3px;
+      padding:18px 20px 16px;display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:start}
+    .stop .num{font-family:var(--serif);font-size:36px;line-height:1;color:var(--zijing);font-weight:700;
+      text-align:center;padding-top:4px}
+    .stop .num small{display:block;font:600 10px/1 var(--mono);letter-spacing:.18em;color:var(--muted);
+      margin-top:6px;text-transform:uppercase}
+    .stop .body h4{font-family:var(--serif);font-size:18px;margin:0 0 4px;color:var(--ink);font-weight:600}
+    .stop .body .sub{font-size:12px;color:var(--muted);font-family:var(--mono);
+      letter-spacing:.06em;margin-bottom:8px}
+    .stop .body p{margin:0 0 8px;font-size:14px;color:var(--ink-soft)}
+    .stop .body ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--ink-soft)}
+    .stop .body li{margin-bottom:3px}
+    .stop .body li b{color:var(--ink);font-weight:500}
+    .stop .time{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right;
+      white-space:nowrap;padding-top:6px}
+    .stop .time .start{color:var(--brick);font-weight:600;font-size:13px;display:block;margin-bottom:4px}
+    .stop .time .dur{display:block;margin-bottom:2px}
+    .stop .time .end{color:var(--ink-soft);display:block}
+    @media(max-width:680px){
+      .stop{grid-template-columns:48px 1fr;gap:12px}
+      .stop .time{grid-column:2;text-align:left;padding-top:0;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
+    }
+
+    /* 节奏提醒条 */
+    .pace{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 28px}
+    .pace .tip{background:var(--paper-2);border:1px solid var(--line);border-radius:3px;padding:14px 16px}
+    .pace .tip .icon{font-family:var(--serif);font-size:20px;color:var(--brick);margin-bottom:6px}
+    .pace .tip h5{font-family:var(--serif);font-size:14px;margin:0 0 4px;color:var(--ink);font-weight:600}
+    .pace .tip p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.65}
+    @media(max-width:680px){.pace{grid-template-columns:1fr}}
+
+    /* 时间轴收尾 */
+    .timeline{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:18px 22px;margin:0 0 26px}
+    .timeline h3{font-family:var(--serif);font-size:15px;margin:0 0 14px;color:var(--zijing);
+      font-weight:600;letter-spacing:.04em}
+    .timeline .row{display:grid;grid-template-columns:80px 1fr;gap:14px;padding:7px 0;
+      border-bottom:1px dashed var(--line);font-size:13px}
+    .timeline .row:last-child{border-bottom:none}
+    .timeline .row .t{font-family:var(--mono);color:var(--muted);font-weight:600}
+    .timeline .row .d{color:var(--ink)}
+    .timeline .row.crit .t{color:var(--warn)}
+    .timeline .row.crit .d b{color:var(--warn)}
+
+    .foot{font-size:12px;color:var(--muted);text-align:center;padding:18px 0 28px;
+      border-top:1px solid var(--line);font-family:var(--mono);letter-spacing:.04em}
+    .foot a{color:var(--zijing);border-bottom:1px dotted rgba(102,8,116,.4)}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <span class="mark">TSINGHUA · HALF-DAY</span>
+  <button class="btn" id="editBtn">编辑</button>
+  <button class="btn" id="saveBtn" style="display:none">保存</button>
+  <button class="btn" id="printBtn">打印 / PDF</button>
+  <button class="btn" id="resetBtn">还原</button>
+  <span class="status" id="status">载入中…</span>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="eyebrow">2026 · 10 · 04 · 国庆假期 第 6 天</div>
+    <h1 class="title">清华半日<span class="accent">快闪</span>攻略</h1>
+    <p class="subtitle">水岸雁栖 8:00 出发,13:30 前门还车 — 真正能逛清华的时间只有 1 小时 45 分钟。攻略不贪多,只走 4 个最经典的点,节奏放慢,留出拍照和走神的时间。</p>
+    <div class="meta-row">
+      <span><b>总窗口</b> 8:00–14:00</span><span class="sep">|</span>
+      <span><b>校内</b> 10:00–11:45</span><span class="sep">|</span>
+      <span><b>距离</b> 水岸雁栖→清华 ~75 km</span><span class="sep">|</span>
+      <span><b>车程</b> 单程按 2h 估</span>
+    </div>
+  </section>
+
+  <!-- 时间预算条 -->
+  <section class="budget" aria-label="时间预算">
+    <div class="cell drive">
+      <div class="t">STEP 1</div>
+      <div class="h">出发<small>水岸雁栖</small></div>
+      <div class="note">8:00 · 提前下楼热车</div>
+    </div>
+    <div class="cell drive">
+      <div class="t">STEP 2</div>
+      <div class="h">在途<small>京承→北五环</small></div>
+      <div class="note">8:00–10:00 · 节假日按 2h</div>
+    </div>
+    <div class="cell play">
+      <div class="t">STEP 3</div>
+      <div class="h">游玩<small>校内 4 站</small></div>
+      <div class="note">10:00–11:45 · 慢节奏</div>
+    </div>
+    <div class="cell return">
+      <div class="t">STEP 4</div>
+      <div class="h">回程<small>→前门</small></div>
+      <div class="note">12:00 前动身,1.5h</div>
+    </div>
+    <div class="cell return">
+      <div class="t">STEP 5</div>
+      <div class="h">还车<small>山水时尚酒店</small></div>
+      <div class="note">13:30 截止 · 14:00 兜底</div>
+    </div>
+  </section>
+
+  <!-- 入校须知 -->
+  <section class="official">
+    <h3>入校提醒(2026 国庆)</h3>
+    <ul>
+      <li><b>必须预约:</b>微信「清华大学」公众号 → <i>参观清华</i> → 选 10 月 4 日,实名 + 身份证。</li>
+      <li><b>校门选择:</b>预约哪个门就从哪个门进(节假日热门门限流);西门最近五道口商圈、车位也最好找。</li>
+      <li><b>建议入口:</b>西门(清华西门) — 进校后第一个经典点「二校门」就在步行 5 分钟。</li>
+      <li><b>校内禁车:</b>社会车辆不进校,到西门附近停车场落客即可。</li>
+    </ul>
+  </section>
+
+  <!-- 动线图 -->
+  <section class="map">
+    <h3>半日动线 · 4 站 + 出口</h3>
+    <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="清华半日动线图">
+      <defs>
+        <pattern id="lotus" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="10" cy="10" r="5" fill="#dfe8df"/>
+        </pattern>
+      </defs>
+
+      <!-- 底色 -->
+      <rect width="900" height="380" fill="#faf7f1"/>
+      <!-- 假池塘 -->
+      <ellipse cx="640" cy="240" rx="80" ry="42" fill="url(#lotus)" stroke="#a8b8a8" stroke-dasharray="3 3"/>
+      <text x="640" y="245" text-anchor="middle" fill="#4d6a4d" font-family="serif" font-size="13">近春园荷塘</text>
+
+      <!-- 路径(曲) -->
+      <path d="M 90 80 Q 240 80 280 160 Q 320 240 470 240 Q 600 240 640 240" fill="none"
+            stroke="#a8401f" stroke-width="2.5" stroke-dasharray="6 4" opacity="0.7"/>
+      <!-- 出口虚线到西门 -->
+      <path d="M 800 240 Q 820 240 830 250" fill="none" stroke="#660874" stroke-width="2"
+            stroke-dasharray="3 3" opacity="0.5"/>
+
+      <!-- 1. 西门 -->
+      <circle cx="90" cy="80" r="14" fill="#660874"/>
+      <text x="90" y="85" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="14">1</text>
+      <text x="90" y="50" text-anchor="middle" fill="#3a3530" font-family="serif" font-size="14" font-weight="600">西门</text>
+      <text x="90" y="115" text-anchor="middle" fill="#9a938a" font-family="monospace" font-size="10">入口 · 落客</text>
+
+      <!-- 2. 二校门 -->
+      <circle cx="280" cy="160" r="14" fill="#660874"/>
+      <text x="280" y="165" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="14">2</text>
+      <text x="280" y="195" text-anchor="middle" fill="#3a3530" font-family="serif" font-size="14" font-weight="600">二校门</text>
+      <text x="280" y="135" text-anchor="middle" fill="#9a938a" font-family="monospace" font-size="10">5 min</text>
+
+      <!-- 3. 清华学堂 + 图书馆 -->
+      <circle cx="470" cy="240" r="14" fill="#660874"/>
+      <text x="470" y="245" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="14">3</text>
+      <text x="510" y="235" fill="#3a3530" font-family="serif" font-size="14" font-weight="600">清华学堂</text>
+      <text x="510" y="253" fill="#6b645a" font-family="serif" font-size="12">+ 图书馆</text>
+      <text x="430" y="222" text-anchor="end" fill="#9a938a" font-family="monospace" font-size="10">10 min</text>
+
+      <!-- 4. 荷塘 -->
+      <circle cx="640" cy="240" r="14" fill="#660874"/>
+      <text x="640" y="245" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="14">4</text>
+      <text x="640" y="305" text-anchor="middle" fill="#3a3530" font-family="serif" font-size="14" font-weight="600">近春园荷塘</text>
+      <text x="700" y="232" fill="#9a938a" font-family="monospace" font-size="10">15 min</text>
+
+      <!-- 出口 -->
+      <circle cx="830" cy="250" r="10" fill="#a8401f" stroke="#faf7f1" stroke-width="3"/>
+      <text x="830" y="254" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="11">OUT</text>
+      <text x="830" y="285" text-anchor="middle" fill="#3a3530" font-family="serif" font-size="13" font-weight="600">西门</text>
+      <text x="830" y="300" text-anchor="middle" fill="#9a938a" font-family="monospace" font-size="10">取车 → 前门</text>
+
+      <!-- 标题 -->
+      <text x="20" y="30" fill="#660874" font-family="sans-serif" font-weight="700"
+            font-size="11" letter-spacing="3">TSINGHUA · WALKING ROUTE</text>
+    </svg>
+    <div class="legend">
+      <span><span class="dot" style="background:#660874"></span>游玩点(按顺序)</span>
+      <span><span class="dot" style="background:#a8401f"></span>出口 / 取车</span>
+      <span><span class="dot" style="background:#4d6a4d;opacity:.4"></span>可驻足的景</span>
+      <span><span class="dot" style="background:transparent;border:1.5px dashed #a8401f"></span>步行路径</span>
+    </div>
+  </section>
+
+  <!-- 节奏提醒 -->
+  <section class="pace">
+    <div class="tip">
+      <div class="icon">慢</div>
+      <h5>别贪 5 个点</h5>
+      <p>1h45min 只够 4 站。多一个点就意味着每站少 10 分钟拍照 + 走神的时间 — 节假日人多,本来就慢。</p>
+    </div>
+    <div class="tip">
+      <div class="icon">⚠</div>
+      <h5>11:45 必须回头</h5>
+      <p>出校 → 取车 → 北四环 → 前门,节假日至少 1h15min。给还车手续留 15min 缓冲,12:00 必须上车。</p>
+    </div>
+    <div class="tip">
+      <div class="icon">☕</div>
+      <h5>水和咖啡先备好</h5>
+      <p>校内食堂节假日对外来人员不开放。西门附近有便利店,出发前在车里备一瓶水 + 一杯冰美式。</p>
+    </div>
+  </section>
+
+  <!-- 站点节奏卡 -->
+  <section class="stops">
+
+    <article class="stop">
+      <div class="num">1<small>10:00</small></div>
+      <div class="body">
+        <h4>西门 · 落客 + 校门打卡</h4>
+        <div class="sub">WEST GATE · 10 min</div>
+        <p>车停西门附近停车场(节假日车位紧张,可在「清华大学西门」导航搜公共停车)。从西门进校,先在校门牌匾下拍一张 — 节假日人巨多,排队约 5 分钟。</p>
+        <ul>
+          <li><b>节奏:</b>进门 30s 拍校门,1 min 走人,不恋战。</li>
+          <li><b>下一站:</b>沿主干道往东走 5 min 到二校门。</li>
+        </ul>
+      </div>
+      <div class="time">
+        <span class="start">10:00</span>
+        <span class="dur">10 min</span>
+        <span class="end">→ 10:10</span>
+      </div>
+    </article>
+
+    <article class="stop">
+      <div class="num">2<small>10:10</small></div>
+      <div class="body">
+        <h4>二校门 · 经典机位</h4>
+        <div class="sub">SECOND GATE · 25 min</div>
+        <p>白色三拱门,清华最经典的标志。这里会非常挤 — 别急着卡位,在外围先看看哪个角度人少,留 15 min 给拍照 + 5 min 慢慢走过去看门上的字。</p>
+        <ul>
+          <li><b>节奏:</b>15 min 拍照(找个没被占满的角落)+ 5 min 看清华学堂外墙。</li>
+          <li><b>人少时:</b>沿二校门左侧小路,能拍到荷叶和远处主楼的远景。</li>
+          <li><b>下一站:</b>穿过二校门正对的就是清华学堂,3 min 走到。</li>
+        </ul>
+      </div>
+      <div class="time">
+        <span class="start">10:10</span>
+        <span class="dur">25 min</span>
+        <span class="end">→ 10:35</span>
+      </div>
+    </article>
+
+    <article class="stop">
+      <div class="num">3<small>10:35</small></div>
+      <div class="body">
+        <h4>清华学堂 + 图书馆 · 老建筑群</h4>
+        <div class="sub">TSINGHUA SCHOOL & LIBRARY · 30 min</div>
+        <p>两栋都是红砖老建筑,挨在一起。清华学堂前的大草坪是校庆合影圣地 — 节假日有校友回校,氛围很好。图书馆一般只在外面看看,内部节假日不开放。</p>
+        <ul>
+          <li><b>节奏:</b>10 min 学堂前草坪 + 拍照 + 10 min 图书馆外观 + 10 min 大礼堂区路过。</li>
+          <li><b>不要:</b>别试图进图书馆,门口排队 30min 起,得不偿失。</li>
+          <li><b>下一站:</b>沿学堂后小路往南走 10 min 到近春园荷塘。</li>
+        </ul>
+      </div>
+      <div class="time">
+        <span class="start">10:35</span>
+        <span class="dur">30 min</span>
+        <span class="end">→ 11:05</span>
+      </div>
+    </article>
+
+    <article class="stop">
+      <div class="num">4<small>11:05</small></div>
+      <div class="body">
+        <h4>近春园荷塘 · 走神专用</h4>
+        <div class="sub">LOTUS POND · 40 min</div>
+        <p>朱自清《荷塘月色》原型。10 月还有残荷,氛围比盛夏更有味道。沿池塘走一圈,找个石凳坐 10 min — 这是整个行程里唯一可以"什么都不做"的时间。</p>
+        <ul>
+          <li><b>节奏:</b>15 min 绕塘慢走 + 10 min 石凳发呆 + 15 min 拍残荷/水面倒影。</li>
+          <li><b>私藏:</b>池塘西南角有一座小石桥,人少,适合拍远景。</li>
+          <li><b>下一站:</b>原路返回二校门 → 西门,约 12 min。</li>
+        </ul>
+      </div>
+      <div class="time">
+        <span class="start">11:05</span>
+        <span class="dur">40 min</span>
+        <span class="end">→ 11:45</span>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- 时间轴收尾 -->
+  <section class="timeline">
+    <h3>完整时间轴 · 8:00–14:00</h3>
+    <div class="row"><div class="t">08:00</div><div class="d"><b>水岸雁栖出发</b>(怀柔方向走京承高速,避开五环早高峰)</div></div>
+    <div class="row"><div class="t">08:00–10:00</div><div class="d">在途约 2h(节假日预留缓冲)· 建议在收费站前加满油</div></div>
+    <div class="row"><div class="t">10:00</div><div class="d">到清华西门 · 落客 · 进校</div></div>
+    <div class="row"><div class="t">10:00–10:10</div><div class="d">① 西门打卡</div></div>
+    <div class="row"><div class="t">10:10–10:35</div><div class="d">② 二校门(慢拍)</div></div>
+    <div class="row"><div class="t">10:35–11:05</div><div class="d">③ 清华学堂 + 图书馆</div></div>
+    <div class="row"><div class="t">11:05–11:45</div><div class="d">④ 近春园荷塘(放空)</div></div>
+    <div class="row crit"><div class="t">11:45</div><div class="d"><b>必须出校</b>· 走到西门停车场约 12 min</div></div>
+    <div class="row crit"><div class="t">12:00</div><div class="d"><b>必须发车</b>· 上北四环往南 → 京开/南二环</div></div>
+    <div class="row"><div class="t">12:00–13:30</div><div class="d">在途约 1h30min · 中途可在大栅栏附近买杯咖啡</div></div>
+    <div class="row crit"><div class="t">13:30</div><div class="d"><b>到山水时尚酒店前门店 · 还车</b></div></div>
+    <div class="row"><div class="t">14:00</div><div class="d">酒店 check-in · 还车截止(若有 30min 兜底)</div></div>
+  </section>
+
+  <footer class="foot">
+    攻略生成于 2026-10-03 · 基于 <b>水岸雁栖 8:00 → 清华 → 前门 14:00 前还车</b> 真实窗口 · 节假日请多留 15 min 缓冲
+  </footer>
+
+</div>
+
+<script>
+  // 极简 localStorage 编辑器(沿用 frame.css 风格)
+  const KEY='tsinghua-2026-holiday-quick-v1';
+  const $=s=>document.querySelector(s);
+  const status=$('#status');
+  const editBtn=$('#editBtn'),saveBtn=$('#saveBtn'),resetBtn=$('#resetBtn'),printBtn=$('#printBtn');
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  function applySaved(){
+    if(!saved)return;
+    document.querySelectorAll('[data-edit]').forEach(el=>{
+      const k=el.dataset.edit;
+      if(saved[k]!=null) el.innerHTML=saved[k];
+    });
+  }
+  function makeEditable(){
+    document.querySelectorAll('.hero .subtitle, .stop .body p, .stop .body li, .pace .tip p, .timeline .row .d, .foot').forEach(el=>{
+      el.setAttribute('contenteditable','true');
+      el.style.outline='1px dashed rgba(102,8,116,.3)';
+      el.style.outlineOffset='2px';
+    });
+    status.textContent='编辑中…改动只在本地';
+    editBtn.style.display='none';saveBtn.style.display='';
+  }
+  function lockEditable(){
+    document.querySelectorAll('[contenteditable=true]').forEach(el=>{
+      el.removeAttribute('contenteditable');
+      el.style.outline='';
+    });
+    editBtn.style.display='';saveBtn.style.display='none';
+    status.textContent=saved?'已保存到本地':'未改动';
+  }
+  function saveAll(){
+    const data={};
+    document.querySelectorAll('.hero .subtitle, .stop .body p, .stop .body li, .pace .tip p, .timeline .row .d, .foot').forEach((el,i)=>{
+      el.setAttribute('data-edit','k'+i);
+      data['k'+i]=el.innerHTML;
+    });
+    localStorage.setItem(KEY,JSON.stringify(data));
+    saved=data;
+    lockEditable();
+  }
+  function resetAll(){
+    if(!confirm('清空本地改动并还原原始攻略?'))return;
+    localStorage.removeItem(KEY);
+    location.reload();
+  }
+  editBtn.addEventListener('click',makeEditable);
+  saveBtn.addEventListener('click',saveAll);
+  resetBtn.addEventListener('click',resetAll);
+  printBtn.addEventListener('click',()=>window.print());
+  applySaved();
+  status.textContent=saved?'已从本地还原':'原始版本';
+</script>
+
+</body>
+</html>
