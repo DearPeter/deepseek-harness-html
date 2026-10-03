@@ -124,6 +124,21 @@
     .stop .time .start{color:var(--brick);font-weight:600;font-size:13px;display:block;margin-bottom:4px}
     .stop .time .dur{display:block;margin-bottom:2px}
     .stop .time .end{color:var(--ink-soft);display:block}
+
+    /* stop 站点插图 */
+    .stop figure{margin:0 0 12px;position:relative;overflow:hidden;
+      border:1px solid var(--line);border-radius:2px;background:var(--paper-2);
+      aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
+    .stop figure img{width:100%;height:100%;object-fit:cover;display:block;
+      filter:saturate(.92) contrast(.95);transition:transform .6s ease}
+    .stop figure:hover img{transform:scale(1.03)}
+    .stop figure figcaption{position:absolute;left:0;right:0;bottom:0;
+      padding:6px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+      color:var(--ink);background:linear-gradient(180deg,transparent,rgba(250,247,241,.92));
+      text-align:right}
+    .stop figure .img-loading{position:absolute;inset:0;display:flex;align-items:center;
+      justify-content:center;color:var(--muted);font-family:var(--mono);font-size:11px;
+      letter-spacing:.18em;text-transform:uppercase}
     @media(max-width:680px){
       .stop{grid-template-columns:48px 1fr;gap:12px}
       .stop .time{grid-column:2;text-align:left;padding-top:0;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
@@ -310,6 +325,11 @@
     <article class="stop">
       <div class="num">1<small>10:00</small></div>
       <div class="body">
+        <figure>
+          <div class="img-loading">载入中</div>
+          <img src="../assets/img/west-gate_001.jpg" alt="清华西门灰石牌坊与秋日银杏" loading="lazy">
+          <figcaption>西门 · 灰石三孔门 · 秋</figcaption>
+        </figure>
         <h4>西门 · 落客 + 校门打卡</h4>
         <div class="sub">WEST GATE · 10 min</div>
         <p>车停西门附近停车场(节假日车位紧张,可在「清华大学西门」导航搜公共停车)。从西门进校,先在校门牌匾下拍一张 — 节假日人巨多,排队约 5 分钟。</p>
@@ -328,6 +348,11 @@
     <article class="stop">
       <div class="num">2<small>10:10</small></div>
       <div class="body">
+        <figure>
+          <div class="img-loading">载入中</div>
+          <img src="../assets/img/second-gate_001.jpg" alt="清华二校门白拱门与秋叶" loading="lazy">
+          <figcaption>二校门 · 清华最经典标志</figcaption>
+        </figure>
         <h4>二校门 · 经典机位</h4>
         <div class="sub">SECOND GATE · 25 min</div>
         <p>白色三拱门,清华最经典的标志。这里会非常挤 — 别急着卡位,在外围先看看哪个角度人少,留 15 min 给拍照 + 5 min 慢慢走过去看门上的字。</p>
@@ -347,6 +372,11 @@
     <article class="stop">
       <div class="num">3<small>10:35</small></div>
       <div class="body">
+        <figure>
+          <div class="img-loading">载入中</div>
+          <img src="../assets/img/tsinghua-school_001.jpg" alt="清华学堂红砖欧式建筑与拱窗" loading="lazy">
+          <figcaption>清华学堂 · 红砖老建筑</figcaption>
+        </figure>
         <h4>清华学堂 + 图书馆 · 老建筑群</h4>
         <div class="sub">TSINGHUA SCHOOL & LIBRARY · 30 min</div>
         <p>两栋都是红砖老建筑,挨在一起。清华学堂前的大草坪是校庆合影圣地 — 节假日有校友回校,氛围很好。图书馆一般只在外面看看,内部节假日不开放。</p>
@@ -366,6 +396,11 @@
     <article class="stop">
       <div class="num">4<small>11:05</small></div>
       <div class="body">
+        <figure>
+          <div class="img-loading">载入中</div>
+          <img src="../assets/img/lotus-pond_001.jpg" alt="近春园荷塘小石桥与残荷" loading="lazy">
+          <figcaption>近春园荷塘 · 残荷 + 小石桥</figcaption>
+        </figure>
         <h4>近春园荷塘 · 走神专用</h4>
         <div class="sub">LOTUS POND · 40 min</div>
         <p>朱自清《荷塘月色》原型。10 月还有残荷,氛围比盛夏更有味道。沿池塘走一圈,找个石凳坐 10 min — 这是整个行程里唯一可以"什么都不做"的时间。</p>
@@ -460,6 +495,22 @@
   printBtn.addEventListener('click',()=>window.print());
   applySaved();
   status.textContent=saved?'已从本地还原':'原始版本';
+
+  // 图片加载完成时隐藏占位
+  document.querySelectorAll('.stop figure img').forEach(img=>{
+    const placeholder=img.previousElementSibling;
+    if(img.complete && img.naturalWidth>0 && placeholder){
+      placeholder.style.display='none';
+    }else{
+      img.addEventListener('load',()=>{if(placeholder)placeholder.style.display='none';});
+      img.addEventListener('error',()=>{
+        if(placeholder){
+          placeholder.textContent='图片加载失败';
+          placeholder.style.color='var(--warn)';
+        }
+      });
+    }
+  });
 </script>
 
 </body>
