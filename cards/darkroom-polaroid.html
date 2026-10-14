@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>暗房 · 拍立得显影墙</title>
+<meta name="description" content="写一句话,按快门,看它在暗房里慢慢显影 —— 一面可以拖动、可以下载的拍立得照片墙。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+  :root {
+    --dark:   #141013;   /* 暗房:安全灯之外的暗 */
+    --red:    #8f1d18;   /* 安全灯:唯一高饱和,只做光晕与闪光 */
+    --paper:  #f7f4ee;   /* 相纸白 */
+    --chem:   #2b6b66;   /* 显影液:照片里的冷调 */
+    --silver: #9a9089;   /* 银盐灰:次要文字 */
+    --ink:    #3a3632;   /* 相纸上的笔迹 */
+    --hand: "Kaiti SC", "STKaiti", KaiTi, "TW-Kai", "Noto Serif SC", "Songti SC", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--dark);
+    color: var(--silver);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 安全灯环境光 + 胶片颗粒 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(120% 70% at 50% -12%, rgba(143,29,24,.34), transparent 62%),
+      radial-gradient(70% 50% at 88% 108%, rgba(43,107,102,.10), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .045;
+    z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='180' height='180' filter='url(%23g)'/></svg>");
+  }
+  .darkroom {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 22px 70px;
+  }
+
+  /* ---------- 顶栏 ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .05em;
+    color: #7c736e;
+    border-bottom: 1px solid #2a2326;
+    padding-bottom: 14px;
+  }
+  .topbar .lamp {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 12px 3px rgba(143,29,24,.55);
+    animation: breathe 3.6s ease-in-out infinite;
+  }
+  @keyframes breathe { 50% { opacity: .45; box-shadow: 0 0 6px 1px rgba(143,29,24,.35); } }
+  .topbar b { color: #b8ada6; font-weight: 600; }
+  .topbar .spacer { flex: 1 1 auto; }
+  .topbar button {
+    background: none;
+    border: 1px solid #332b2e;
+    border-radius: 5px;
+    color: #7c736e;
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 3px 10px;
+    cursor: pointer;
+  }
+  .topbar button:hover { color: #d8cec8; border-color: #4b3f43; }
+  .topbar button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  .topbar button:disabled { opacity: .4; cursor: default; }
+
+  /* ---------- 相机 ---------- */
+  .camera { margin: 30px 0 0; }
+  .finder {
+    position: relative;
+    border: 1px solid #2c2427;
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.02), transparent 40%),
+      #191416;
+    height: 128px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .finder .cross {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(154,144,137,.14) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(154,144,137,.14) 1px, transparent 1px);
+    background-size: 33.333% 50%;
+    background-position: 0 -1px, -1px 0;
+  }
+  .finder .focus {
+    position: absolute;
+    width: 46px; height: 46px;
+    border: 1px solid rgba(143,29,24,.6);
+  }
+  .finder .focus::before, .finder .focus::after {
+    content: ""; position: absolute; background: rgba(143,29,24,.6);
+  }
+  .finder .focus::before { left: 50%; top: -8px; width: 1px; height: 6px; }
+  .finder .focus::after  { left: 50%; bottom: -8px; width: 1px; height: 6px; }
+  .finder .hint {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    font-family: var(--hand);
+    font-size: 19px;
+    color: #6d635f;
+    letter-spacing: .06em;
+    text-align: center;
+    padding: 0 20px;
+    transition: color .3s;
+  }
+  .finder .hint.live { color: #cfc2b9; }
+  .finder .params {
+    position: absolute;
+    left: 10px; bottom: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: #5d5450;
+    letter-spacing: .08em;
+  }
+  .finder .rolltag {
+    position: absolute;
+    right: 10px; bottom: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: #5d5450;
+    letter-spacing: .08em;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  #capInput {
+    flex: 1 1 300px;
+    min-width: 200px;
+    background: #191416;
+    border: 1px solid #2c2427;
+    border-radius: 4px;
+    color: #ddd3cc;
+    font-family: var(--hand);
+    font-size: 16px;
+    padding: 9px 13px;
+  }
+  #capInput::placeholder { color: #6b615d; font-family: var(--sans); font-size: 13.5px; }
+  #capInput:focus { outline: none; border-color: #5a3a38; box-shadow: 0 0 0 3px rgba(143,29,24,.14); }
+
+  .shutter {
+    position: relative;
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    border: 2px solid #4a3f42;
+    background: radial-gradient(circle at 38% 32%, #2a2225, #171214 70%);
+    cursor: pointer;
+    flex: 0 0 auto;
+    padding: 0;
+    transition: transform .08s;
+  }
+  .shutter span {
+    position: absolute; inset: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, #c8453c, var(--red) 62%, #5e120f);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.45);
+  }
+  .shutter:hover span { background: radial-gradient(circle at 36% 30%, #d9574c, #a0221b 62%, #66140f); }
+  .shutter:active { transform: scale(.94); }
+  .shutter:focus-visible { outline: 2px solid var(--red); outline-offset: 4px; }
+  .shutter:disabled { opacity: .45; cursor: default; }
+  .shutter:disabled span { background: #40332f; }
+
+  /* ---------- 显影墙 ---------- */
+  .wall-wrap { margin: 44px 0 0; }
+  .wall-title {
+    font-family: var(--hand);
+    font-size: 21px;
+    letter-spacing: .32em;
+    text-indent: .32em;
+    color: #b8ada6;
+    text-align: center;
+    margin: 0 0 4px;
+  }
+  .wall-sub {
+    text-align: center;
+    font-size: 12.5px;
+    color: #6b615d;
+    margin: 0 0 26px;
+  }
+  .wall-sub b { color: var(--silver); font-weight: 600; }
+
+  #doc { counter-reset: shot; }
+  #intro {
+    font-size: 13px;
+    color: #7c736e;
+    margin: 0 0 22px;
+    padding: 0 4px;
+  }
+  .wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 20px 18px;
+    align-items: start;
+  }
+  .wall:empty { display: none; }
+  .wall .empty-note {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-family: var(--hand);
+    font-size: 16px;
+    color: #5d5450;
+    padding: 30px 0;
+    border: 1px dashed #2c2427;
+    border-radius: 4px;
+  }
+
+  .polaroid {
+    position: relative;
+    margin: 0;
+    background: var(--paper);
+    padding: 11px 11px 0;
+    border-radius: 2px;
+    box-shadow: 0 12px 26px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4);
+    transform: rotate(var(--tilt, 0deg));
+    transition: transform .22s ease, box-shadow .22s ease;
+    cursor: grab;
+  }
+  .polaroid:hover { transform: rotate(var(--tilt, 0deg)) translateY(-4px); box-shadow: 0 18px 34px rgba(0,0,0,.6), 0 3px 6px rgba(0,0,0,.45); }
+  .polaroid.dragging { opacity: .45; cursor: grabbing; }
+  .polaroid.drop-target { outline: 2px dashed rgba(143,29,24,.7); outline-offset: 6px; }
+  .polaroid:focus-visible { outline: 2px solid var(--red); outline-offset: 4px; }
+
+  .polaroid canvas.photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ddd6cc;
+    border-radius: 1px;
+    transition: filter 2.6s cubic-bezier(.2,.7,.25,1);
+  }
+  .polaroid canvas.photo.developing {
+    filter: brightness(2.5) contrast(.16) saturate(0) blur(7px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .polaroid canvas.photo { transition: opacity .4s; }
+    .polaroid canvas.photo.developing { filter: none; opacity: .25; }
+    .topbar .lamp { animation: none; }
+  }
+
+  .polaroid .caption {
+    font-family: var(--hand);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    padding: 9px 4px 11px;
+    min-height: 42px;
+    word-break: break-word;
+  }
+  .polaroid .caption:empty::before {
+    content: "（写下点什么）";
+    color: #b3aaa1;
+  }
+  .polaroid[data-edit="on"] .caption { outline: 1px dashed rgba(58,54,50,.35); outline-offset: 2px; }
+  .polaroid .stripe {
+    height: 4px;
+    margin: 0 -11px;
+    background: linear-gradient(90deg, #e8474b 0 20%, #f0a03c 20% 40%, #f4d03f 40% 60%, #3aa76d 60% 80%, #3d7fd6 80% 100%);
+    opacity: .85;
+  }
+  .polaroid .no {
+    position: absolute;
+    left: 13px; top: 13px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: rgba(58,54,50,.55);
+    background: rgba(247,244,238,.8);
+    padding: 0 4px;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .polaroid .acts {
+    position: absolute;
+    right: 8px; top: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity .18s;
+  }
+  .polaroid:hover .acts, .polaroid:focus-within .acts { opacity: 1; }
+  .polaroid .acts button {
+    width: 22px; height: 22px;
+    border: none;
+    border-radius: 3px;
+    background: rgba(20,16,19,.72);
+    color: #e8ded6;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  .polaroid .acts button:hover { background: var(--red); }
+  .polaroid .acts button:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+
+  @media (max-width: 640px) {
+    .darkroom { padding: 18px 14px 56px; }
+    .wall { grid-template-columns: repeat(2, 1fr); gap: 14px 12px; }
+    .polaroid { padding: 8px 8px 0; }
+    .polaroid .stripe { margin: 0 -8px; }
+    .wall-title { font-size: 18px; }
+    .finder { height: 108px; }
+    #capInput { flex: 1 1 100%; }
+    .shutter { width: 56px; height: 56px; }
+  }
+
+  /* ---------- 工具栏 ---------- */
+  .toolbar { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .toolbar button {
+    background: none;
+    border: 1px solid #332b2e;
+    border-radius: 5px;
+    color: #8b8079;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    padding: 5px 14px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { color: #e0d6cf; border-color: #4b3f43; }
+  .toolbar button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  .toolbar button.editing { color: #e8b0aa; border-color: var(--red); }
+
+  /* ---------- 闪光 ---------- */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: #fff6ee;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9;
+  }
+  .flash.fire { animation: flashfire .22s ease-out; }
+  @keyframes flashfire { 0% { opacity: 0; } 22% { opacity: .5; } 100% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .flash.fire { animation: none; } }
+
+  /* ---------- 打印:相纸摊在桌上 ---------- */
+  @media print {
+    body { background: #fff; color: #333; }
+    body::before, body::after, .topbar, .camera, .toolbar, .wall-sub, .flash { display: none; }
+    .darkroom { padding: 0; max-width: none; }
+    #intro { color: #666; }
+    .wall { gap: 10px; }
+    .polaroid { box-shadow: none; border: 1px solid #ddd; transform: none; }
+    .polaroid .acts { display: none; }
+    .wall-title { color: #333; }
+  }
+</style>
+</head>
+<body>
+<div class="darkroom">
+
+  <header class="topbar">
+    <span class="lamp" aria-hidden="true"></span>
+    <span>本卷 <b id="rollUsed">0</b>/12</span>
+    <span>今日 <b id="todayCount">0</b> 张</span>
+    <span>总计 <b id="totalCount">0</b> 张</span>
+    <span class="spacer"></span>
+    <button type="button" id="btnSound">快门声:开</button>
+    <button type="button" id="btnRoll">换卷</button>
+  </header>
+
+  <section class="camera">
+    <div class="finder">
+      <div class="cross" aria-hidden="true"></div>
+      <div class="focus" aria-hidden="true"></div>
+      <p class="hint" id="hint">今天拍到了什么？</p>
+      <span class="params">ISO 800 · f/8 · 1/125</span>
+      <span class="rolltag" id="rollTag">ROLL 01</span>
+    </div>
+    <div class="controls">
+      <input id="capInput" type="text" maxlength="24" placeholder="写一句话，留在相纸下面（最多 24 字，回车即拍）" aria-label="照片下的一句话">
+      <button class="shutter" id="shutter" type="button" aria-label="按快门"><span></span></button>
+    </div>
+  </section>
+
+  <section class="wall-wrap">
+    <h2 class="wall-title">显 影 墙</h2>
+    <p class="wall-sub" id="wallSub">照片按 <b>快门顺序</b> 排列 · 可拖动重排 · 悬停单张可下载或撕掉</p>
+
+    <article id="doc">
+      <p id="intro">这是一间暗房。你写下的每一句话都会变成一张拍立得：按快门，相纸滑出，然后在墙上慢慢显影——影像是程序按种子随机生成的，所以每张都不同，但重开页面时它们会一模一样地回来。照片墙可以拖动重排，也可以单张下载。下面这段文字和每张照片下的字，都能改。</p>
+      <div class="wall" id="wall"></div>
+    </article>
+
+    <div class="toolbar">
+      <button type="button" id="btnEdit">✎ 开启编辑</button>
+      <button type="button" id="btnRestore" title="恢复说明文字原稿（照片不受影响）">恢复原稿</button>
+      <button type="button" id="btnDownload">下载当前版</button>
+      <button type="button" id="btnPrint">打印 PDF</button>
+    </div>
+  </section>
+
+</div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (s) { return document.querySelector(s); };
+  var wall = $("#wall"), capInput = $("#capInput"), shutter = $("#shutter"),
+      hint = $("#hint"), flash = $("#flash"), rollTag = $("#rollTag"),
+      doc = $("#doc"), intro = $("#intro"),
+      btnEdit = $("#btnEdit"), btnRestore = $("#btnRestore"),
+      btnDownload = $("#btnDownload"), btnPrint = $("#btnPrint"),
+      btnSound = $("#btnSound"), btnRoll = $("#btnRoll");
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var KEY = "darkroom-polaroid-v1", KEY_EDITS = "darkroom-polaroid-edits-v1";
+  var ROLL_SIZE = 12;
+
+  /* ---------- 存档 ---------- */
+  function load(k, fb) {
+    try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; }
+    catch (e) { return fb; }
+  }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function dayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+
+  var S = load(KEY, {});
+  S.photos = S.photos || [];
+  S.roll = S.roll || 0;
+  S.rollNo = S.rollNo || 1;
+  S.mute = !!S.mute;
+  S.day = S.day || "";
+  S.today = S.today || 0;
+  if (S.day !== dayStr()) { S.day = dayStr(); S.today = 0; }
+  function persist() { save(KEY, S); }
+
+  /* ---------- 种子化随机:同一 seed 永远画出同一张照片 ---------- */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- 画一张「胶片记忆」 ---------- */
+  var PALETTES = [
+    ["#2b6b66", "#7fb0a4", "#e9e2d4"],   // 显影液冷调
+    ["#8f1d18", "#d98a6a", "#f2e6d6"],   // 安全灯暖调
+    ["#3a3632", "#9a9089", "#eee8dc"],   // 银盐灰阶
+    ["#1f4f6b", "#c9b27c", "#f4efe3"],   // 深蓝与旧金
+    ["#5a4a6b", "#b79ec2", "#f1ecf3"],   // 紫调
+    ["#2f5d3a", "#a8c686", "#f3f0e2"]    // 植物绿
+  ];
+  function drawMemory(cv, seed) {
+    var w = cv.width, h = cv.height;
+    var ctx = cv.getContext("2d");
+    var rnd = mulberry32(seed);
+    var pal = PALETTES[Math.floor(rnd() * PALETTES.length)];
+    var dark = rnd() > .5;
+    var bg = dark ? pal[0] : pal[2];
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    var shapes = 4 + Math.floor(rnd() * 4);
+    for (var i = 0; i < shapes; i++) {
+      var kind = Math.floor(rnd() * 6);
+      var c = pal[Math.floor(rnd() * pal.length)];
+      ctx.save();
+      ctx.globalAlpha = .45 + rnd() * .5;
+      if (kind === 0) {                        // 同心圆
+        var cx = rnd() * w, cy = rnd() * h, R = 40 + rnd() * 150;
+        for (var r = R; r > 8; r -= 12 + rnd() * 14) {
+          ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.strokeStyle = c; ctx.lineWidth = 1 + rnd() * 3; ctx.stroke();
+        }
+      } else if (kind === 1) {                 // 宽条纹
+        var n = 3 + Math.floor(rnd() * 4), bh = h / (n * 2);
+        for (var k = 0; k < n; k++) {
+          ctx.fillStyle = c;
+          ctx.fillRect(0, rnd() * h, w, bh * (.4 + rnd()));
+        }
+      } else if (kind === 2) {                 // 旋转色块
+        ctx.translate(rnd() * w, rnd() * h);
+        ctx.rotate((rnd() - .5) * 1.2);
+        ctx.fillStyle = c;
+        ctx.fillRect(-rnd() * 120, -rnd() * 120, 60 + rnd() * 190, 40 + rnd() * 160);
+      } else if (kind === 3) {                 // 点阵
+        var step = 14 + rnd() * 22;
+        ctx.fillStyle = c;
+        for (var x = 0; x < w; x += step) {
+          for (var y = 0; y < h; y += step) {
+            if (rnd() > .45) { ctx.beginPath(); ctx.arc(x, y, 1 + rnd() * 3.2, 0, Math.PI * 2); ctx.fill(); }
+          }
+        }
+      } else if (kind === 4) {                 // 弧线束
+        var ox = rnd() * w, oy = h + rnd() * 60;
+        for (var m = 0; m < 5 + rnd() * 7; m++) {
+          ctx.beginPath();
+          ctx.moveTo(ox, oy);
+          ctx.quadraticCurveTo(ox + (rnd() - .5) * 420, h * .35, ox + (rnd() - .5) * 260, -30);
+          ctx.strokeStyle = c; ctx.lineWidth = .6 + rnd() * 2.4; ctx.stroke();
+        }
+      } else {                                 // 斜向渐变带
+        ctx.translate(rnd() * w, rnd() * h);
+        ctx.rotate((rnd() - .5) * 1.6);
+        var g = ctx.createLinearGradient(0, 0, 240, 0);
+        g.addColorStop(0, c); g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fillRect(-120, -160, 360, 30 + rnd() * 140);
+      }
+      ctx.restore();
+    }
+
+    // 胶片颗粒
+    var grains = 900;
+    for (var gI = 0; gI < grains; gI++) {
+      ctx.fillStyle = "rgba(" + (rnd() > .5 ? "255,255,255," : "0,0,0,") + (rnd() * .07).toFixed(3) + ")";
+      ctx.fillRect(rnd() * w, rnd() * h, 1.4, 1.4);
+    }
+    // 暗角
+    var vg = ctx.createRadialGradient(w / 2, h / 2, w * .22, w / 2, h / 2, w * .78);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(0,0,0,.38)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  /* ---------- 快门声(WebAudio 合成,零素材) ---------- */
+  var actx = null;
+  function noiseBurst(dur, freq, q, vol) {
+    var len = Math.max(1, Math.floor(actx.sampleRate * dur));
+    var buf = actx.createBuffer(1, len, actx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random() * 2 - 1) * (1 - i / len); }
+    var src = actx.createBufferSource(); src.buffer = buf;
+    var bp = actx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
+    var g = actx.createGain(); g.gain.value = vol;
+    src.connect(bp).connect(g).connect(actx.destination);
+    src.start();
+  }
+  function click(at, freq, vol) {
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = "square"; o.frequency.setValueAtTime(freq, at);
+    g.gain.setValueAtTime(vol, at);
+    g.gain.exponentialRampToValueAtTime(0.0008, at + 0.03);
+    o.connect(g).connect(actx.destination);
+    o.start(at); o.stop(at + 0.04);
+  }
+  function shutterSound() {
+    if (S.mute) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      var t = actx.currentTime;
+      noiseBurst(0.035, 2600, 1.1, 0.18);      // 帘幕
+      click(t + 0.045, 1400, 0.12);            // 第一声
+      click(t + 0.105, 950, 0.10);             // 第二声
+      noiseBurst(0.16, 700, 0.7, 0.06);        // 走片
+    } catch (e) {}
+  }
+  function syncSound() { btnSound.textContent = S.mute ? "快门声:关" : "快门声:开"; }
+  btnSound.addEventListener("click", function () {
+    S.mute = !S.mute; persist(); syncSound();
+    if (!S.mute) shutterSound();
+  });
+
+  /* ---------- 照片卡 ---------- */
+  function makePhoto(p, animate) {
+    var fig = document.createElement("figure");
+    fig.className = "polaroid";
+    fig.dataset.seed = String(p.seed);
+    fig.draggable = true;
+    fig.tabIndex = 0;
+    var r = mulberry32(p.seed ^ 0x9e37);
+    fig.style.setProperty("--tilt", ((r() * 5 - 2.5)).toFixed(2) + "deg");
+
+    var no = document.createElement("span");
+    no.className = "no";
+    no.textContent = "NO." + String(p.idx).padStart(3, "0");
+
+    var cv = document.createElement("canvas");
+    cv.className = "photo";
+    cv.width = 560; cv.height = 560;
+    drawMemory(cv, p.seed);
+    if (animate && !reduced) {
+      cv.classList.add("developing");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { cv.classList.remove("developing"); });
+      });
+    }
+
+    var cap = document.createElement("figcaption");
+    cap.className = "caption";
+    cap.textContent = p.cap || "";
+    cap.contentEditable = "false";
+
+    var stripe = document.createElement("div");
+    stripe.className = "stripe";
+
+    var acts = document.createElement("div");
+    acts.className = "acts";
+    var bDown = document.createElement("button");
+    bDown.type = "button"; bDown.title = "下载这张"; bDown.textContent = "⬇";
+    bDown.addEventListener("click", function (e) { e.stopPropagation(); downloadOne(p, cv); });
+    var bDel = document.createElement("button");
+    bDel.type = "button"; bDel.title = "撕掉这张"; bDel.textContent = "✕";
+    bDel.addEventListener("click", function (e) {
+      e.stopPropagation();
+      S.photos = S.photos.filter(function (q) { return q.seed !== p.seed; });
+      persist();
+      fig.remove();
+      renderEmpty();
+      renderCounts();
+    });
+    acts.appendChild(bDown); acts.appendChild(bDel);
+
+    fig.appendChild(no);
+    fig.appendChild(acts);
+    fig.appendChild(cv);
+    fig.appendChild(cap);
+    fig.appendChild(stripe);
+
+    cap.addEventListener("input", function () {
+      clearTimeout(cap._t);
+      cap._t = setTimeout(function () {
+        var target = S.photos.filter(function (q) { return q.seed === p.seed; })[0];
+        if (target) { target.cap = cap.textContent.slice(0, 60); persist(); }
+        renderEmpty();
+      }, 500);
+    });
+    return fig;
+  }
+
+  function renderEmpty() {
+    var note = wall.querySelector(".empty-note");
+    if (!wall.querySelector(".polaroid")) {
+      if (!note) {
+        note = document.createElement("div");
+        note.className = "empty-note";
+        note.textContent = "墙面还空着 —— 先在取景框里写一句话，然后按快门。";
+        wall.appendChild(note);
+      }
+    } else if (note) { note.remove(); }
+  }
+  function renderCounts() {
+    $("#rollUsed").textContent = S.roll;
+    $("#todayCount").textContent = S.today;
+    $("#totalCount").textContent = S.photos.length;
+    rollTag.textContent = "ROLL " + String(S.rollNo).padStart(2, "0");
+    var full = S.roll >= ROLL_SIZE;
+    shutter.disabled = full;
+    if (full) { hint.textContent = "本卷拍完了 —— 点右上角「换卷」"; hint.classList.add("live"); }
+  }
+  function renderAll() {
+    wall.innerHTML = "";
+    S.photos.forEach(function (p) { wall.appendChild(makePhoto(p, false)); });
+    renderEmpty();
+    renderCounts();
+  }
+
+  /* ---------- 按快门 ---------- */
+  var HINTS = [
+    "今天拍到了什么？", "一句话，留住这一格", "此刻的光是什么颜色？",
+    "写下来，就显影", "别想太久，先按下去", "这一张，留给你自己"
+  ];
+  var hi = 0;
+  function rotateHint() {
+    if (S.roll >= ROLL_SIZE) return;
+    hi = (hi + 1) % HINTS.length;
+    hint.textContent = HINTS[hi];
+  }
+  capInput.addEventListener("input", function () {
+    if (capInput.value.trim()) { hint.textContent = capInput.value.trim(); hint.classList.add("live"); }
+    else { hint.textContent = HINTS[hi]; hint.classList.remove("live"); }
+  });
+
+  function shoot() {
+    if (S.roll >= ROLL_SIZE) return;
+    var cap = capInput.value.trim();
+    var seed = (Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0;
+    var idx = (S.photos.length ? Math.max.apply(null, S.photos.map(function (q) { return q.idx || 0; })) : 0) + 1;
+    var p = { seed: seed, cap: cap, idx: idx, ts: Date.now() };
+
+    var fig = makePhoto(p, true);
+    var note = wall.querySelector(".empty-note");
+    if (note) note.remove();
+
+    // 从取景框「吐」到墙上:插到最前(最新在左上)
+    fig.style.opacity = "0";
+    fig.style.transform = "translateY(-16px) scale(.94) rotate(0deg)";
+    wall.insertBefore(fig, wall.firstChild);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        fig.style.transition = "opacity .35s ease, transform .45s cubic-bezier(.2,.9,.3,1)";
+        fig.style.opacity = "";
+        fig.style.transform = "";
+        setTimeout(function () { fig.style.transition = ""; fig.style.transform = ""; }, 500);
+      });
+    });
+
+    S.photos.unshift(p);
+    S.roll += 1;
+    S.today += 1;
+    persist();
+    renderCounts();
+
+    flash.classList.remove("fire");
+    void flash.offsetWidth;
+    flash.classList.add("fire");
+    shutterSound();
+
+    capInput.value = "";
+    hint.classList.remove("live");
+    rotateHint();
+  }
+  shutter.addEventListener("click", shoot);
+  capInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); shoot(); } });
+
+  btnRoll.addEventListener("click", function () {
+    S.roll = 0; S.rollNo += 1; persist();
+    renderCounts();
+    hint.textContent = HINTS[hi];
+    hint.classList.remove("live");
+  });
+
+  /* ---------- 拖动重排 ---------- */
+  var dragEl = null;
+  wall.addEventListener("dragstart", function (e) {
+    var fig = e.target.closest ? e.target.closest(".polaroid") : null;
+    if (!fig) return;
+    dragEl = fig;
+    fig.classList.add("dragging");
+    if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", fig.dataset.seed); }
+  });
+  wall.addEventListener("dragend", function () {
+    if (dragEl) dragEl.classList.remove("dragging");
+    Array.prototype.forEach.call(wall.querySelectorAll(".drop-target"), function (n) { n.classList.remove("drop-target"); });
+    dragEl = null;
+    syncOrder();
+  });
+  wall.addEventListener("dragover", function (e) {
+    if (!dragEl) return;
+    e.preventDefault();
+    var over = e.target.closest ? e.target.closest(".polaroid") : null;
+    Array.prototype.forEach.call(wall.querySelectorAll(".drop-target"), function (n) { if (n !== over) n.classList.remove("drop-target"); });
+    if (over && over !== dragEl) over.classList.add("drop-target");
+  });
+  wall.addEventListener("drop", function (e) {
+    if (!dragEl) return;
+    e.preventDefault();
+    var over = e.target.closest ? e.target.closest(".polaroid") : null;
+    if (over && over !== dragEl) {
+      var kids = Array.prototype.slice.call(wall.children);
+      var from = kids.indexOf(dragEl), to = kids.indexOf(over);
+      if (from > -1 && to > -1) {
+        if (from < to) wall.insertBefore(dragEl, over.nextSibling);
+        else wall.insertBefore(dragEl, over);
+      }
+    }
+    Array.prototype.forEach.call(wall.querySelectorAll(".drop-target"), function (n) { n.classList.remove("drop-target"); });
+    syncOrder();
+  });
+  function syncOrder() {
+    var order = Array.prototype.map.call(wall.querySelectorAll(".polaroid"), function (n) { return n.dataset.seed; });
+    S.photos.sort(function (a, b) { return order.indexOf(String(a.seed)) - order.indexOf(String(b.seed)); });
+    persist();
+  }
+
+  /* ---------- 下载单张(白边 + 笔迹,canvas 合成) ---------- */
+  function downloadOne(p, cv) {
+    var W = 760, BORDER = 34, BOTTOM = 150;
+    var out = document.createElement("canvas");
+    out.width = W; out.height = W + BOTTOM;
+    var ctx = out.getContext("2d");
+    ctx.fillStyle = "#f7f4ee";
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(cv, BORDER, BORDER, W - BORDER * 2, W - BORDER * 2);
+    ctx.fillStyle = "#3a3632";
+    ctx.font = '30px "Kaiti SC","STKaiti",KaiTi,serif';
+    var text = (p.cap || "").trim() || "（无题）";
+    var maxW = W - BORDER * 2, line = "", lines = [];
+    for (var i = 0; i < text.length; i++) {
+      var test = line + text[i];
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = text[i]; }
+      else { line = test; }
+    }
+    if (line) lines.push(line);
+    var y = W + 56;
+    lines.slice(0, 2).forEach(function (ln) { ctx.fillText(ln, BORDER + 6, y); y += 40; });
+    ctx.font = '18px ui-monospace, "SF Mono", Menlo, monospace';
+    ctx.fillStyle = "#9a9089";
+    ctx.fillText("NO." + String(p.idx).padStart(3, "0"), BORDER + 6, W + 26);
+    var g = ctx.createLinearGradient(BORDER, 0, W - BORDER, 0);
+    ["#e8474b", "#f0a03c", "#f4d03f", "#3aa76d", "#3d7fd6"].forEach(function (c, k, arr) {
+      g.addColorStop(k / (arr.length - 1), c);
+    });
+    ctx.fillStyle = g;
+    ctx.fillRect(BORDER, out.height - BORDER - 6, W - BORDER * 2, 5);
+    var a = document.createElement("a");
+    a.href = out.toDataURL("image/png");
+    a.download = "polaroid-" + String(p.idx).padStart(3, "0") + ".png";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- 可编辑基线 ---------- */
+  var ORIGINAL_INTRO = intro.textContent;
+  var savedIntro = localStorage.getItem(KEY_EDITS);
+  if (savedIntro) { try { intro.textContent = JSON.parse(savedIntro); } catch (e) {} }
+
+  var editOn = false, introTimer = null;
+  btnEdit.addEventListener("click", function () {
+    editOn = !editOn;
+    intro.contentEditable = editOn ? "true" : "false";
+    btnEdit.textContent = editOn ? "✓ 完成编辑" : "✎ 开启编辑";
+    btnEdit.classList.toggle("editing", editOn);
+    Array.prototype.forEach.call(wall.querySelectorAll(".polaroid"), function (fig) {
+      fig.dataset.edit = editOn ? "on" : "off";
+      fig.draggable = !editOn;
+      var c = fig.querySelector(".caption");
+      if (c) c.contentEditable = editOn ? "true" : "false";
+    });
+    if (!editOn) btnEdit.blur();
+  });
+  intro.addEventListener("input", function () {
+    clearTimeout(introTimer);
+    introTimer = setTimeout(function () { save(KEY_EDITS, JSON.stringify(intro.textContent)); }, 500);
+  });
+  intro.addEventListener("focus", function () { if (!editOn) this.blur(); });
+  btnRestore.addEventListener("click", function () {
+    if (editOn) btnEdit.click();
+    intro.textContent = ORIGINAL_INTRO;
+    localStorage.removeItem(KEY_EDITS);
+  });
+  btnDownload.addEventListener("click", function () {
+    var clone = doc.cloneNode(true);
+    clone.removeAttribute("contenteditable");
+    // canvas 换成静态图,导出的 HTML 才能显示照片
+    var srcCvs = doc.querySelectorAll("canvas.photo");
+    var dstCvs = clone.querySelectorAll("canvas.photo");
+    for (var i = 0; i < dstCvs.length; i++) {
+      // 缩到 420px 再编码 JPEG:12 张照片的快照从 ~4.5MB 降到几百 KB
+      var small = document.createElement("canvas");
+      small.width = 420; small.height = 420;
+      small.getContext("2d").drawImage(srcCvs[i], 0, 0, 420, 420);
+      var img = document.createElement("img");
+      img.src = small.toDataURL("image/jpeg", 0.85);
+      img.alt = "";
+      img.style.cssText = "display:block;width:100%;aspect-ratio:1/1";
+      dstCvs[i].parentNode.replaceChild(img, dstCvs[i]);
+    }
+    Array.prototype.forEach.call(clone.querySelectorAll(".acts, .empty-note"), function (n) { n.remove(); });
+    var html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+      + "<title>暗房 · 显影墙快照</title><style>"
+      + "body{background:#141013;color:#9a9089;font-family:-apple-system,'PingFang SC',sans-serif;"
+      + "max-width:900px;margin:0 auto;padding:40px 24px;line-height:1.8}"
+      + "h2{font-family:'Kaiti SC','STKaiti',KaiTi,serif;letter-spacing:.32em;text-align:center;color:#b8ada6}"
+      + "#intro{font-size:13px;color:#7c736e}"
+      + ".wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:20px 18px}"
+      + ".polaroid{margin:0;background:#f7f4ee;padding:11px 11px 0;border-radius:2px;box-shadow:0 12px 26px rgba(0,0,0,.55);transform:rotate(var(--tilt,0deg))}"
+      + ".caption{font-family:'Kaiti SC','STKaiti',KaiTi,serif;color:#3a3632;padding:9px 4px 11px}"
+      + ".stripe{height:4px;margin:0 -11px;background:linear-gradient(90deg,#e8474b 0 20%,#f0a03c 20% 40%,#f4d03f 40% 60%,#3aa76d 60% 80%,#3d7fd6 80% 100%)}"
+      + ".no{display:block;font:10px ui-monospace,monospace;color:#9a9089;padding:6px 4px 0}</style></head><body>"
+      + clone.outerHTML + "</body></html>";
+    var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "暗房-显影墙快照.html";
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  });
+  btnPrint.addEventListener("click", function () { window.print(); });
+
+  /* ---------- 初始化 ---------- */
+  syncSound();
+  renderAll();
+})();
+</script>
+</body>
+</html>
