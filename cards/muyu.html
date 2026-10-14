@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>赛博木鱼 · 功德流水</title>
+<meta name="description" content="一尊可以敲的电子木鱼:功德计数、连击、抽签。压力越大,功德越厚。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+  :root {
+    --wood-deep: #17100a;   /* 深檀底:供桌之后的暗 */
+    --wood-desk: #241709;   /* 供桌木 */
+    --gold:      #d2a24c;   /* 金漆:木鱼口沿,全页唯一强调 */
+    --paper:     #efe5cf;   /* 签纸米白 */
+    --ink-soft:  #cbb389;   /* 淡金文字 */
+    --cinnabar:  #b0402c;   /* 朱砂:连击爆点专用 */
+    --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--wood-deep);
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  .hall {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 26px 22px 64px;
+    position: relative;
+  }
+
+  /* ---------- 小账本(顶部一行) ---------- */
+  .ledger {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    color: #8d7a55;
+    border-bottom: 1px solid #2c2013;
+    padding-bottom: 14px;
+  }
+  .ledger b { color: var(--ink-soft); font-weight: 600; }
+  .ledger .accent b { color: var(--gold); }
+
+  /* ---------- 功德大数 ---------- */
+  .merit {
+    text-align: center;
+    margin: 34px 0 6px;
+    font-family: var(--serif);
+  }
+  .merit .label {
+    font-size: 14px;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;  /* 抵消最后一字的间距,保持视觉居中 */
+    color: #8d7a55;
+  }
+  .merit .num {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 56px;
+    line-height: 1.15;
+    color: var(--gold);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 26px rgba(210,162,76,.22);
+    padding: 0 .2em;
+    vertical-align: baseline;
+  }
+  .merit .num.pop { animation: numpop .18s ease-out; }
+  @keyframes numpop { 40% { transform: scale(1.07); } }
+  .merit .combo {
+    display: inline-block;
+    margin-left: 14px;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: #8d7a55;
+    opacity: 0;
+    transition: opacity .15s;
+    vertical-align: 6px;
+  }
+  .merit .combo.on { opacity: 1; }
+  .merit .combo.hot { color: var(--cinnabar); }
+
+  /* ---------- 供桌与木鱼 ---------- */
+  .altar {
+    text-align: center;
+    position: relative;
+    padding: 4px 0 0;
+  }
+  .stage {
+    position: relative;
+    display: inline-block;
+    width: min(420px, 88vw);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .stage:focus-visible { outline: 2px solid var(--gold); outline-offset: 8px; border-radius: 8px; }
+  .stage svg { display: block; width: 100%; height: auto; }
+
+  #fish { transform-box: view-box; transform-origin: 165px 128px; }
+  #fish.squash { animation: squash .13s ease-out; }
+  @keyframes squash { 45% { transform: scale(1.025, .965); } }
+
+  #mallet { transform-box: view-box; transform-origin: 312px 22px; transform: rotate(-34deg); }
+  #mallet.whack { animation: whack .17s cubic-bezier(.3,0,.4,1); }
+  @keyframes whack { 55% { transform: rotate(10deg); } 100% { transform: rotate(-34deg); } }
+
+  /* 敲击飘字 */
+  .fly {
+    position: absolute;
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--gold);
+    pointer-events: none;
+    white-space: nowrap;
+    animation: flyup 1.3s ease-out forwards;
+    text-shadow: 0 0 14px rgba(210,162,76,.35);
+    z-index: 5;
+  }
+  .fly.hot { color: var(--cinnabar); text-shadow: 0 0 14px rgba(176,64,44,.45); }
+  @keyframes flyup {
+    0%   { transform: translateY(0) scale(.85); opacity: 0; }
+    12%  { opacity: 1; }
+    100% { transform: translateY(-110px) scale(1.12) rotate(var(--tilt, 0deg)); opacity: 0; }
+  }
+  .ripple {
+    position: absolute;
+    width: 14px; height: 14px;
+    margin: -7px 0 0 -7px;
+    border: 1.5px solid rgba(210,162,76,.55);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: rip .55s ease-out forwards;
+    z-index: 4;
+  }
+  @keyframes rip { 100% { transform: scale(7); opacity: 0; } }
+
+  .hint {
+    margin: 18px 0 0;
+    font-size: 12.5px;
+    color: #71603f;
+    letter-spacing: 0.08em;
+  }
+  .hint kbd {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid #3a2c1a;
+    border-radius: 4px;
+    padding: 0 5px;
+    color: #8d7a55;
+  }
+  .sound {
+    position: absolute;
+    top: 2px; right: 0;
+    background: none;
+    border: 1px solid #3a2c1a;
+    border-radius: 6px;
+    color: #8d7a55;
+    font-size: 12px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .sound:hover { color: var(--gold); border-color: #5a4526; }
+  .sound:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- 今日抽得 ---------- */
+  .drawn {
+    margin: 30px 0 0;
+    min-height: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .drawn:empty { display: none; }
+  .drawn .slip {
+    background: var(--paper);
+    color: #4a3a22;
+    font-family: var(--serif);
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 8px 12px;
+    max-width: 230px;
+    border-radius: 2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+    clip-path: polygon(0 3%, 3% 0, 97% 1%, 100% 4%, 99% 96%, 96% 100%, 4% 99%, 0 96%);
+    animation: slipdrop .5s cubic-bezier(.2,.8,.3,1);
+    position: relative;
+  }
+  .drawn .slip .no {
+    display: block;
+    font-size: 11px;
+    color: var(--cinnabar);
+    letter-spacing: .2em;
+    margin-bottom: 2px;
+  }
+  @keyframes slipdrop {
+    0% { transform: translateY(-26px) rotate(-3deg); opacity: 0; }
+    100% { transform: none; opacity: 1; }
+  }
+
+  /* ---------- 签文簿(可编辑) ---------- */
+  .book {
+    margin: 46px 0 0;
+    border-top: 1px solid #2c2013;
+    padding-top: 30px;
+  }
+  .book-title {
+    font-family: var(--serif);
+    color: var(--ink-soft);
+    font-size: 19px;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    text-align: center;
+    margin: 0 0 6px;
+  }
+  .book-sub {
+    text-align: center;
+    font-size: 12.5px;
+    color: #71603f;
+    margin: 0 0 26px;
+  }
+  #doc {
+    counter-reset: lot;
+  }
+  #doc .lots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 14px;
+  }
+  #doc .lot {
+    background: rgba(239,229,207,.055);
+    border: 1px solid #30241474;
+    border-radius: 3px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  #doc .lot::before {
+    counter-increment: lot;
+    content: "第" counter(lot, cjk-ideographic) "签";
+    display: block;
+    font-family: var(--serif);
+    font-size: 11.5px;
+    color: var(--cinnabar);
+    opacity: .85;
+    letter-spacing: .18em;
+    margin-bottom: 6px;
+  }
+  #doc .lot .verse {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 15.5px;
+    color: #ddc79b;
+    line-height: 1.7;
+  }
+  #doc .lot .note {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: #71603f;
+    line-height: 1.7;
+  }
+  #doc p.intro {
+    font-size: 13.5px;
+    color: #96824f;
+    margin: 0 0 22px;
+    padding: 0 6px;
+  }
+  #doc[contenteditable="true"] {
+    outline: 1px dashed rgba(210,162,76,.45);
+    outline-offset: 10px;
+    border-radius: 6px;
+  }
+  #doc[contenteditable="true"]:focus-visible { outline: 1.5px solid var(--gold); }
+
+  /* ---------- 工具栏 ---------- */
+  .toolbar {
+    margin-top: 26px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .toolbar button {
+    background: none;
+    border: 1px solid #3a2c1a;
+    border-radius: 6px;
+    color: #8d7a55;
+    font-size: 12.5px;
+    font-family: var(--sans);
+    padding: 5px 14px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { color: var(--gold); border-color: #5a4526; }
+  .toolbar button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .toolbar button.editing { color: var(--gold); border-color: var(--gold); }
+
+  /* ---------- 动效总开关(reduced motion) ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .fly, .ripple, .drawn .slip, #fish, #mallet, .merit .num { animation: none !important; }
+    .fly { display: none; }
+  }
+
+  /* ---------- 手机 ---------- */
+  @media (max-width: 640px) {
+    .hall { padding: 20px 14px 56px; }
+    .ledger { gap: 14px; font-size: 11.5px; flex-wrap: wrap; }
+    .merit .num { font-size: 42px; }
+    #doc .lots { grid-template-columns: 1fr 1fr; }
+    .sound { position: static; display: inline-block; margin-top: 10px; }
+    .altar .sound-row { text-align: right; }
+  }
+
+  /* ---------- 打印:纸面 ---------- */
+  @media print {
+    body { background: #fdfaf2; color: #2c2c2c; }
+    .ledger, .hint, .toolbar, .sound, .drawn, .merit { display: none; }
+    .hall { padding: 0; max-width: none; }
+    .book { border-top: 1px solid #ccc; margin-top: 8px; }
+    .book-title { color: #2c2c2c; }
+    .book-sub { color: #777; }
+    #doc .lot { border-color: #d8d2c4; background: #faf7ef; }
+    #doc .lot .verse { color: #333; }
+    #doc .lot .note { color: #666; }
+    #doc p.intro { color: #555; }
+  }
+</style>
+</head>
+<body>
+<div class="hall">
+
+  <div class="ledger">
+    <span>今日 <b id="lgToday">0</b></span>
+    <span>累计 <b id="lgTotal">0</b></span>
+    <span class="accent">最佳连击 <b id="lgBest">0</b></span>
+    <span>敲击 <b id="lgHits">0</b> 次</span>
+  </div>
+
+  <div class="merit">
+    <span class="label">功德</span><br>
+    <span class="num" id="num">0</span><span class="combo" id="combo">连击 ×2</span>
+  </div>
+
+  <main class="altar">
+    <div class="stage" id="stage" tabindex="0" role="button" aria-label="敲木鱼,积功德">
+      <svg viewBox="0 0 340 230" aria-hidden="true">
+        <defs>
+          <clipPath id="fishClip">
+            <path d="M62 112 C62 62 128 38 190 42 C252 46 288 82 288 116 C288 156 246 188 186 188 C122 188 62 162 62 112 Z"/>
+          </clipPath>
+          <filter id="grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.09" numOctaves="3" seed="7" result="n"/>
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.45  0 0 0 0 0.2  0 0 0 0.9 0"/>
+            <feComposite operator="in" in2="SourceGraphic"/>
+          </filter>
+        </defs>
+
+        <!-- 供桌上的软墩 -->
+        <ellipse cx="170" cy="196" rx="128" ry="20" fill="#26180b"/>
+        <ellipse cx="170" cy="192" rx="118" ry="17" fill="#301e0e"/>
+        <ellipse cx="170" cy="192" rx="118" ry="17" fill="none" stroke="#d2a24c" stroke-opacity=".28" stroke-width="1"/>
+
+        <!-- 木鱼本体 -->
+        <g id="fish">
+          <path d="M62 112 C62 62 128 38 190 42 C252 46 288 82 288 116 C288 156 246 188 186 188 C122 188 62 162 62 112 Z"
+                fill="#7a5326"/>
+          <path d="M62 112 C62 62 128 38 190 42 C252 46 288 82 288 116 C288 156 246 188 186 188 C122 188 62 162 62 112 Z"
+                filter="url(#grain)" fill="#7a5326" opacity=".7"/>
+          <!-- 上半高光(受供桌上方烛照) -->
+          <path d="M90 84 C118 58 178 46 226 52 C258 56 276 70 282 86 C246 70 200 62 158 66 C124 69 100 76 90 84 Z"
+                fill="#a5793c" opacity=".45"/>
+          <!-- 鱼口缝 -->
+          <rect x="146" y="96" width="52" height="30" rx="15" fill="#1d1207"/>
+          <rect x="146" y="96" width="52" height="30" rx="15" fill="none" stroke="#d2a24c" stroke-width="2.5"/>
+          <rect x="152" y="102" width="40" height="18" rx="9" fill="#000" opacity=".55"/>
+          <!-- 尾柄 -->
+          <path d="M284 100 L322 88 L322 140 L284 128 Z" fill="#6b481f"/>
+          <path d="M284 100 L322 88 L322 140 L284 128 Z" fill="none" stroke="#d2a24c" stroke-opacity=".5" stroke-width="1.5"/>
+          <!-- 底缘暗影 -->
+          <path d="M92 168 C130 186 210 188 250 172 C226 184 130 190 92 168 Z" fill="#000" opacity=".3"/>
+        </g>
+
+        <!-- 木槌 -->
+        <g id="mallet">
+          <rect x="305" y="18" width="10" height="86" rx="5" fill="#8d6a3a" transform="rotate(0)" stroke="#3a2a14" stroke-width="1"/>
+          <circle cx="310" cy="112" r="17" fill="#c9995a" stroke="#3a2a14" stroke-width="1.5"/>
+          <circle cx="306" cy="108" r="6" fill="#e2bb7f" opacity=".7"/>
+        </g>
+      </svg>
+    </div>
+    <p class="hint">敲一下,或者按 <kbd>空格</kbd> · 900ms 内连敲算连击,连击越快,功德越厚 · 每积 50 功德掉一支签</p>
+    <div class="sound-row"><button class="sound" id="soundBtn" type="button">声音:开</button></div>
+  </main>
+
+  <div class="drawn" id="drawn" aria-live="polite"></div>
+
+  <section class="book">
+    <h2 class="book-title">签 文 簿</h2>
+    <p class="book-sub">本簿可编辑 · 你的功德池,你做主</p>
+
+    <article id="doc">
+      <p class="intro">敲木鱼积的是功德,抽签解的是心事。下面十二支签,皆可点「✎ 开启编辑」改写——把签文换成只有你自己懂的话,功德才显得诚意十足。改完自动存在这台浏览器里。</p>
+      <div class="lots">
+        <div class="lot"><p class="verse">敲得一下,心静一寸。</p><p class="note">解曰:烦恼以敲计,不以想计。</p></div>
+        <div class="lot"><p class="verse">功德 +1,会议 -1。</p><p class="note">解曰:以彼之力,还施彼身。</p></div>
+        <div class="lot"><p class="verse">鱼不语,鱼只咚。</p><p class="note">解曰:话少的人,福气都在攒。</p></div>
+        <div class="lot"><p class="verse">手快有,手慢无。</p><p class="note">解曰:连击者,天助自助者。</p></div>
+        <div class="lot"><p class="verse">今日宜摸鱼,忌内耗。</p><p class="note">解曰:摸鱼养神,内耗伤身。</p></div>
+        <div class="lot"><p class="verse">Deadline 如浮云,敲散即散。</p><p class="note">解曰:散不了也别熬夜。</p></div>
+        <div class="lot"><p class="verse">心浮气躁时,先敲三下再回消息。</p><p class="note">解曰:冲动发出的字,都要加倍赎回。</p></div>
+        <div class="lot"><p class="verse">群消息已读不回,亦是修行。</p><p class="note">解曰:静默非冷漠,是省电。</p></div>
+        <div class="lot"><p class="verse">甲方的怒气,渡不了你的劫。</p><p class="note">解曰:各人造化,各人了。</p></div>
+        <div class="lot"><p class="verse">功德不问出处,只问手速。</p><p class="note">解曰:架子上的鱼,不挑敲它的人。</p></div>
+        <div class="lot"><p class="verse">一鱼多吃,一敲多福。</p><p class="note">解曰:好事可以复利。</p></div>
+        <div class="lot"><p class="verse">夜深了,敲完这下就睡。</p><p class="note">解曰:说到做到,功德翻倍。</p></div>
+      </div>
+    </article>
+
+    <div class="toolbar">
+      <button type="button" id="btnEdit">✎ 开启编辑</button>
+      <button type="button" id="btnRestore">恢复原稿</button>
+      <button type="button" id="btnDownload">下载当前版</button>
+      <button type="button" id="btnPrint">打印 PDF</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (s) { return document.querySelector(s); };
+  var stage = $("#stage"), numEl = $("#num"), comboEl = $("#combo"),
+      drawnEl = $("#drawn"), doc = $("#doc"),
+      btnEdit = $("#btnEdit"), btnRestore = $("#btnRestore"),
+      btnDownload = $("#btnDownload"), btnPrint = $("#btnPrint"),
+      soundBtn = $("#soundBtn");
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- 存档 ---------- */
+  var KEY_STATE = "muyu-v1", KEY_EDITS = "muyu-edits-v1";
+  function load(key, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+  function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+
+  var S = load(KEY_STATE, {});
+  S.total = S.total || 0;
+  S.hits = S.hits || 0;
+  S.best = S.best || 0;
+  S.day = S.day || "";
+  S.drawn = S.drawn || [];
+  S.mute = !!S.mute;
+  if (S.day !== todayStr()) { S.day = todayStr(); S.today = 0; S.drawn = []; }
+  S.today = S.today || 0;
+  save(KEY_STATE, S);
+
+  /* ---------- 声音(WebAudio 合成,零素材) ---------- */
+  var actx = null;
+  function tok() {
+    if (S.mute) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      var t = actx.currentTime;
+      var o1 = actx.createOscillator(), g1 = actx.createGain();
+      o1.type = "sine"; o1.frequency.setValueAtTime(880, t);
+      o1.frequency.exponentialRampToValueAtTime(320, t + 0.09);
+      g1.gain.setValueAtTime(0.16, t);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      o1.connect(g1).connect(actx.destination);
+      o1.start(t); o1.stop(t + 0.14);
+      var o2 = actx.createOscillator(), g2 = actx.createGain();
+      o2.type = "triangle"; o2.frequency.setValueAtTime(196, t);
+      g2.gain.setValueAtTime(0.09, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      o2.connect(g2).connect(actx.destination);
+      o2.start(t); o2.stop(t + 0.24);
+    } catch (e) {}
+  }
+  function syncSoundBtn() { soundBtn.textContent = S.mute ? "声音:关" : "声音:开"; }
+  soundBtn.addEventListener("click", function () {
+    S.mute = !S.mute; save(KEY_STATE, S); syncSoundBtn();
+    if (!S.mute) tok();
+  });
+  syncSoundBtn();
+
+  /* ---------- 敲击 ---------- */
+  var combo = 0, lastHit = 0, flying = 0;
+  var pool = []; // 签池:从可编辑簿里现读,尊重用户改写
+  function readPool() {
+    var verses = doc.querySelectorAll(".lot .verse");
+    pool = [];
+    for (var i = 0; i < verses.length; i++) {
+      pool.push(verses[i].textContent.trim());
+    }
+  }
+  readPool();
+
+  function spawnFloat(x, y, mult, hot) {
+    if (reduced || flying > 24) return;
+    flying++;
+    var el = document.createElement("span");
+    el.className = "fly" + (hot ? " hot" : "");
+    el.textContent = "功德 +" + mult;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.setProperty("--tilt", (Math.random() * 14 - 7).toFixed(1) + "deg");
+    stage.appendChild(el);
+    el.addEventListener("animationend", function () { el.remove(); flying--; });
+  }
+  function spawnRipple(x, y) {
+    if (reduced) return;
+    var el = document.createElement("span");
+    el.className = "ripple";
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    stage.appendChild(el);
+    el.addEventListener("animationend", function () { el.remove(); });
+  }
+  function retrigger(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function drawSign(count) {
+    readPool();
+    if (!pool.length) return;
+    var pick;
+    if (S.drawn.length < pool.length) {
+      do { pick = Math.floor(Math.random() * pool.length); } while (S.drawn.indexOf(pick) >= 0);
+      S.drawn.push(pick);
+    } else {
+      pick = Math.floor(Math.random() * pool.length);
+    }
+    var slip = document.createElement("div");
+    slip.className = "slip";
+    slip.innerHTML = '<span class="no">第' + toCjk(count) + '签</span>' + escapeHtml(pool[pick]);
+    drawnEl.insertBefore(slip, drawnEl.firstChild);
+    while (drawnEl.children.length > 8) drawnEl.removeChild(drawnEl.lastChild);
+  }
+  function toCjk(n) {
+    var c = "〇一二三四五六七八九";
+    if (n <= 10) return n === 10 ? "十" : c[n];
+    if (n < 100) return c[Math.floor(n / 10)] + "十" + (n % 10 ? c[n % 10] : "");
+    return String(n);
+  }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+
+  function renderLedger() {
+    $("#lgToday").textContent = S.today;
+    $("#lgTotal").textContent = S.total;
+    $("#lgBest").textContent = S.best;
+    $("#lgHits").textContent = S.hits;
+  }
+
+  function strike(px, py) {
+    var now = performance.now();
+    combo = (now - lastHit < 900) ? combo + 1 : 1;
+    lastHit = now;
+    if (combo > S.best) S.best = combo;
+
+    var mult = 1 + Math.floor(combo / 10);
+    var hot = combo >= 10;
+    S.total += mult;
+    S.today += mult;
+    S.hits += 1;
+
+    numEl.textContent = S.today;
+    retrigger(numEl, "pop");
+    if (combo >= 2) {
+      comboEl.textContent = hot ? ("连击 ×" + combo + " · 功德 ×" + mult) : ("连击 ×" + combo);
+      comboEl.classList.add("on");
+      comboEl.classList.toggle("hot", hot);
+    }
+
+    var r = stage.getBoundingClientRect();
+    var x = px != null ? px - r.left : r.width * 0.42;
+    var y = py != null ? py - r.top : r.height * 0.45;
+    if (reduced) { x = r.width * 0.42; y = r.height * 0.5; }
+    spawnFloat(x - 30 + Math.random() * 60, y - 30, mult, hot);
+    spawnRipple(x, y);
+    retrigger($("#fish"), "squash");
+    retrigger($("#mallet"), "whack");
+    tok();
+
+    while (Math.floor(S.today / 50) > S.drawn.length) {
+      drawSign(S.drawn.length + 1);
+    }
+    save(KEY_STATE, S);
+    renderLedger();
+  }
+
+  stage.addEventListener("pointerdown", function (e) {
+    if (e.button != null && e.button !== 0) return;
+    strike(e.clientX, e.clientY);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.code !== "Space") return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|BUTTON|SELECT)$/.test(t.tagName))) return;
+    e.preventDefault();
+    strike();
+  });
+  stage.addEventListener("click", function (e) { e.preventDefault(); }); // 防双计
+
+  /* ---------- 可编辑基线 ---------- */
+  var originalDoc = doc.innerHTML;
+  var edits = load(KEY_EDITS, null);
+  if (edits) { doc.innerHTML = edits; readPool(); }
+
+  var editOn = false, debounce = null;
+  btnEdit.addEventListener("click", function () {
+    editOn = !editOn;
+    doc.contentEditable = editOn ? "true" : "false";
+    btnEdit.textContent = editOn ? "✓ 完成编辑" : "✎ 开启编辑";
+    btnEdit.classList.toggle("editing", editOn);
+    if (!editOn) { readPool(); btnEdit.blur(); }
+  });
+  doc.addEventListener("input", function () {
+    clearTimeout(debounce);
+    debounce = setTimeout(function () {
+      save(KEY_EDITS, doc.innerHTML);
+      if (!editOn) readPool();
+    }, 500);
+  });
+  btnRestore.addEventListener("click", function () {
+    if (editOn) btnEdit.click();
+    doc.innerHTML = originalDoc;
+    save(KEY_EDITS, null);
+    localStorage.removeItem(KEY_EDITS);
+    readPool();
+  });
+  btnDownload.addEventListener("click", function () {
+    var clone = doc.cloneNode(true);
+    clone.removeAttribute("contenteditable");
+    var html = "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
+      + "<title>赛博木鱼 · 签文簿</title>"
+      + "<style>body{background:#fdfaf2;color:#4a3a22;font-family:'Noto Serif SC','Songti SC',serif;"
+      + "max-width:760px;margin:0 auto;padding:40px 24px;line-height:1.8}"
+      + ".lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}"
+      + ".lot{border:1px solid #d8d2c4;border-radius:3px;padding:14px 16px;background:#faf7ef}"
+      + ".verse{margin:0;font-size:15.5px}.note{margin:6px 0 0;font-size:12.5px;color:#777}"
+      + ".intro{color:#555}</style></head><body>" + clone.outerHTML + "</body></html>";
+    var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "赛博木鱼-签文簿.html";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  });
+  btnPrint.addEventListener("click", function () { window.print(); });
+
+  /* ---------- 初始化 ---------- */
+  numEl.textContent = S.today;
+  renderLedger();
+  if (S.drawn.length) {
+    readPool();
+    for (var i = 0; i < S.drawn.length && i < 8; i++) {
+      var p = S.drawn[i];
+      if (pool[p] == null) continue;
+      var slip = document.createElement("div");
+      slip.className = "slip";
+      slip.style.animation = "none";
+      slip.innerHTML = '<span class="no">第' + toCjk(i + 1) + '签</span>' + escapeHtml(pool[p]);
+      drawnEl.insertBefore(slip, drawnEl.firstChild);
+    }
+  }
+})();
+</script>
+</body>
+</html>
