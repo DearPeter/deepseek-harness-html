@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>阿里云 SASE × 智能体安全中心 ASC · 选型对比</title>
+  <title>阿里云 SASE × 智能体安全中心 ASC · 选型对比（逐条附证据）</title>
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="阿里云办公安全平台 SASE 与智能体安全中心（ASC）的功能、环境支持、使用范围与报价逐项对比。">
+  <meta name="description" content="阿里云办公安全平台 SASE 与智能体安全中心（ASC）的功能、环境支持、使用范围与报价逐项对比。每个关键论断均标注官方文档出处与原文，可展开核验。">
   <link rel="stylesheet" href="../assets/frame.css">
   <style>
     /* ============================================================
-       双域 · 智能体安全选型对照
+       双域 · 智能体安全选型对照 · 证据版
        取色自内容本身：两个产品各守一个"域"
-         SASE = 终端与网络边缘（冷青）
+         SASE = 终端与办公网边缘（冷青）
          ASC  = Agent 服务端运行时（琥珀）
-       唯一的大胆处 = 顶部那张"作用域切面图"
+       第三个中性色（紫）专门用于"证据/出处"
        ============================================================ */
     :root{
       --ink:#111420; --ink2:#161a27; --panel:#1c2130; --panel-hi:#232939;
@@ -22,6 +22,7 @@
       --sase:#5aaed6; --sase-deep:#1d4f68; --sase-bg:rgba(90,174,214,.09);
       --asc:#e0a05a;  --asc-deep:#6b4520;  --asc-bg:rgba(224,160,90,.09);
       --win:#4fc38b; --lose:#e06a6a; --mix:#b9a3e8;
+      --ev:#9d8fd0; --ev-bg:rgba(157,143,208,.09);
       --serif:"Noto Serif SC","Songti SC","STSongti-SC","STSong",serif;
       --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
       --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
@@ -63,7 +64,22 @@
       font:11.5px/2 var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 20px}
     .meta b{color:var(--dim);font-weight:500}
 
-    /* ---------- 切面图（唯一大胆处） ---------- */
+    /* ---------- 核查声明 ---------- */
+    .audit{margin:36px 0 0;border:1px solid var(--ev);border-left-width:3px;border-radius:8px;
+      background:var(--ev-bg);padding:20px 24px}
+    .audit h3{margin:0 0 10px;font-size:13.5px;color:var(--ev);letter-spacing:.04em;font-weight:700;
+      font-family:var(--mono)}
+    .audit p{margin:0 0 10px;font-size:13.5px;color:var(--dim);line-height:1.85}
+    .audit p:last-child{margin-bottom:0}
+    .audit b{color:var(--paper)}
+    .fixlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-top:14px}
+    .fix{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--dim);
+      background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:6px;padding:9px 12px;line-height:1.7}
+    .fix .k{font:600 10px/1.7 var(--mono);color:var(--lose);border:1px solid rgba(224,106,106,.35);
+      border-radius:3px;padding:0 6px;flex:none}
+    .fix .k.ok{color:var(--win);border-color:rgba(79,195,139,.35)}
+
+    /* ---------- 切面图 ---------- */
     .stage{margin:46px 0 0;border:1px solid var(--line);border-radius:10px;
       background:linear-gradient(180deg,#151a28,#111420);padding:26px 22px 20px;position:relative;overflow:hidden}
     .stage::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -75,7 +91,7 @@
     .stage-note b{color:var(--paper);font-weight:600}
 
     /* ---------- 结论卡 ---------- */
-    .verdict{margin:44px 0 0;display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--line);
+    .verdict{margin:44px 0 0;border:1px solid var(--line);
       border-radius:10px;overflow:hidden;background:var(--panel)}
     .verdict-row{display:grid;grid-template-columns:78px 1fr;border-bottom:1px solid var(--line-soft)}
     .verdict-row:last-child{border-bottom:none}
@@ -123,12 +139,6 @@
     .chip.n{border-color:rgba(224,106,106,.35);color:var(--lose)}
     .chip.y{border-color:rgba(79,195,139,.35);color:var(--win)}
     .chip.m{border-color:rgba(185,163,232,.35);color:var(--mix)}
-    .only{display:flex;flex-direction:column;gap:9px}
-    .only ul{margin:0;padding-left:18px}
-    .only li{margin-bottom:4px}
-    .only h4{margin:0 0 8px;font-size:13px;letter-spacing:.04em;font-weight:700}
-
-    /* 独占能力两栏 */
     .solo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .solo .card{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:20px 22px}
     .solo .card.sase{border-top:2px solid var(--sase)}
@@ -139,6 +149,24 @@
     .solo .tagline{font:11px/1.6 var(--mono);color:var(--muted);margin:0 0 14px}
     .solo ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--dim)}
     .solo li{margin-bottom:7px;line-height:1.7}
+
+    /* ---------- 证据层：可展开的原文 ---------- */
+    .ev{border:1px solid rgba(157,143,208,.28);border-radius:8px;background:var(--ev-bg);
+      padding:11px 14px;margin-top:10px}
+    .ev summary{cursor:pointer;font:600 11.5px/1.7 var(--mono);color:var(--ev);
+      list-style:none;display:flex;align-items:center;gap:7px}
+    .ev summary::-webkit-details-marker{display:none}
+    .ev summary::before{content:"▸";font-size:10px;transition:transform .18s ease}
+    .ev[open] summary::before{transform:rotate(90deg)}
+    .ev summary:hover{color:#c4b9ea}
+    .ev .q{margin:11px 0 0;padding:10px 13px;border-left:2px solid rgba(157,143,208,.45);
+      background:rgba(0,0,0,.22);font-size:12.5px;color:var(--dim);line-height:1.8;border-radius:0 5px 5px 0}
+    .ev .q i{color:var(--ev);font-style:normal;font-weight:600}
+    .ev .src{margin:9px 0 0;font-size:11.5px;color:var(--muted);line-height:1.7}
+    .ev .src a{color:var(--ev);text-decoration:none;border-bottom:1px solid rgba(157,143,208,.3)}
+    .ev .src a:hover{border-bottom-color:var(--ev)}
+    .ev .src .tid{font-family:var(--mono);font-size:10.5px;opacity:.75}
+    .ev .src .tid::before{content:" · "}
 
     /* ---------- 决策表 ---------- */
     .pick{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
@@ -156,7 +184,7 @@
     /* ---------- 报价体感条 ---------- */
     .cost{margin-top:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:20px 22px}
     .cost h4{margin:0 0 12px;font-size:13.5px;color:var(--dim);font-weight:600}
-    .bar-row{display:grid;grid-template-columns:118px 1fr 128px;gap:12px;align-items:center;margin-bottom:9px}
+    .bar-row{display:grid;grid-template-columns:130px 1fr 128px;gap:12px;align-items:center;margin-bottom:9px}
     .bar-row .lb{font-size:12.5px;color:var(--muted)}
     .bar-row .tr{height:26px;background:var(--ink2);border-radius:3px;overflow:hidden;position:relative}
     .bar-row .fl{height:100%;border-radius:3px}
@@ -170,6 +198,7 @@
     .foot li{margin-bottom:5px}
     .foot a{color:var(--sase);text-decoration:none;border-bottom:1px solid rgba(90,174,214,.3)}
     .foot a:hover{border-bottom-color:var(--sase)}
+    .foot .grp{margin-top:16px;font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--ev);margin-bottom:8px}
 
     /* ---------- 响应式 ---------- */
     @media (max-width:760px){
@@ -177,7 +206,8 @@
       .verdict-row{grid-template-columns:1fr}
       .verdict-row .k{border-right:none;border-bottom:1px solid var(--line-soft)}
       .bar .status{width:100%;margin-left:0;order:9}
-      .bar-row{grid-template-columns:88px 1fr 92px}
+      .bar-row{grid-template-columns:100px 1fr 92px}
+      .fixlist{grid-template-columns:1fr}
     }
     @media (max-width:640px){
       body{font-size:14.5px}
@@ -187,12 +217,12 @@
       .pick .who{border-left:none;border-top:1px solid var(--line-soft);justify-content:flex-start;padding:9px 16px}
     }
 
-    /* ---------- 打印：反转为纸面 ---------- */
+    /* ---------- 打印 ---------- */
     @media print{
       :root{--ink:#fff;--ink2:#fff;--panel:#fff;--panel-hi:#f2f4f8;--line:#c9ced9;--line-soft:#dfe3ea;
         --paper:#1b1f2b;--dim:#3a4152;--muted:#6b7385;--sase:#1c6f92;--asc:#a86a25;
         --sase-bg:rgba(28,111,146,.05);--asc-bg:rgba(168,106,37,.05);
-        --win:#1a7f37;--lose:#b3261e;--mix:#5b3fa8}
+        --win:#1a7f37;--lose:#b3261e;--mix:#5b3fa8;--ev:#5b3fa8;--ev-bg:rgba(91,63,168,.05)}
       body{background:#fff;background-image:none}
       .bar{display:none!important}
       .stage{background:#fff}
@@ -204,13 +234,16 @@
       h1 .a,.a{color:#1c6f92!important}
       h1 .b,.b{color:#a86a25!important}
       a{color:#1c6f92}
+      .ev{border-color:#c9ced9}
+      .ev .q{border-left-color:#b3b9c7}
+      details:not([open]) .ev .q{display:block}
     }
   </style>
 </head>
 <body>
 
   <div class="bar">
-    <span class="mark">SASE × ASC · 选型对照</span>
+    <span class="mark">SASE × ASC · 选型对照 · 证据版</span>
     <button class="btn" id="btn-edit">✎ 开启编辑</button>
     <button class="btn" id="btn-reset">恢复原稿</button>
     <button class="btn" id="btn-download">下载当前版</button>
@@ -223,7 +256,7 @@
 
     <!-- ==================== HERO ==================== -->
     <header class="hero">
-      <p class="kicker">阿里云 · 智能体安全 · 二选一</p>
+      <p class="kicker">阿里云 · 智能体安全 · 二选一 · 逐条附证据</p>
       <h1><span class="a">SASE</span><span class="vs">对</span><span class="b">ASC</span></h1>
       <p class="dek">两个产品都叫「Agent 安全」，保护的却不是同一批 Agent。<br>
         SASE 守的是<b>员工电脑上在用的 AI</b>，ASC 守的是<b>你自己上线运营的 Agent 应用</b>。</p>
@@ -231,9 +264,27 @@
         <span>产品一 · <b>办公安全平台 SASE</b></span>
         <span>产品二 · <b>智能体安全中心 ASC</b></span>
         <span>维度 · <b>环境 / 报价 / 功能细分</b></span>
-        <span>整理 · <b>2026-10-29</b></span>
+        <span>核查 · <b>全量官方文档复核 · 2026-10-29</b></span>
       </div>
     </header>
+
+    <!-- ==================== 核查声明 ==================== -->
+    <div class="audit">
+      <h3>▍本页内容的证据规则</h3>
+      <p>本页所有价格、规格、清单、时间点均取自<b>阿里云官方帮助文档与产品页</b>，每个关键论断下方可展开<b>官方原文摘录 + 文档链接</b>。凡官方文档未写明的，一律标注为「官方未公示」而非推测填空。</p>
+      <p>相比本卡片上一版（未经文档复核），复核后<b>修正了 9 处</b>，其中 2 处属于事实性错误：</p>
+      <div class="fixlist">
+        <div class="fix"><span class="k">修正</span><span><b>ASC 是 9 个能力模块，不是「八大」也不是含糊的「九大含混合项」</b>——官方能力矩阵明确列出 AI 安全护栏、运行时安全、数据安全、主机安全、身份安全、网络管控、配置检查、Skills 检测、AI Red Teaming 共 9 项。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>ASC 可装防御插件的平台是 OpenClaw 与 Hermes</b>，而 2026-09-11 扩展的 10 个 Agent 属「运行时防御范围升级」公告口径。两者是不同文档口径，上一版混为一谈。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>SASE 内网访问安全不止两版</b>——官方另有 <b>VPN 版</b>（员工 &lt; 100 人、带宽 ≤ 10 Mbps），上一版漏列。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>删除「Agent 办公安全 10 授权起售、每授权 2000 Credits」</b>——中文站计费文档该模块规格限制栏写的是「无」，无起售门槛表述；2000 是<b>每用户每月</b>的运维 Agent 配额，且国际站明确 Agent Office Security <b>最少 100 授权</b>。上一版把「每用户每月 2000 配额」误写成「每授权内置 2000 Credits」。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>删除「日志默认仅存近 7 天」的跨站推断</b>——7 天是国际站文档表述，中文站未写默认值；改为按两站分别标注。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>删除「国际站 Private Access 接入点」中国区名单混用</b>——国际站基础版接入点为北京/上海/深圳/新加坡/香港，与中文站的 6 个国内 POP 不同，已分列。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>SASE 终端 Agent 识别清单</b>按 2026-07-24 与 2026-09-30 两次发布动态分开列，去掉上一版无出处的条目。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>ASC 侧「Hermes 属 AI 办公类」有官方依据</b>（2026-09-11 变更公告原文分类），上一版分类归属不严谨。</span></div>
+        <div class="fix"><span class="k">修正</span><span><b>ASC 防御插件计费起算日</b>为 2026-08-25（此前安装者免费试用延至 2026-09-10），上一版未标注该时间边界。</span></div>
+      </div>
+    </div>
 
     <!-- ==================== 切面图 ==================== -->
     <div class="stage">
@@ -253,7 +304,6 @@
           </pattern>
         </defs>
 
-        <!-- 域底 -->
         <rect x="18" y="46" width="440" height="188" rx="7" fill="url(#gS)" stroke="#5aaed6" stroke-opacity=".55"/>
         <rect x="522" y="46" width="440" height="188" rx="7" fill="url(#gA)" stroke="#e0a05a" stroke-opacity=".55"/>
         <rect x="458" y="46" width="64" height="188" fill="url(#hatch)" stroke="#b9a3e8" stroke-opacity=".5"/>
@@ -263,21 +313,18 @@
         <text x="742" y="72" text-anchor="middle" fill="#e0a05a" font-size="15" font-family="var(--mono)" font-weight="700">ASC</text>
         <text x="742" y="90" text-anchor="middle" fill="#a8b2c4" font-size="11.5" font-family="var(--mono)">服务端域 · Agent 运行时</text>
 
-        <!-- 左侧内容 -->
         <text x="40" y="122" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">员工笔记本 / 无影云桌面</text>
-        <text x="40" y="146" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Cursor · Claude Code · Codex · Qoder</text>
+        <text x="40" y="146" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Claude Code · Codex · Qoder · Cursor</text>
         <text x="40" y="170" fill="#a8b2c4" font-size="12" font-family="var(--sans)">零信任内网 · 办公网准入</text>
         <text x="40" y="194" fill="#a8b2c4" font-size="12" font-family="var(--sans)">DLP 外发 · 水印 · 上网行为</text>
         <text x="40" y="218" fill="#a8b2c4" font-size="12" font-family="var(--sans)">终端防毒 · 运维 Agent</text>
 
-        <!-- 右侧内容 -->
         <text x="544" y="122" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Agent 进程 / K8s Pod / 云上服务</text>
         <text x="544" y="146" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Dify · 百炼 · PAI · AgentRun</text>
         <text x="544" y="170" fill="#a8b2c4" font-size="12" font-family="var(--sans)">RASP 运行时 · Agent-BOM</text>
         <text x="544" y="194" fill="#a8b2c4" font-size="12" font-family="var(--sans)">出站管控 · 防 SSRF · Skills 检测</text>
         <text x="544" y="218" fill="#a8b2c4" font-size="12" font-family="var(--sans)">AI Red Teaming · Agent-SPM</text>
 
-        <!-- 中间重叠 -->
         <text x="490" y="120" text-anchor="middle" fill="#b9a3e8" font-size="11" font-family="var(--mono)">重合</text>
         <text x="490" y="140" text-anchor="middle" fill="#b9a3e8" font-size="11" font-family="var(--mono)">区</text>
         <text x="490" y="166" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">提示词</text>
@@ -285,7 +332,6 @@
         <text x="490" y="198" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">会话</text>
         <text x="490" y="214" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">审计</text>
 
-        <!-- 标注线 -->
         <path d="M490,244 L490,262" stroke="#b9a3e8" stroke-opacity=".5" stroke-dasharray="3 3"/>
         <text x="490" y="278" text-anchor="middle" fill="#b9a3e8" font-size="10.5" font-family="var(--mono)">名单重合</text>
         <text x="238" y="278" text-anchor="middle" fill="#7d879b" font-size="10.5" font-family="var(--mono)">装在员工电脑上</text>
@@ -295,6 +341,10 @@
         <b>关键差异不在 Agent 名单，而在插件装在哪。</b>
         2026-09-11 起 ASC 也开始支持 Cursor、Claude Code、Trae 等「终端型」Agent 的运行时防护，与 SASE 的覆盖名单高度重合。
         但 ASC 的防御插件装在<b>服务端 Agent 进程</b>里做 RASP，SASE 的能力装在<b>员工电脑</b>上做终端管控。
+        <span style="display:block;margin-top:8px;font-size:11.5px">
+          证据：<a href="https://help.aliyun.com/zh/asc/product-overview/agent-defense-support-scope" target="_blank" rel="noopener" style="color:var(--ev)">ASC 防御范围升级公告</a> ·
+          <a href="https://help.aliyun.com/zh/sase/user-guide/ai-asset-management" target="_blank" rel="noopener" style="color:var(--ev)">SASE AI资产管理</a>
+        </span>
       </p>
     </div>
 
@@ -310,7 +360,7 @@
       </div>
       <div class="verdict-row">
         <div class="k">组合打法</div>
-        <div class="v">大企业常见配法：<b>SASE 管办公侧入口与员工行为，ASC 管业务侧自建 Agent 的供应链与运行时</b>；两者在「会话审计 + 提示词防护」上口径统一，告警可合并。</div>
+        <div class="v">SASE 管办公侧入口与员工行为，ASC 管业务侧自建 Agent 的供应链与运行时；两者在「会话审计 + 提示词防护」上能力口径接近。</div>
       </div>
       <div class="verdict-row">
         <div class="k">入口</div>
@@ -333,14 +383,21 @@
           </tr></thead>
           <tbody>
             <tr><td>防护位置</td><td class="c-sase"><strong>员工办公终端</strong>（PC / 无影云桌面）</td><td class="c-asc"><strong>服务器端 / 云上 / 容器</strong>（Agent 运行环境）</td></tr>
-            <tr><td>操作系统</td><td class="c-sase">Windows、macOS、无影云桌面<br><span class="chip n">互联网访问安全、终端防护仅这三类</span></td><td class="c-asc">Linux 服务器（OpenClaw 要求 Node.js ≥ 22）；容器工作负载</td></tr>
-            <tr><td>部署形态</td><td class="c-sase">员工装 <strong>One Agent 客户端</strong>（5.2.7+ 才支持 Agent 运行时防护）+ 边缘 POP 接入点</td><td class="c-asc">① AI 平台云端接入（自动同步）② 防御插件装在 Agent 服务器 ③ <code>ack-onepilot</code> 给 K8s Pod 注入探针</td></tr>
-            <tr><td>容器 / K8s</td><td class="c-sase"><span class="chip n">不支持</span></td><td class="c-asc">自建 K8s、火山云、腾讯云等三方容器集群（K8s ≥ 1.18），按 Label 自动注入，支持 Node.js / Python</td></tr>
-            <tr><td>网络位置</td><td class="c-sase">员工在办公网 / 远程 / 全球办公</td><td class="c-asc">阿里云 VPC、公网、私网、跨云（火山引擎、腾讯云）</td></tr>
-            <tr><td>数据存储</td><td class="c-sase">终端本地 + SASE 云端控制台</td><td class="c-asc">Agent 所在服务器 / 云上数据面 + ASC 控制台（中国内地 / 非中国内地双区域）</td></tr>
+            <tr><td>操作系统</td><td class="c-sase">Windows、macOS、无影云桌面<br><span class="chip n">互联网访问安全、终端防护仅这三类</span></td><td class="c-asc">Linux 服务器（OpenClaw 要求 Node.js ≥ 22）；容器工作负载支持 Node.js / Python</td></tr>
+            <tr><td>部署形态</td><td class="c-sase">员工装 <strong>SASE App</strong>（One Server / One Agent 架构）+ SaaS 接入点或自建接入点</td><td class="c-asc">① AI 平台云端接入（自动同步）② 防御插件装在 Agent 服务器 ③ <code>ack-onepilot</code> 给 K8s Pod 注入探针</td></tr>
+            <tr><td>容器 / K8s</td><td class="c-sase"><span class="chip n">不支持</span></td><td class="c-asc">自建 K8s、火山云、腾讯云等三方容器集群（K8s ≥ 1.18），按 Label 自动注入探针</td></tr>
+            <tr><td>网络位置</td><td class="c-sase">员工在办公网 / 远程 / 全球办公；SaaS 接入点 + 自建接入点</td><td class="c-asc">阿里云 VPC、公网、私网、跨云（火山引擎、腾讯云）；数据面分<b>中国内地 / 非中国内地</b>两区</td></tr>
+            <tr><td>数据存储</td><td class="c-sase">终端本地 + SASE 云端控制台</td><td class="c-asc">Agent 所在服务器 / 云上数据面 + ASC 控制台</td></tr>
           </tbody>
         </table>
       </div>
+
+      <details class="ev">
+        <summary>展开证据 · 部署环境</summary>
+        <p class="q"><i>SASE：</i>「办公安全平台SASE 是阿里云为企业用户提供的一体化办公安全管控平台。SASE基于阿里云分布全球海量的边缘节点与专线接入网络，零信任理念，将安全能力下沉至边缘……提供即开即用的服务：零信任办公访问、办公网准入、办公数据保护、办公反入侵、Agent办公安全、IT桌管及运维Agent。」<br>
+        <i>SASE 客户端：</i>「运维Agent功能为办公终端提供 AI 智能助手……目标终端设备已安装 SASE 客户端（5.2.0及以上版本）。」</p>
+        <p class="src">来源：<a href="https://www.aliyun.com/product/sase" target="_blank" rel="noopener">SASE 产品页</a><span class="tid">产品简介段</span> · <a href="https://help.aliyun.com/zh/sase/user-guide/sase-agent-management" target="_blank" rel="noopener">SASE 运维Agent</a><span class="tid">前提条件</span> · <a href="https://help.aliyun.com/zh/asc/user-guide/agent-real-time-defense" target="_blank" rel="noopener">ASC 安装防御插件</a><span class="tid">警告：服务器必须已安装 OpenClaw 且 Node.js 版本 ≥ 22</span> · <a href="https://help.aliyun.com/zh/asc/use-cases/smart-protection-container-cluster-application" target="_blank" rel="noopener">ASC 实时防护容器应用</a><span class="tid">适用范围：Kubernetes 集群版本为 1.18 或以上；支持自建 K8s、火山云和腾讯云</span> · <a href="https://help.aliyun.com/zh/asc/product-overview/billing-overview" target="_blank" rel="noopener">ASC 计费说明</a><span class="tid">退订入口：选择区域 中国内地 / 非中国内地</span></p>
+      </details>
 
       <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">1.2 支持的 Agent 平台清单</h3>
       <div class="tblwrap">
@@ -351,14 +408,24 @@
             <th class="asc-h">ASC<span class="sub">服务端接入与防护</span></th>
           </tr></thead>
           <tbody>
-            <tr><td>AI 开发平台</td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>Dify</strong>（公网 / VPC，Endpoint + 账密）、<strong>阿里云百炼</strong>（RAM 角色，每工作空间单独配）、<strong>PAI</strong>、<strong>AgentRun</strong>（STS 角色，每日自动同步）、<strong>火山引擎 AgentKit</strong>（多云 AK）</td></tr>
-            <tr><td>可装防御插件的运行时</td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>OpenClaw</strong>、<strong>Hermes</strong>（官方文档明确仅这两类支持「安装防御插件」的完整流程）</td></tr>
-            <tr><td>运行时防御覆盖范围<br><span style="font-weight:400;font-size:11px">2026-09-11 升级</span></td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>Qoder、QoderWork、Claude Code、Codex、Cursor、Trae</strong>（Coding 类）<br><strong>OpenClaw、Hermes、QwenPaw、Workbuddy</strong>（AI 办公 / 助手类）</td></tr>
-            <tr><td>终端 Agent 识别清单<br><span style="font-weight:400;font-size:11px">2026-07 / 09 更新</span></td><td class="c-sase"><strong>Claude Code、OpenClaw、OpenCode、Cursor Agent、Qoder、Qoder CN、Codex、悟空、Marvis、WPS CoMate</strong><br>运行时另覆盖 <strong>Qoder Agent SDK、Claude Agent SDK、Workbuddy</strong></td><td class="c-asc"><span class="chip n">—</span></td></tr>
-            <tr><td>资产分类维度</td><td class="c-sase"><strong>AI Agents / LLMs / Tools / Skills</strong> 四类终端资产</td><td class="c-asc"><strong>AI Agent、模型服务、数据集、应用配置、技能 Skill</strong>；另产出 <strong>Agent-BOM</strong> 物料清单</td></tr>
+            <tr><td>AI 开发平台<br><span style="font-weight:400;font-size:11px">资产接入</span></td><td class="c-sase"><span class="chip n">官方文档未列</span></td><td class="c-asc"><strong>Dify</strong>（公网 / 专有网络，Endpoint + 账密）、<strong>阿里云百炼</strong>（RAM 角色 <code>AliyunServiceRoleForSasCspm</code>，每工作空间单独配置）、<strong>阿里云 PAI</strong>（STS 角色，每日自动同步）、<strong>阿里云 AgentRun</strong>（STS 角色，每日自动同步）、<strong>火山引擎 AgentKit</strong>（多云 AK 授权）</td></tr>
+            <tr><td>可装防御插件的运行时<br><span style="font-weight:400;font-size:11px">插件安装流程</span></td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>OpenClaw</strong>（系统自动安装 / 手动安装）、<strong>Hermes</strong>——官方《安装防御插件》文档「适用范围」明确只列这两类</td></tr>
+            <tr><td>运行时防御覆盖范围<br><span style="font-weight:400;font-size:11px">2026-09-11 公告</span></td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>Coding / 开发类：</strong>Qoder、QoderWork、Claude Code、Codex、Cursor、Trae<br><strong>AI 办公 / 通用类：</strong>OpenClaw、Hermes、QwenPaw、Workbuddy<br>（共 10 个，官方公告原文清单）</td></tr>
+            <tr><td>终端 Agent 识别清单<br><span style="font-weight:400;font-size:11px">按发布动态</span></td><td class="c-sase"><strong>2026-07-24 新增：</strong>Cursor Agent、Qoder、Qoder CN、Codex、悟空、Marvis、WPS CoMate<br><strong>2026-09-30 扩展：</strong>Qoder Agent SDK、Claude Agent SDK、Workbuddy<br><strong>文档举例：</strong>Claude Code、OpenClaw、OpenCode</td><td class="c-asc"><span class="chip n">—</span></td></tr>
+            <tr><td>资产分类维度</td><td class="c-sase"><strong>AI Agents / LLMs / Tools / Skills</strong> 四类终端资产（国际站口径含 MCP）</td><td class="c-asc"><strong>AI Agent、模型服务、数据集、应用配置、技能 Skill</strong>；另产出 <strong>Agent-BOM</strong> 物料清单</td></tr>
           </tbody>
         </table>
       </div>
+
+      <details class="ev">
+        <summary>展开证据 · Agent 平台清单</summary>
+        <p class="q"><i>ASC 支持的 Agent 平台：</i>「Dify｜支持公网和私网，通过 Endpoint 及账密接入。／阿里云百炼｜在百炼业务空间内配置 RAM 角色，每个业务空间需单独配置。／阿里云 PAI｜STS 角色服务授权接入。／阿里云 AgentRun｜STS 角色服务授权接入。／火山引擎 AgentKit｜多云 AK 授权接入。／OpenClaw｜额外支持漏洞扫描、配置风险检测和 Skills 深度检测，通过云安全中心客户端自动接入，无需额外部署。」<br><br>
+        <i>ASC 防御插件适用范围：</i>「支持的平台：OpenClaw、Hermes。」<br><br>
+        <i>ASC 防御范围升级（北京时间 2026 年 9 月 11 日）：</i>「Coding / 开发类：Qoder, QoderWork, Claude Code, Codex, Cursor, Trae／AI 办公 / 通用类：OpenClaw, Hermes, QwenPaw, Workbuddy」<br><br>
+        <i>SASE Agent 识别新增（2026-07-24）：</i>「Agent识别新增Cursor Agent、Qoder、Qoder CN、Codex、悟空、Marvis、wps comate」／<i>（2026-09-30）</i>「Agent运行时防护增加覆盖Qoder Agent SDK、Claude Agent SDK等，支持skill检测，支持将Workbuddy after_tool_call的输出替换为阻断文案」<br><br>
+        <i>SASE 前提条件：</i>「目标终端设备已安装 Agent 客户端，如 claude code、openclaw、opencode 等。」</p>
+        <p class="src">来源：<a href="https://help.aliyun.com/zh/asc/product-overview/what-is-the-agent-security-center" target="_blank" rel="noopener">ASC 什么是智能体安全中心</a><span class="tid">支持的 Agent 平台表</span> · <a href="https://help.aliyun.com/zh/asc/user-guide/access-agent-security-center" target="_blank" rel="noopener">ASC 接入Agent安全中心</a><span class="tid">适用范围与平台接入表</span> · <a href="https://help.aliyun.com/zh/asc/user-guide/agent-real-time-defense" target="_blank" rel="noopener">ASC 安装防御插件</a><span class="tid">适用范围</span> · <a href="https://help.aliyun.com/zh/asc/product-overview/agent-defense-support-scope" target="_blank" rel="noopener">ASC 防御范围升级</a><span class="tid">变更内容</span> · <a href="https://help.aliyun.com/zh/sase/product-overview/product-feature-updates-for-july-2026" target="_blank" rel="noopener">SASE 2026年7月产品功能动态</a> · <a href="https://help.aliyun.com/zh/sase/product-overview/august-september-2026-product-function-dynamics" target="_blank" rel="noopener">SASE 2026年8-9月产品功能动态</a> · <a href="https://help.aliyun.com/zh/sase/use-cases/agent-management-best-practices" target="_blank" rel="noopener">SASE Agent 管理最佳实践</a></p>
+      </details>
     </section>
 
     <!-- ==================== 2 报价 ==================== -->
@@ -366,28 +433,44 @@
       <div class="sec-head"><span class="sec-num">§ 02</span><h2>企业使用范围与报价</h2></div>
       <p class="sec-sub">一个预付费按人，一个后付费按量——预算确定性是这个选择里最实际的差别。</p>
 
-      <h3 style="font-family:var(--serif);font-size:16px;margin:26px 0 12px;color:var(--dim)">2.1 SASE：按授权数预付费，模块化拼装</h3>
+      <h3 style="font-family:var(--serif);font-size:16px;margin:26px 0 12px;color:var(--dim)">2.1 SASE：按授权数预付费，模块化拼装<span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400"> · 中文站口径</span></h3>
       <div class="tblwrap">
         <table>
           <thead><tr>
             <th class="dim-h">计费项</th>
             <th class="sase-h">单价<span class="sub">人民币</span></th>
-            <th class="asc-h">起售 / 门槛<span class="sub">与说明</span></th>
+            <th class="asc-h">规格限制 / 起售<span class="sub">与说明</span></th>
           </tr></thead>
           <tbody>
-            <tr><td>内网访问安全 Private Access 基础版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>100~500 人</strong>；基础功能必买；5 VPC + 5 连接器；接入点杭州/北京/上海/深圳/成都/乌兰察布</td></tr>
-            <tr><td>Private Access 高级版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>&gt; 500 人</strong>；增加办公网准入（EAP-TLS）、全球化办公；10 VPC + 10 连接器；接入点扩至硅谷/弗吉尼亚/法兰克福/新加坡/东京/香港/迪拜/韩国等</td></tr>
+            <tr><td>内网访问安全 Private Access 基础版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>100~500 人</strong>；<strong>基础功能，必须购买</strong>；5 VPC + 5 连接器；接入点杭州/北京/上海/深圳/成都/乌兰察布</td></tr>
+            <tr><td>Private Access 高级版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>&gt; 500 人</strong>；增加办公网准入（EAP-TLS）、全球化办公；10 VPC + 10 连接器；接入点扩至硅谷/弗吉尼亚/法兰克福/新加坡/东京/中国香港/迪拜/韩国</td></tr>
+            <tr><td>内网访问安全 VPN 版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">适用员工 <strong>&lt; 100 人</strong>、办公带宽 <strong>≤ 10 Mbps</strong> 的企业（中文站《什么是办公安全平台》版本介绍）</td></tr>
             <tr><td>互联网访问安全 — 上网行为管理</td><td class="c-sase"><span class="price">12.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；仅 Windows / macOS / 无影云桌面</td></tr>
             <tr><td>互联网访问安全 — 办公数据保护</td><td class="c-sase"><span class="price">39.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；敏感文件检测 + 外设管控 + 水印</td></tr>
-            <tr><td>终端防护（防病毒版）</td><td class="c-sase"><span class="price">9.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；同上</td></tr>
-            <tr><td><strong>Agent 办公安全</strong></td><td class="c-sase"><span class="price">以购买页为准</span><br><em style="font-size:11.5px;color:var(--muted)">授权数 + Credits + 时长</em></td><td class="c-asc"><strong>10 授权起售</strong>；每授权内置 <strong>2000 SASE 智能助手 Credits</strong>，超额另购安全 Credits 资源包</td></tr>
-            <tr><td>文件存储服务</td><td class="c-sase"><span class="price">300<em> 元/月/TB</em></span></td><td class="c-asc">1 TB 起；保存命中敏感策略 &gt; 30 天的源文件</td></tr>
-            <tr><td>日志存储服务</td><td class="c-sase"><span class="price">2.55<em> 元/月/GB</em></span></td><td class="c-asc">500 GB 起；默认仅存近 7 天日志，等保需单独购</td></tr>
-            <tr><td>购买时长</td><td class="c-sase"><strong>仅预付费</strong></td><td class="c-asc">1~6 个月 / 1 年 / 2 年 / 3 年；支持到期自动续费</td></tr>
-            <tr><td>国际站对照价</td><td class="c-sase" colspan="2">办公数据保护 4.5 USD/月/授权；终端防护 2 USD/月/授权；文件存储 75 USD/月/TB；日志 0.08 USD/月/GB</td></tr>
+            <tr><td>终端防护（防病毒版）</td><td class="c-sase"><span class="price">9.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；仅 Windows / macOS / 无影云桌面</td></tr>
+            <tr><td><strong>Agent 办公安全</strong></td><td class="c-sase"><span class="price">以购买页为准</span><br><em style="font-size:11.5px;color:var(--muted)">按授权数 + Credits 数 + 时长计费</em></td><td class="c-asc">中文站规格限制栏写「<strong>无</strong>」；国际站明确「License Count 最少 100 授权」且仅支持 Windows / macOS 终端<br><span class="chip y">运维 Agent：每用户默认每月 2000 配额</span></td></tr>
+            <tr><td>文件存储服务</td><td class="c-sase"><span class="price">300<em> 元/月/TB</em></span></td><td class="c-asc">最小 1 TB；保存命中敏感策略 &gt; 30 天的文件信息</td></tr>
+            <tr><td>日志存储服务</td><td class="c-sase"><span class="price">2.55<em> 元/月/GB</em></span></td><td class="c-asc">最小 500 GB；国际站称默认保留 7 天，延长保留或满足合规需另购</td></tr>
+            <tr><td>购买时长</td><td class="c-sase"><strong>仅预付费</strong></td><td class="c-asc">1~6 个月 / 1 年 / 2 年 / 3 年；支持自动续费</td></tr>
+            <tr><td>到期与续费</td><td class="c-sase">到期前 7 天提醒；到期后 7 天宽限期内配置与数据保留；<strong>超 7 天永久删除配置与数据</strong></td><td class="c-asc">国际站口径；降级不可逆且不退款</td></tr>
+            <tr><td>退款</td><td class="c-sase"><strong>5 天内无条件退款</strong>，逾期不受理</td><td class="c-asc">国际站口径</td></tr>
+            <tr><td>免费试用</td><td class="c-sase">7 天试用，每账号最多 100 个客户端授权，提交后 5 个工作日内审批</td><td class="c-asc">—</td></tr>
           </tbody>
         </table>
       </div>
+
+      <details class="ev">
+        <summary>展开证据 · SASE 计费</summary>
+        <p class="q"><i>计费方式：</i>「目前只支持包年包月版（预付费）方式付费。」<br>
+        <i>计费项价格：</i>「上网行为管理：12.9 元/月/授权数。／办公数据保护：39.9 元/月/授权数。／终端防护……9.9 元/月/授权数，100个起售。／文件存储服务……费用为：300 元/月/TB，支持的最小的存储容量为 1 TB。／日志存储服务……费用为：2.55 元/月/GB，支持的最小存储容量为 500 GB。」<br>
+        <i>Private Access 基础版规格：</i>「企业员工处于100~500人之间／支持打通5个VPC、配置5个连接器／接入点：杭州、北京、上海、深圳、成都、乌兰察布。」<br>
+        <i>高级版规格：</i>「企业员工大于500人／支持打通10个VPC、配置10个连接器／接入点：杭州、北京、上海、深圳、成都、硅谷、弗吉尼亚、法兰克福、新加坡、东京、中国香港、迪拜、韩国。」<br>
+        <i>Agent 办公安全：</i>「按购买的授权数、Credits数和时长计费，具体价格以购买页为准。」规格限制栏：「无」<br>
+        <i>VPN 版：</i>「适用企业员工人数小于100，办公带宽不超过10 Mbps的企业。」<br>
+        <i>免费试用：</i>「免费试用时长为7天。每个阿里云账号最多支持100个客户端授权。」<br>
+        <i>退款：</i>「SASE offers an unconditional refund within 5 days of purchase. After this period, refunds are not available.」</p>
+        <p class="src">来源：<a href="https://help.aliyun.com/zh/sase/product-overview/billing-overview" target="_blank" rel="noopener">SASE 办公安全平台计费概述</a><span class="tid">计费模块 / 计费说明</span> · <a href="https://help.aliyun.com/zh/sase/product-overview/what-is-sase" target="_blank" rel="noopener">SASE 什么是办公安全平台</a><span class="tid">版本介绍</span> · <a href="https://help.aliyun.com/zh/sase/product-overview/apply-for-free-trial" target="_blank" rel="noopener">SASE 申请免费试用</span> · <a href="https://www.alibabacloud.com/help/en/sase/product-overview/billing-overview" target="_blank" rel="noopener">SASE Billing overview（国际站）</a><span class="tid">Refund policy / Overdue payments / Agent Office Security 最少 100 授权</span></p>
+      </details>
 
       <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">2.2 ASC：全按量后付费，T+1 出账</h3>
       <div class="tblwrap">
@@ -398,15 +481,28 @@
             <th class="sase-h">计量逻辑</th>
           </tr></thead>
           <tbody>
-            <tr><td>Skills 检测</td><td class="c-asc"><span class="price">¥10<em> / 次</em></span></td><td class="c-sase">按<strong>文件数</strong>计；单次调用传 10 个文件 = 10 次；任务成功才计费</td></tr>
-            <tr><td>Agent 风险检测</td><td class="c-asc"><span class="price free">公测期间免费</span></td><td class="c-sase">定时自动检测 + 手动检测限时免费</td></tr>
-            <tr><td>Agent 实时防御（防御插件）</td><td class="c-asc"><span class="price">席位 0.42<em> 元/席/小时</em></span><br><span class="price">+ 超量 0.015<em> 元/Credit</em></span></td><td class="c-sase">不足 1 小时按 1 小时；每席每日赠 300 Credits；单席 8 小时/日 ≈ 3.36 元/日</td></tr>
-            <tr><td>AI Red Teaming</td><td class="c-asc"><span class="price">¥1,000<em> / 次</em></span></td><td class="c-sase">按实际执行次数累计；官方已发布「停止公测」变更</td></tr>
-            <tr><td>Agent 审计日志</td><td class="c-asc"><span class="price">¥2<em> / TB·小时</em></span></td><td class="c-sase">每小时归档统计存储量，不足 1TB 按 1TB；3TB 稳定存储 = 24×3×2 = 144 元/日</td></tr>
-            <tr><td>欠费与释放</td><td class="c-asc">欠费停机保留 <strong>15 天</strong>（可叠加延停服务）→ 释放；Skills / 红队数据释放后保留 30 天，审计日志 T+3 删除</td><td class="c-sase">主动退订无保留期，即时释放</td></tr>
+            <tr><td>Skills 检测</td><td class="c-asc"><span class="price">¥10<em> / 次</em></span></td><td class="c-sase">按<strong>文件数量</strong>计费，每检测 1 个 Skill 文件计为 1 次；单次调用传 10 个文件 = 10 次；仅任务成功完成时产生费用</td></tr>
+            <tr><td>Agent 风险检测</td><td class="c-asc"><span class="price free">公测期间免费</span></td><td class="c-sase">系统定时自动检测和手动检测功能限时免费</td></tr>
+            <tr><td>Agent 实时防御（防御插件）</td><td class="c-asc"><span class="price">席位 0.42<em> 元/席/小时</em></span><br><span class="price">+ 超量 0.015<em> 元/Credit</em></span></td><td class="c-sase">不足 1 小时按 1 小时；每席每日赠送 300 免费 Credits；单席每日 8 小时 ≈ 3.36 元/日</td></tr>
+            <tr><td>AI Red Teaming</td><td class="c-asc"><span class="price">¥1,000<em> / 次</em></span></td><td class="c-sase">按扫描次数收费，同一对象多次检测按实际执行次数累计；仅任务成功完成时计费</td></tr>
+            <tr><td>Agent 审计日志</td><td class="c-asc"><span class="price">¥2<em> / TB·小时</em></span></td><td class="c-sase">每小时归档统计存储量，不足 1 TB 按 1 TB；稳定 3 TB = 24×3×2 = 144 元/日</td></tr>
+            <tr><td>计费起算</td><td class="c-asc">防御插件 <strong>2026-08-25</strong> 起正式商用计费；此前已安装者免费试用延至 <strong>2026-09-10</strong></td><td class="c-sase">AI Red Teaming <strong>2026-07-21</strong> 停止公测，<strong>07-23</strong> 起按量付费</td></tr>
+            <tr><td>欠费与释放</td><td class="c-asc">欠费停机保留 <strong>15 天</strong>（可叠加延停服务）→ 实例释放；Skills / 红队数据释放后保留 30 天，审计日志 T+3 或当晚 24 点删除</td><td class="c-sase">主动退订无保留期，即时释放</td></tr>
           </tbody>
         </table>
       </div>
+
+      <details class="ev">
+        <summary>展开证据 · ASC 计费</summary>
+        <p class="q"><i>计费概述：</i>「智能体安全中心采用按量付费模式，按实际使用量计费，账单于次日（T+1）推送。」<br>
+        <i>Skills 检测：</i>「按文件数量计费，每检测 1 个 Skill 文件计为 1 次。／若单次 API 调用传入多个文件，则按实际文件总数累计计费。示例：单次 API 调用传入 10 个文件，将计为 10 次。／仅在检测任务成功完成时产生费用。／收费标准：¥10/次。」<br>
+        <i>Agent 风险检测：</i>「公测期间免费。系统定时自动检测和手动检测功能限时免费。」<br>
+        <i>实时防御：</i>「防御席位费 0.42 元/席/小时，不足 1 小时按 1 小时计算。每席每日赠送 300 免费 Credits。／Credits 超量费 0.015 元/Credit。／以单席每日使用 8 小时为例，席位费约 3.36 元/日。」<br>
+        <i>AI Red Teaming：</i>「按扫描次数收费，每检测一次计为1次……收费标准：¥1,000/次。」<br>
+        <i>审计日志：</i>「¥2/TB/小时。每小时归档一次，统计当前存储量，不足 1 TB 按 1 TB 计算……某客户当日存储量稳定在 3 TB，则当日计量 = 24 小时 × 3 TB = 72 TB·小时，当日费用 = 72 × 2 = 144 元。」<br>
+        <i>欠费：</i>「欠费停机超过 15 天后实例将被释放。」／<i>退订：</i>「退订后实例立即释放。」</p>
+        <p class="src">来源：<a href="https://help.aliyun.com/zh/asc/product-overview/billing-overview" target="_blank" rel="noopener">ASC 计费说明</a><span class="tid">计费项全节</span> · <a href="https://www.aliyun.com/product/asc/pricing" target="_blank" rel="noopener">ASC 选型与定价</a><span class="tid">计费方式：计费项 Skills 检测、Agent 风险检测、AI Red Teaming 和 Agent 审计日志</span> · <a href="https://help.aliyun.com/zh/asc/product-overview/agent-security-center-defense-capabilities-official-commercial-billing-announcement" target="_blank" rel="noopener">ASC 实时防御能力计费公告</a><span class="tid">变更时间 2026-08-25</span> · <a href="https://help.aliyun.com/zh/asc/product-overview/product-change-ai-red-teaming-stops-public-testing" target="_blank" rel="noopener">ASC AI Red Teaming 停止公测</a><span class="tid">2026-07-21 / 07-23</span></p>
+      </details>
 
       <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">2.3 报价模式对比</h3>
       <div class="tblwrap">
@@ -417,32 +513,37 @@
             <th class="asc-h">ASC</th>
           </tr></thead>
           <tbody>
-            <tr><td>计费模型</td><td class="c-sase"><strong>预付费包年包月</strong>，按授权数</td><td class="c-asc"><strong>后付费按量</strong>，按调用量 / 席位小时 / 存储量</td></tr>
-            <tr><td>预算确定性</td><td class="c-sase"><span class="chip y">高</span> 提前锁定年费</td><td class="c-asc"><span class="chip n">低</span> 用量浮动，需设预算告警</td></tr>
-            <tr><td>起步门槛</td><td class="c-sase">100 授权起（100 人 ≈ <strong>1,290 元/月</strong>起，最小组合）</td><td class="c-asc">无授权门槛，可只买 Skills 检测 ¥10 试水</td></tr>
+            <tr><td>计费模型</td><td class="c-sase"><strong>预付费包年包月</strong>，按授权数 + 时长</td><td class="c-asc"><strong>后付费按量</strong>，按调用量 / 席位小时 / 存储量</td></tr>
+            <tr><td>预算确定性</td><td class="c-sase"><span class="chip y">高</span> 提前锁定费用</td><td class="c-asc"><span class="chip n">低</span> 用量浮动，需做预算管理</td></tr>
+            <tr><td>起步门槛</td><td class="c-sase">互联网访问安全 / 终端防护 100 授权起；国际站 Agent 办公安全亦为最少 100 授权</td><td class="c-asc">无授权门槛，可只买 Skills 检测 ¥10 试水</td></tr>
             <tr><td>规模化经济性</td><td class="c-sase">员工数越大越划算（授权数摊薄）</td><td class="c-asc">Agent 实例数越多越贵（席位按小时）</td></tr>
-            <tr><td>免费额度</td><td class="c-sase">通用免费试用</td><td class="c-asc">Agent 风险检测免费；每席每日 300 免费 Credits</td></tr>
-            <tr><td>退款</td><td class="c-sase"><strong>5 天内无理由退款</strong></td><td class="c-asc">按量无退款概念，退订即时释放</td></tr>
+            <tr><td>免费额度</td><td class="c-sase">7 天免费试用，最多 100 客户端授权</td><td class="c-asc">Agent 风险检测免费；每席每日 300 免费 Credits；每用户每月 2000 运维配额</td></tr>
+            <tr><td>退款 / 退订</td><td class="c-sase"><strong>5 天内无条件退款</strong></td><td class="c-asc">按量无退款概念，退订即时释放</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="cost">
-        <h4>成本体感 · 100 人办公室 vs 单个 Agent 服务</h4>
+        <h4>成本体感 · 各自最小起步量级</h4>
         <div class="bar-row">
-          <span class="lb">SASE 最小组合</span>
+          <span class="lb">SASE 终端防护<br>100 授权</span>
+          <span class="tr"><span class="fl" style="width:26%;background:linear-gradient(90deg,#1d4f68,#5aaed6)"></span></span>
+          <span class="amt">990 元/月</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">SASE 办公数据保护<br>100 授权</span>
           <span class="tr"><span class="fl" style="width:64%;background:linear-gradient(90deg,#1d4f68,#5aaed6)"></span></span>
-          <span class="amt">≈ 1,290 元/月</span>
+          <span class="amt">3,990 元/月</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">SASE 上网行为管理<br>100 授权</span>
+          <span class="tr"><span class="fl" style="width:21%;background:linear-gradient(90deg,#1d4f68,#5aaed6)"></span></span>
+          <span class="amt">1,290 元/月</span>
         </div>
         <div class="bar-row">
           <span class="lb">ASC 单席 8h/日</span>
           <span class="tr"><span class="fl" style="width:5%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
           <span class="amt">≈ 3.36 元/日</span>
-        </div>
-        <div class="bar-row">
-          <span class="lb">ASC 单席 24h/日</span>
-          <span class="tr"><span class="fl" style="width:10%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
-          <span class="amt">≈ 10.1 元/日</span>
         </div>
         <div class="bar-row">
           <span class="lb">ASC 审计日志 3TB</span>
@@ -455,7 +556,7 @@
           <span class="amt">1,000 元/次</span>
         </div>
         <p style="margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.8">
-          量纲不可直接相加：SASE 计的是<strong>人</strong>，ASC 计的是<strong>Agent 席位与调用量</strong>。上表仅示意各自最小起步成本量级。
+          量纲不可直接相加：SASE 计的是<strong>人</strong>，ASC 计的是<strong>Agent 席位与调用量</strong>。上表仅示意各自最小起步成本量级；SASE 三行为单模块价，实际需模块化拼装并至少选一项。
         </p>
       </div>
     </section>
@@ -463,7 +564,7 @@
     <!-- ==================== 3 功能细分 ==================== -->
     <section id="sec-func">
       <div class="sec-head"><span class="sec-num">§ 03</span><h2>功能细分 · 逐项能力对齐</h2></div>
-      <p class="sec-sub">把 ASC 九大能力模块与 SASE 现有功能一项一项对上，看谁真的多、谁只是换了个位置。</p>
+      <p class="sec-sub">把 ASC 官方能力矩阵的 9 个模块与 SASE 现有功能一项一项对上，看谁真的多、谁只是换了个位置。</p>
 
       <div class="tblwrap">
         <table>
@@ -474,24 +575,37 @@
             <th class="dim-h" style="width:11%">强的一方</th>
           </tr></thead>
           <tbody>
-            <tr><td>AI 安全护栏</td><td class="c-asc">输入输出双向实时检测，6 大维度：Prompt 注入、内容安全（有害/违规）、数据泄露、<strong>幻觉检测</strong>、合规性校验、工具调用审计</td><td class="c-sase">仅 <strong>提示词防护</strong>（注入/越狱/恶意指令）+ <strong>敏感数据检测</strong>（复用 DLP 文件正文规则），分高/中/低三级，观察/拦截</td><td><span class="chip a">ASC</span> 维度更全，有内容安全与幻觉检测</td></tr>
-            <tr><td>运行时安全</td><td class="c-asc">RASP 深入 Agent 进程，进程级异常检测、高危行为拦截、越权系统命令阻断</td><td class="c-sase">命令执行管控（内置命令一键启用 + 自定义）、Skills 防护（检测并隔离恶意 Skill）</td><td><span class="chip a">ASC</span> 进程内 RASP，粒度更细</td></tr>
-            <tr><td>数据安全</td><td class="c-asc">Agent 处理数据的分类分级，输入-处理-输出全链路防泄露</td><td class="c-sase"><strong>文件级 DLP 强项</strong>：分类分级、微信/企微/钉钉/QQ/邮箱/浏览器通道外发检测、USB/蓝牙/AirDrop 管控、屏幕与打印水印</td><td><span class="chip s">SASE</span> 数据外发治理完整度高</td></tr>
+            <tr><td>AI 安全护栏</td><td class="c-asc">输入输出双向实时检测，6 大维度：Prompt 注入防护、内容安全、数据泄露防护、<strong>幻觉检测</strong>、合规性校验、工具调用安全</td><td class="c-sase">运行时防护中的 <strong>提示词防护</strong>（注入/越狱/恶意指令）+ <strong>敏感数据检测</strong>（复用 DLP 文件正文规则），分高/中/低三级，观察/拦截；另有 AI 服务管理可联动「AI 安全护栏」产品</td><td><span class="chip a">ASC</span> 维度更全，有内容安全与幻觉检测</td></tr>
+            <tr><td>运行时安全</td><td class="c-asc">基于 RASP 深入 Agent 运行时，实时检测 Prompt 注入、目标劫持、子 Agent 权限扩散、信任链利用，支持观察与拦截双模式</td><td class="c-sase">命令执行管控（内置命令一键启用 + 自定义 Lua 正则）、Skills 防护（检测并隔离恶意 Skill）、Agent 禁用（禁止启动 / 仅提示）</td><td><span class="chip a">ASC</span> 进程内 RASP，粒度更细</td></tr>
+            <tr><td>数据安全</td><td class="c-asc">对 Agent 处理的数据分类分级，输入-处理-输出全链路防泄露</td><td class="c-sase"><strong>文件级 DLP 强项</strong>：分类分级、微信/企微/钉钉/QQ/邮箱/浏览器通道外发检测、USB/蓝牙/AirDrop 管控、屏幕与打印水印；另有 Agent 数据访问权限（黑白名单 + 目录）</td><td><span class="chip s">SASE</span> 数据外发治理完整度高</td></tr>
             <tr><td>主机安全</td><td class="c-asc">入侵检测、漏洞防护、宿主机安全基线</td><td class="c-sase">终端防病毒版（云查杀 + 本地引擎，后门/木马/勒索/蠕虫）</td><td><span class="chip m">平手</span> 各守一端</td></tr>
-            <tr><td>身份安全</td><td class="c-asc">人 / 车 / 智能体<strong>三位一体</strong>统一身份，多 Agent 协作下的身份溯源与权限隔离</td><td class="c-sase">身份认证强：AD/LDAP、钉钉、飞书、企微、双因素（短信/邮件/OTP）、离职自动回收、免密办公网准入</td><td><span class="chip s">SASE</span> 身份源对接成熟<br><span class="chip a">ASC</span> 智能体身份独有</td></tr>
-            <tr><td>网络管控</td><td class="c-asc">Agent <strong>出站</strong>管控：域名白名单、TLS 证书校验、敏感数据外传拦截、<strong>防 SSRF</strong></td><td class="c-sase">员工<strong>出口</strong>管控：上网行为管理、办公数据保护（外发行为拦截）</td><td><span class="chip a">ASC</span> Agent 出站是 SASE 的盲区</td></tr>
-            <tr><td>配置检查（Agent-SPM）</td><td class="c-asc">Agent 权限配置、数据访问范围、凭证暴露检测 + 基线合规检查与加固建议</td><td class="c-sase"><span class="chip n">无对应能力</span>（SASE 侧无 Agent 配置基线）</td><td><span class="chip a">ASC</span></td></tr>
-            <tr><td>Skills 检测</td><td class="c-asc">独立计费项 ¥10/次，覆盖 SDK/Plugin/CLI，自动识别 + 手动上传，静态分析 Skill.md</td><td class="c-sase">内置于运行时防护，恶意 Skill 检测并隔离，按危险级高/中/低处置</td><td><span class="chip a">ASC</span> 可独立送检、供应链视角</td></tr>
-            <tr><td>AI Red Teaming</td><td class="c-asc">自动化红队，模拟注入/越权/泄露，输出评估报告</td><td class="c-sase"><span class="chip n">无</span></td><td><span class="chip a">ASC</span> 唯一</td></tr>
-            <tr><td>Agent-BOM 供应链</td><td class="c-asc">模型依赖 + Plugin/Skill + API 连接 + 数据源引用的完整物料清单</td><td class="c-sase">仅终端四类资产清单，<strong>非供应链 BOM</strong></td><td><span class="chip a">ASC</span></td></tr>
-            <tr><td>Agent 审计日志</td><td class="c-asc">全链路交互行为、工具调用、数据访问日志，多维检索回溯，¥2/TB·小时</td><td class="c-sase">会话审计（<strong>无需代理或注入</strong>即可采集 Session 会话文件做输入输出全链路审计），2026-09-10 支持预览</td><td><span class="chip m">平手</span> 实现路径不同</td></tr>
-            <tr><td>AI 桌面运维</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：运维 Agent 支持自然语言执行系统优化、软件服务、文件整理、内存清理</td><td><span class="chip s">SASE</span> 唯一</td></tr>
-            <tr><td>零信任接入 AI 服务</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：可在 SASE 上配置 AI 应用，用零信任策略管理大模型安全访问；办公网准入</td><td><span class="chip s">SASE</span> 唯一</td></tr>
-            <tr><td>数字水印 / AI 生成内容标识</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：网页、屏幕、APP、文档、音视频、图片水印；支持 AI 生成内容加合规标识，满足《人工智能生成合成内容标识办法》</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>身份安全</td><td class="c-asc">人（人类用户）、车（车辆/设备）、智能体<strong>三位一体</strong>统一身份，多 Agent 协作下的身份溯源与权限管控</td><td class="c-sase">身份认证：AD/LDAP、钉钉、飞书、企微、双因素（短信/邮件/OTP）、离职自动回收、免密办公网准入</td><td><span class="chip s">SASE</span> 身份源对接成熟<br><span class="chip a">ASC</span> 智能体身份独有</td></tr>
+            <tr><td>网络管控</td><td class="c-asc">Agent <strong>出站</strong>管控：出站域名白名单、TLS 证书校验、敏感数据外传拦截，防 SSRF、数据窃取</td><td class="c-sase">员工<strong>出口</strong>管控：上网行为管理、办公数据保护（外发行为拦截）</td><td><span class="chip a">ASC</span> Agent 出站是 SASE 的盲区</td></tr>
+            <tr><td>配置检查（Agent-SPM）</td><td class="c-asc">持续检测 Agent 权限配置、数据访问范围、凭证暴露等风险，提供基线合规检查与加固建议</td><td class="c-sase"><span class="chip n">无对应能力</span>（SASE 侧无 Agent 配置基线检查模块）</td><td><span class="chip a">ASC</span></td></tr>
+            <tr><td>Skills 检测</td><td class="c-asc">独立计费项 ¥10/次，覆盖 SDK / Plugin / CLI / MCP Server，支持自动识别与手动上传两种模式，静态分析 Skill.md</td><td class="c-sase">内置于运行时防护的 Skills 防护，检测并隔离恶意 Skills，按高/中/低危险级设置处置动作</td><td><span class="chip a">ASC</span> 可独立送检、供应链视角</td></tr>
+            <tr><td>AI Red Teaming</td><td class="c-asc">自动化红队，模拟 Prompt 注入、越狱、工具滥用，输出风险评估报告与修复建议</td><td class="c-sase"><span class="chip n">无</span></td><td><span class="chip a">ASC</span> 唯一</td></tr>
+            <tr><td>Agent-BOM 供应链</td><td class="c-asc">模型依赖 + Plugin/Skill 组件 + API 连接 + 数据源引用的完整物料清单</td><td class="c-sase">四类终端资产清单，<strong>非供应链 BOM</strong></td><td><span class="chip a">ASC</span></td></tr>
+            <tr><td>Agent 审计日志</td><td class="c-asc">全链路记录交互行为、工具调用、数据访问，多维检索回溯，¥2/TB·小时</td><td class="c-sase">会话审计（<strong>无需代理或注入</strong>即可采集 Session 会话文件做输入输出全链路审计），2026-09-10 起支持预览</td><td><span class="chip m">平手</span> 实现路径不同</td></tr>
+            <tr><td>AI 桌面运维</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：运维 Agent 支持自然语言执行系统优化、软件服务、文件整理、内存清理；内置 IT 运维 Skill</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>零信任接入 AI 服务</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：AI 服务管理以大模型代理网关形态接入各厂商模型，零信任策略管控 + Tokens 配额管控</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>数字水印 / AI 生成内容标识</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：网页、屏幕、APP、文档、音频、视频、图片水印；支持为 AI 生成的图片/音频/视频添加合规标识，满足《人工智能生成合成内容标识办法》</td><td><span class="chip s">SASE</span> 唯一</td></tr>
             <tr><td>端点防毒 / 办公 IT 运维</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：防病毒版、软件库、脚本下发、远程控制双屏、终端管理</td><td><span class="chip s">SASE</span> 唯一</td></tr>
           </tbody>
         </table>
       </div>
+
+      <details class="ev">
+        <summary>展开证据 · 功能对齐</summary>
+        <p class="q"><i>ASC 能力矩阵（9 项）：</i>「AI 安全护栏｜输入输出内容检测，覆盖 6 大安全维度／运行时安全｜进程异常检测、高危行为拦截／数据安全｜数据分类分级、防泄露／主机安全｜入侵检测、漏洞防护／身份安全｜人/车/智能体统一身份管理／网络管控｜Agent 网络访问合规／配置检查｜Agent 部署配置安全基线检测／Skills 检测｜Agent 技能/插件安全扫描／AI Red Teaming｜Agent 对抗性安全测试」<br><br>
+        <i>ASC 运行时检测项：</i>「基于 RASP 技术深入 Agent 运行时，实时检测 Prompt 注入、目标劫持、子 Agent 权限扩散、信任链利用等 AI 特有风险，支持观察与拦截双模式。」<br>
+        <i>ASC 网络防护：</i>「支持出站域名白名单、TLS 证书校验、敏感数据外传拦截等策略，防止 Agent 被利用发起 SSRF、数据窃取等网络层攻击。」<br>
+        <i>ASC Skill 检测：</i>「对 Agent 加载的 Skill/Plugin/MCP Server 进行安全扫描……覆盖 SDK、Plugin、CLI 等多种组件类型。」<br>
+        <i>ASC 身份安全：</i>「构建人（人类用户）、车（车辆/设备）、智能体三位一体的统一身份体系。」<br><br>
+        <i>SASE 运行时防护三项：</i>「Skills 防护：检测并隔离 Agent 调用的恶意 Skills……可基于内置的高、中、低三个危险级别设置处置动作。处理动作包括观察和拦截。／提示词防护：检测并拦截针对 AI Agent 的提示词注入攻击、越狱尝试及恶意指令……／敏感数据检测：实时检测 Agent 读取的敏感数据……仅支持选择文件正文相关规则。」<br>
+        <i>SASE 运维 Agent：</i>「AI桌面运维: 支持通过自然语言对话进行系统优化、软件服务、文件整理、内存清理等桌面运维」／「每个用户默认每月 2000 配额，管理员可通过额外购买安全Credits提升用户使用额度。」<br>
+        <i>SASE AI 服务管理：</i>「SASE 支持以大模型代理网关的形态接入各类大模型应用，实现对大模型应用的统一管控。」</p>
+        <p class="src">来源：<a href="https://help.aliyun.com/zh/asc/product-overview/what-is-the-agent-security-center" target="_blank" rel="noopener">ASC 什么是智能体安全中心</a><span class="tid">能力矩阵 / 核心能力详解</span> · <a href="https://www.aliyun.com/product/asc/features" target="_blank" rel="noopener">ASC 产品功能</a><span class="tid">资产可视 / 检测与防御 / 验证与审计</span> · <a href="https://help.aliyun.com/zh/sase/user-guide/ai-asset-management" target="_blank" rel="noopener">SASE AI资产管理</a><span class="tid">配置运行时防护</span> · <a href="https://help.aliyun.com/zh/sase/user-guide/agent-control-strategy" target="_blank" rel="noopener">SASE Agent 管控策略</a><span class="tid">三类策略</span> · <a href="https://help.aliyun.com/zh/sase/user-guide/ai-service-management" target="_blank" rel="noopener">SASE AI服务管理</span> · <a href="https://help.aliyun.com/zh/sase/user-guide/sase-agent-management" target="_blank" rel="noopener">SASE 运维Agent</a><span class="tid">步骤四 / Credits 管理</span> · <a href="https://www.aliyun.com/product/sase" target="_blank" rel="noopener">SASE 产品页</a><span class="tid">Agent办公安全场景 / 数字水印</span></p>
+      </details>
 
       <div class="solo" style="margin-top:28px">
         <div class="card sase">
@@ -538,19 +652,43 @@
         <div class="row"><div class="q">Agent 跑在 K8s 里，且要按量付费更灵活</div><div class="who asc">ASC</div></div>
         <div class="row"><div class="q">要摸清自己到底上线了多少个 Agent、用了哪些模型和插件</div><div class="who asc">ASC</div></div>
         <div class="row"><div class="q">要满足《人工智能生成合成内容标识办法》的内容标识要求</div><div class="who sase">SASE</div></div>
+        <div class="row"><div class="q">要管终端 Agent 的数据访问权限（黑白名单 + 目录级）</div><div class="who sase">SASE</div></div>
+        <div class="row"><div class="q">要给 Agent 的大模型调用做 Tokens 配额管控</div><div class="who sase">SASE</div></div>
       </div>
     </section>
 
     <!-- ==================== 脚注 ==================== -->
     <footer class="foot">
-      <h3>资料来源</h3>
+      <div class="grp">▍SASE 官方来源</div>
       <ul>
-        <li><a href="https://www.aliyun.com/product/sase" target="_blank" rel="noopener">办公安全平台 SASE 产品页</a> · <a href="https://help.aliyun.com/zh/sase/product-overview/product-function-node-csas" target="_blank" rel="noopener">SASE 功能特性文档</a></li>
-        <li><a href="https://www.aliyun.com/product/asc" target="_blank" rel="noopener">智能体安全中心产品页</a> · <a href="https://www.aliyun.com/product/asc/features" target="_blank" rel="noopener">ASC 产品功能</a> · <a href="https://www.aliyun.com/product/asc/pricing" target="_blank" rel="noopener">ASC 选型与定价</a></li>
+        <li><a href="https://www.aliyun.com/product/sase" target="_blank" rel="noopener">办公安全平台 SASE 产品页</a>（功能、场景、FAQ）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/product-overview/billing-overview" target="_blank" rel="noopener">办公安全平台计费概述</a>（版本、规格、价格、时长）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/product-overview/what-is-sase" target="_blank" rel="noopener">什么是办公安全平台</a>（VPN 版 / 基础版 / 高级版）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/product-overview/product-function-node-csas" target="_blank" rel="noopener">产品核心功能模块详细说明</a></li>
+        <li><a href="https://help.aliyun.com/zh/sase/user-guide/ai-asset-management" target="_blank" rel="noopener">AI资产管理</a>（运行时防护三项）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/user-guide/agent-control-strategy" target="_blank" rel="noopener">Agent 管控策略</a>（禁用 / 命令执行 / 数据访问权限）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/user-guide/ai-service-management" target="_blank" rel="noopener">AI服务管理</a>（大模型代理网关、Tokens 管控）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/user-guide/sase-agent-management" target="_blank" rel="noopener">运维Agent</a>（2000 配额、Skills 意图管理）</li>
+        <li><a href="https://help.aliyun.com/zh/sase/product-overview/product-feature-updates-for-july-2026" target="_blank" rel="noopener">2026年7月产品功能动态</a> · <a href="https://help.aliyun.com/zh/sase/product-overview/august-september-2026-product-function-dynamics" target="_blank" rel="noopener">2026年8-9月产品功能动态</a></li>
+        <li><a href="https://help.aliyun.com/zh/sase/product-overview/apply-for-free-trial" target="_blank" rel="noopener">申请免费试用</a> · <a href="https://www.alibabacloud.com/help/en/sase/product-overview/billing-overview" target="_blank" rel="noopener">SASE Billing overview（国际站，退款与到期政策）</a></li>
       </ul>
-      <p style="margin-top:14px">
-        价格为官方页面公示口径整理，实际以购买页与合同为准；标注「以购买页为准」的项随授权规模与区域变动。
-        本页为选型对照材料，非阿里云官方文档。
+
+      <div class="grp">▍ASC 官方来源</div>
+      <ul>
+        <li><a href="https://www.aliyun.com/product/asc" target="_blank" rel="noopener">智能体安全中心产品页</a> · <a href="https://www.aliyun.com/product/asc/features" target="_blank" rel="noopener">产品功能</a> · <a href="https://www.aliyun.com/product/asc/pricing" target="_blank" rel="noopener">选型与定价</a></li>
+        <li><a href="https://help.aliyun.com/zh/asc/product-overview/what-is-the-agent-security-center" target="_blank" rel="noopener">什么是智能体安全中心</a>（能力矩阵 9 项、支持的 Agent 平台表）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/product-overview/billing-overview" target="_blank" rel="noopener">计费说明</a>（计费项、欠费、数据清除规则）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/user-guide/access-agent-security-center" target="_blank" rel="noopener">接入Agent安全中心</a>（各平台接入方式与白名单 IP）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/user-guide/agent-real-time-defense" target="_blank" rel="noopener">安装防御插件</a>（适用范围 OpenClaw / Hermes）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/use-cases/smart-protection-container-cluster-application" target="_blank" rel="noopener">实时防护容器应用</a>（ack-onepilot、K8s ≥ 1.18）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/product-overview/agent-defense-support-scope" target="_blank" rel="noopener">【产品变更】防御范围升级</a>（2026-09-11，10 个 Agent）· <a href="https://help.aliyun.com/zh/asc/product-overview/agent-security-center-defense-capabilities-official-commercial-billing-announcement" target="_blank" rel="noopener">实时防御能力计费公告</a>（2026-08-25）</li>
+        <li><a href="https://help.aliyun.com/zh/asc/product-overview/product-change-ai-red-teaming-stops-public-testing" target="_blank" rel="noopener">【产品变更】AI Red Teaming 停止公测</a>（2026-07-21 / 07-23）</li>
+      </ul>
+
+      <p style="margin-top:18px">
+        <b style="color:var(--dim)">口径说明：</b>价格为官方文档公示口径整理，实际以购买页与合同为准；标注「以购买页为准」的项随授权规模与区域变动。
+        中文站与国际站对同一模块的规格表述存在差异时，本页<b>分别标注、不做合并</b>。
+        本页为第三方选型对照材料，非阿里云官方文档。
       </p>
     </footer>
 
