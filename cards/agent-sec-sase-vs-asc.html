@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>阿里云 SASE × 智能体安全中心 ASC · 选型对比</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="阿里云办公安全平台 SASE 与智能体安全中心（ASC）的功能、环境支持、使用范围与报价逐项对比。">
+  <link rel="stylesheet" href="../assets/frame.css">
+  <style>
+    /* ============================================================
+       双域 · 智能体安全选型对照
+       取色自内容本身：两个产品各守一个"域"
+         SASE = 终端与网络边缘（冷青）
+         ASC  = Agent 服务端运行时（琥珀）
+       唯一的大胆处 = 顶部那张"作用域切面图"
+       ============================================================ */
+    :root{
+      --ink:#111420; --ink2:#161a27; --panel:#1c2130; --panel-hi:#232939;
+      --line:#2a3140; --line-soft:#222839;
+      --paper:#e4e9f2; --dim:#a8b2c4; --muted:#7d879b;
+      --sase:#5aaed6; --sase-deep:#1d4f68; --sase-bg:rgba(90,174,214,.09);
+      --asc:#e0a05a;  --asc-deep:#6b4520;  --asc-bg:rgba(224,160,90,.09);
+      --win:#4fc38b; --lose:#e06a6a; --mix:#b9a3e8;
+      --serif:"Noto Serif SC","Songti SC","STSongti-SC","STSong",serif;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{background:var(--ink);color:var(--paper);font-family:var(--sans);
+      font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased;margin:0;
+      background-image:radial-gradient(120% 60% at 50% -10%,#1a2135 0%,transparent 65%);
+      background-attachment:fixed}
+    a{color:var(--sase)}
+    ::selection{background:rgba(90,174,214,.3)}
+
+    /* ---------- 工具栏 ---------- */
+    .bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:8px;
+      padding:9px 18px;border-bottom:1px solid var(--line);
+      background:rgba(17,20,32,.86);backdrop-filter:blur(14px);flex-wrap:wrap}
+    .bar .mark{font:600 11.5px/1 var(--mono);letter-spacing:.1em;color:var(--muted);
+      border:1px solid var(--line);border-radius:4px;padding:6px 9px;background:var(--panel)}
+    .bar .btn{font-size:12.5px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);
+      background:transparent;color:var(--dim);cursor:pointer;transition:all .18s ease-out;font-family:inherit}
+    .bar .btn:hover{border-color:var(--sase);color:var(--paper)}
+    .bar .btn.active{background:var(--sase);border-color:var(--sase);color:#0d1420;font-weight:600}
+    .bar .status{margin-left:auto;font:11.5px/1.4 var(--mono);color:var(--muted)}
+    .bar .status.warn{color:var(--asc)}
+
+    .wrap{max-width:1040px;margin:0 auto;padding:0 24px 100px}
+
+    /* ---------- HERO ---------- */
+    .hero{padding:76px 0 8px}
+    .kicker{font:11.5px/1 var(--mono);letter-spacing:.24em;color:var(--muted);margin:0 0 24px}
+    h1{font-family:var(--serif);font-weight:900;letter-spacing:.02em;line-height:1.2;
+      font-size:clamp(32px,6.2vw,56px);margin:0}
+    h1 .vs{font-family:var(--sans);font-size:.36em;font-weight:300;color:var(--muted);
+      vertical-align:.35em;letter-spacing:.3em;margin:0 .5em}
+    h1 .a{color:var(--sase)} h1 .b{color:var(--asc)}
+    .dek{font-family:var(--serif);font-size:16px;color:var(--dim);margin:18px 0 0;max-width:60ch;line-height:1.9}
+    .meta{margin-top:26px;padding-top:16px;border-top:1px solid var(--line-soft);
+      font:11.5px/2 var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 20px}
+    .meta b{color:var(--dim);font-weight:500}
+
+    /* ---------- 切面图（唯一大胆处） ---------- */
+    .stage{margin:46px 0 0;border:1px solid var(--line);border-radius:10px;
+      background:linear-gradient(180deg,#151a28,#111420);padding:26px 22px 20px;position:relative;overflow:hidden}
+    .stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(70% 120% at 50% 0%,rgba(90,174,214,.05),transparent 60%)}
+    .stage-cap{font:11px/1 var(--mono);letter-spacing:.16em;color:var(--muted);margin-bottom:18px}
+    .stage svg{width:100%;height:auto;display:block;position:relative;z-index:1}
+    .stage-note{margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.8;
+      border-top:1px dashed var(--line);padding-top:14px;position:relative;z-index:1}
+    .stage-note b{color:var(--paper);font-weight:600}
+
+    /* ---------- 结论卡 ---------- */
+    .verdict{margin:44px 0 0;display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--line);
+      border-radius:10px;overflow:hidden;background:var(--panel)}
+    .verdict-row{display:grid;grid-template-columns:78px 1fr;border-bottom:1px solid var(--line-soft)}
+    .verdict-row:last-child{border-bottom:none}
+    .verdict-row .k{padding:14px 16px;font:600 11px/1.7 var(--mono);letter-spacing:.06em;
+      color:var(--muted);background:var(--ink2);border-right:1px solid var(--line-soft)}
+    .verdict-row .v{padding:13px 18px;font-size:14.5px;color:var(--dim)}
+    .verdict-row .v b{color:var(--paper);font-weight:600}
+    .verdict-row .v code{font-family:var(--mono);font-size:13px;color:var(--sase);
+      background:var(--sase-bg);padding:1px 6px;border-radius:3px}
+
+    /* ---------- 章节 ---------- */
+    section{margin-top:72px}
+    .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+    .sec-num{font:600 11.5px/1 var(--mono);color:var(--muted);letter-spacing:.1em;
+      border:1px solid var(--line);border-radius:3px;padding:5px 8px}
+    h2{font-family:var(--serif);font-weight:800;font-size:clamp(21px,3.4vw,27px);margin:0;letter-spacing:.02em}
+    .sec-sub{color:var(--muted);font-size:13.5px;margin:0 0 24px;padding-left:2px}
+
+    /* ---------- 表格 ---------- */
+    .tblwrap{border:1px solid var(--line);border-radius:10px;overflow-x:auto;background:var(--panel)}
+    table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:680px}
+    thead th{position:sticky;top:0;background:var(--panel-hi);text-align:left;padding:0;
+      font-weight:600;border-bottom:1px solid var(--line)}
+    thead th .hd{padding:13px 16px}
+    thead th.dim-h{width:20%;color:var(--muted);font-size:12px;letter-spacing:.04em}
+    thead th.sase-h{color:var(--sase);font-size:13.5px;border-left:1px solid var(--line-soft)}
+    thead th.asc-h{color:var(--asc);font-size:13.5px;border-left:1px solid var(--line-soft)}
+    thead th .sub{display:block;font:11px/1.6 var(--mono);color:var(--muted);font-weight:400;margin-top:2px}
+    tbody td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.75}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:nth-child(even) td{background:rgba(255,255,255,.012)}
+    tbody td:first-child{color:var(--muted);font-size:12.5px;font-weight:600;width:20%}
+    tbody td.c-sase{border-left:1px solid var(--line-soft);background:var(--sase-bg)}
+    tbody td.c-asc{border-left:1px solid var(--line-soft);background:var(--asc-bg)}
+    tbody tr:nth-child(even) td.c-sase{background:rgba(90,174,214,.13)}
+    tbody tr:nth-child(even) td.c-asc{background:rgba(224,160,90,.13)}
+    tbody td strong{color:var(--paper);font-weight:600}
+    td .price{font-family:var(--mono);font-size:13px;color:var(--paper)}
+    td .price.free{color:var(--win)}
+    td .price em{font-style:normal;color:var(--muted);font-size:11.5px}
+    .chip{display:inline-block;font:11px/1.6 var(--mono);padding:1px 7px;border-radius:3px;
+      border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+    .chip.s{border-color:rgba(90,174,214,.4);color:var(--sase);background:var(--sase-bg)}
+    .chip.a{border-color:rgba(224,160,90,.4);color:var(--asc);background:var(--asc-bg)}
+    .chip.n{border-color:rgba(224,106,106,.35);color:var(--lose)}
+    .chip.y{border-color:rgba(79,195,139,.35);color:var(--win)}
+    .chip.m{border-color:rgba(185,163,232,.35);color:var(--mix)}
+    .only{display:flex;flex-direction:column;gap:9px}
+    .only ul{margin:0;padding-left:18px}
+    .only li{margin-bottom:4px}
+    .only h4{margin:0 0 8px;font-size:13px;letter-spacing:.04em;font-weight:700}
+
+    /* 独占能力两栏 */
+    .solo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .solo .card{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:20px 22px}
+    .solo .card.sase{border-top:2px solid var(--sase)}
+    .solo .card.asc{border-top:2px solid var(--asc)}
+    .solo h3{margin:0 0 4px;font-family:var(--serif);font-size:17px;font-weight:800}
+    .solo .card.sase h3{color:var(--sase)}
+    .solo .card.asc h3{color:var(--asc)}
+    .solo .tagline{font:11px/1.6 var(--mono);color:var(--muted);margin:0 0 14px}
+    .solo ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--dim)}
+    .solo li{margin-bottom:7px;line-height:1.7}
+
+    /* ---------- 决策表 ---------- */
+    .pick{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+    .pick .row{display:grid;grid-template-columns:1fr 132px;border-bottom:1px solid var(--line-soft);
+      align-items:stretch}
+    .pick .row:last-child{border-bottom:none}
+    .pick .q{padding:13px 16px;font-size:14px;color:var(--dim)}
+    .pick .row:nth-child(even) .q{background:rgba(255,255,255,.012)}
+    .pick .who{padding:13px 16px;font:600 13px/1.6 var(--sans);text-align:center;
+      border-left:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center}
+    .pick .who.sase{color:var(--sase);background:var(--sase-bg)}
+    .pick .who.asc{color:var(--asc);background:var(--asc-bg)}
+    .pick .who.both{color:var(--mix);background:rgba(185,163,232,.08)}
+
+    /* ---------- 报价体感条 ---------- */
+    .cost{margin-top:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:20px 22px}
+    .cost h4{margin:0 0 12px;font-size:13.5px;color:var(--dim);font-weight:600}
+    .bar-row{display:grid;grid-template-columns:118px 1fr 128px;gap:12px;align-items:center;margin-bottom:9px}
+    .bar-row .lb{font-size:12.5px;color:var(--muted)}
+    .bar-row .tr{height:26px;background:var(--ink2);border-radius:3px;overflow:hidden;position:relative}
+    .bar-row .fl{height:100%;border-radius:3px}
+    .bar-row .amt{font:12px/1 var(--mono);color:var(--dim);text-align:right}
+
+    /* ---------- 脚注 ---------- */
+    .foot{margin-top:80px;padding-top:22px;border-top:1px solid var(--line);
+      font-size:12.5px;color:var(--muted);line-height:1.9}
+    .foot h3{font-size:13px;color:var(--dim);margin:0 0 10px;font-weight:600}
+    .foot ul{margin:0;padding-left:18px}
+    .foot li{margin-bottom:5px}
+    .foot a{color:var(--sase);text-decoration:none;border-bottom:1px solid rgba(90,174,214,.3)}
+    .foot a:hover{border-bottom-color:var(--sase)}
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width:760px){
+      .solo{grid-template-columns:1fr}
+      .verdict-row{grid-template-columns:1fr}
+      .verdict-row .k{border-right:none;border-bottom:1px solid var(--line-soft)}
+      .bar .status{width:100%;margin-left:0;order:9}
+      .bar-row{grid-template-columns:88px 1fr 92px}
+    }
+    @media (max-width:640px){
+      body{font-size:14.5px}
+      .wrap{padding:0 16px 70px}
+      .hero{padding-top:52px}
+      .pick .row{grid-template-columns:1fr}
+      .pick .who{border-left:none;border-top:1px solid var(--line-soft);justify-content:flex-start;padding:9px 16px}
+    }
+
+    /* ---------- 打印：反转为纸面 ---------- */
+    @media print{
+      :root{--ink:#fff;--ink2:#fff;--panel:#fff;--panel-hi:#f2f4f8;--line:#c9ced9;--line-soft:#dfe3ea;
+        --paper:#1b1f2b;--dim:#3a4152;--muted:#6b7385;--sase:#1c6f92;--asc:#a86a25;
+        --sase-bg:rgba(28,111,146,.05);--asc-bg:rgba(168,106,37,.05);
+        --win:#1a7f37;--lose:#b3261e;--mix:#5b3fa8}
+      body{background:#fff;background-image:none}
+      .bar{display:none!important}
+      .stage{background:#fff}
+      .stage::after{display:none}
+      .stage svg *{stroke:#8a93a5!important}
+      section{break-inside:avoid}
+      .tblwrap{break-inside:auto}
+      tbody tr{break-inside:avoid}
+      h1 .a,.a{color:#1c6f92!important}
+      h1 .b,.b{color:#a86a25!important}
+      a{color:#1c6f92}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bar">
+    <span class="mark">SASE × ASC · 选型对照</span>
+    <button class="btn" id="btn-edit">✎ 开启编辑</button>
+    <button class="btn" id="btn-reset">恢复原稿</button>
+    <button class="btn" id="btn-download">下载当前版</button>
+    <button class="btn" id="btn-print">打印 / PDF</button>
+    <span class="status" id="status">只读 · 开启编辑后改动自动存入本浏览器</span>
+  </div>
+
+  <article id="doc">
+  <div class="wrap">
+
+    <!-- ==================== HERO ==================== -->
+    <header class="hero">
+      <p class="kicker">阿里云 · 智能体安全 · 二选一</p>
+      <h1><span class="a">SASE</span><span class="vs">对</span><span class="b">ASC</span></h1>
+      <p class="dek">两个产品都叫「Agent 安全」，保护的却不是同一批 Agent。<br>
+        SASE 守的是<b>员工电脑上在用的 AI</b>，ASC 守的是<b>你自己上线运营的 Agent 应用</b>。</p>
+      <div class="meta">
+        <span>产品一 · <b>办公安全平台 SASE</b></span>
+        <span>产品二 · <b>智能体安全中心 ASC</b></span>
+        <span>维度 · <b>环境 / 报价 / 功能细分</b></span>
+        <span>整理 · <b>2026-10-29</b></span>
+      </div>
+    </header>
+
+    <!-- ==================== 切面图 ==================== -->
+    <div class="stage">
+      <p class="stage-cap">作用域切面 · 两条防护边界在哪里分开</p>
+      <svg viewBox="0 0 980 300" role="img" aria-label="SASE 与 ASC 的作用域切面示意">
+        <defs>
+          <linearGradient id="gS" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#5aaed6" stop-opacity=".26"/>
+            <stop offset="1" stop-color="#5aaed6" stop-opacity=".05"/>
+          </linearGradient>
+          <linearGradient id="gA" x1="1" y1="0" x2="0" y2="0">
+            <stop offset="0" stop-color="#e0a05a" stop-opacity=".26"/>
+            <stop offset="1" stop-color="#e0a05a" stop-opacity=".05"/>
+          </linearGradient>
+          <pattern id="hatch" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#b9a3e8" stroke-width="2.2" opacity=".22"/>
+          </pattern>
+        </defs>
+
+        <!-- 域底 -->
+        <rect x="18" y="46" width="440" height="188" rx="7" fill="url(#gS)" stroke="#5aaed6" stroke-opacity=".55"/>
+        <rect x="522" y="46" width="440" height="188" rx="7" fill="url(#gA)" stroke="#e0a05a" stroke-opacity=".55"/>
+        <rect x="458" y="46" width="64" height="188" fill="url(#hatch)" stroke="#b9a3e8" stroke-opacity=".5"/>
+
+        <text x="238" y="72" text-anchor="middle" fill="#5aaed6" font-size="15" font-family="var(--mono)" font-weight="700">SASE</text>
+        <text x="238" y="90" text-anchor="middle" fill="#a8b2c4" font-size="11.5" font-family="var(--mono)">终端域 · 办公网边缘</text>
+        <text x="742" y="72" text-anchor="middle" fill="#e0a05a" font-size="15" font-family="var(--mono)" font-weight="700">ASC</text>
+        <text x="742" y="90" text-anchor="middle" fill="#a8b2c4" font-size="11.5" font-family="var(--mono)">服务端域 · Agent 运行时</text>
+
+        <!-- 左侧内容 -->
+        <text x="40" y="122" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">员工笔记本 / 无影云桌面</text>
+        <text x="40" y="146" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Cursor · Claude Code · Codex · Qoder</text>
+        <text x="40" y="170" fill="#a8b2c4" font-size="12" font-family="var(--sans)">零信任内网 · 办公网准入</text>
+        <text x="40" y="194" fill="#a8b2c4" font-size="12" font-family="var(--sans)">DLP 外发 · 水印 · 上网行为</text>
+        <text x="40" y="218" fill="#a8b2c4" font-size="12" font-family="var(--sans)">终端防毒 · 运维 Agent</text>
+
+        <!-- 右侧内容 -->
+        <text x="544" y="122" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Agent 进程 / K8s Pod / 云上服务</text>
+        <text x="544" y="146" fill="#e4e9f2" font-size="12.5" font-family="var(--sans)">Dify · 百炼 · PAI · AgentRun</text>
+        <text x="544" y="170" fill="#a8b2c4" font-size="12" font-family="var(--sans)">RASP 运行时 · Agent-BOM</text>
+        <text x="544" y="194" fill="#a8b2c4" font-size="12" font-family="var(--sans)">出站管控 · 防 SSRF · Skills 检测</text>
+        <text x="544" y="218" fill="#a8b2c4" font-size="12" font-family="var(--sans)">AI Red Teaming · Agent-SPM</text>
+
+        <!-- 中间重叠 -->
+        <text x="490" y="120" text-anchor="middle" fill="#b9a3e8" font-size="11" font-family="var(--mono)">重合</text>
+        <text x="490" y="140" text-anchor="middle" fill="#b9a3e8" font-size="11" font-family="var(--mono)">区</text>
+        <text x="490" y="166" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">提示词</text>
+        <text x="490" y="182" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">防护</text>
+        <text x="490" y="198" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">会话</text>
+        <text x="490" y="214" text-anchor="middle" fill="#a8b2c4" font-size="10.5" font-family="var(--sans)">审计</text>
+
+        <!-- 标注线 -->
+        <path d="M490,244 L490,262" stroke="#b9a3e8" stroke-opacity=".5" stroke-dasharray="3 3"/>
+        <text x="490" y="278" text-anchor="middle" fill="#b9a3e8" font-size="10.5" font-family="var(--mono)">名单重合</text>
+        <text x="238" y="278" text-anchor="middle" fill="#7d879b" font-size="10.5" font-family="var(--mono)">装在员工电脑上</text>
+        <text x="742" y="278" text-anchor="middle" fill="#7d879b" font-size="10.5" font-family="var(--mono)">装在 Agent 进程里</text>
+      </svg>
+      <p class="stage-note">
+        <b>关键差异不在 Agent 名单，而在插件装在哪。</b>
+        2026-09-11 起 ASC 也开始支持 Cursor、Claude Code、Trae 等「终端型」Agent 的运行时防护，与 SASE 的覆盖名单高度重合。
+        但 ASC 的防御插件装在<b>服务端 Agent 进程</b>里做 RASP，SASE 的能力装在<b>员工电脑</b>上做终端管控。
+      </p>
+    </div>
+
+    <!-- ==================== 一句话结论 ==================== -->
+    <div class="verdict">
+      <div class="verdict-row">
+        <div class="k">选 SASE</div>
+        <div class="v">风险发生在<b>员工用 AI 的办公场景</b>——影子 AI 失控、数据被 Agent 带出办公网。</div>
+      </div>
+      <div class="verdict-row">
+        <div class="k">选 ASC</div>
+        <div class="v">风险发生在<b>你交付给客户的 Agent 应用本身</b>——供应链、运行时、出站外传、上线前红队。</div>
+      </div>
+      <div class="verdict-row">
+        <div class="k">组合打法</div>
+        <div class="v">大企业常见配法：<b>SASE 管办公侧入口与员工行为，ASC 管业务侧自建 Agent 的供应链与运行时</b>；两者在「会话审计 + 提示词防护」上口径统一，告警可合并。</div>
+      </div>
+      <div class="verdict-row">
+        <div class="k">入口</div>
+        <div class="v">控制台同域相邻：<code>?p=csas</code>（SASE）与 <code>?p=sas#/agentAsset</code>（ASC），容易点错。</div>
+      </div>
+    </div>
+
+    <!-- ==================== 1 环境与 Agent 支持 ==================== -->
+    <section id="sec-env">
+      <div class="sec-head"><span class="sec-num">§ 01</span><h2>不同环境下的智能体支持</h2></div>
+      <p class="sec-sub">防护位置决定了能管什么：终端域管「员工在用的 AI」，服务端域管「企业自建的 AI」。</p>
+
+      <h3 style="font-family:var(--serif);font-size:16px;margin:26px 0 12px;color:var(--dim)">1.1 部署环境覆盖</h3>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">环境维度</th>
+            <th class="sase-h">SASE 办公安全平台<span class="sub">终端侧 · 员工设备</span></th>
+            <th class="asc-h">智能体安全中心 ASC<span class="sub">服务端 · Agent 运行环境</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>防护位置</td><td class="c-sase"><strong>员工办公终端</strong>（PC / 无影云桌面）</td><td class="c-asc"><strong>服务器端 / 云上 / 容器</strong>（Agent 运行环境）</td></tr>
+            <tr><td>操作系统</td><td class="c-sase">Windows、macOS、无影云桌面<br><span class="chip n">互联网访问安全、终端防护仅这三类</span></td><td class="c-asc">Linux 服务器（OpenClaw 要求 Node.js ≥ 22）；容器工作负载</td></tr>
+            <tr><td>部署形态</td><td class="c-sase">员工装 <strong>One Agent 客户端</strong>（5.2.7+ 才支持 Agent 运行时防护）+ 边缘 POP 接入点</td><td class="c-asc">① AI 平台云端接入（自动同步）② 防御插件装在 Agent 服务器 ③ <code>ack-onepilot</code> 给 K8s Pod 注入探针</td></tr>
+            <tr><td>容器 / K8s</td><td class="c-sase"><span class="chip n">不支持</span></td><td class="c-asc">自建 K8s、火山云、腾讯云等三方容器集群（K8s ≥ 1.18），按 Label 自动注入，支持 Node.js / Python</td></tr>
+            <tr><td>网络位置</td><td class="c-sase">员工在办公网 / 远程 / 全球办公</td><td class="c-asc">阿里云 VPC、公网、私网、跨云（火山引擎、腾讯云）</td></tr>
+            <tr><td>数据存储</td><td class="c-sase">终端本地 + SASE 云端控制台</td><td class="c-asc">Agent 所在服务器 / 云上数据面 + ASC 控制台（中国内地 / 非中国内地双区域）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">1.2 支持的 Agent 平台清单</h3>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">类别</th>
+            <th class="sase-h">SASE<span class="sub">终端侧识别与防护</span></th>
+            <th class="asc-h">ASC<span class="sub">服务端接入与防护</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>AI 开发平台</td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>Dify</strong>（公网 / VPC，Endpoint + 账密）、<strong>阿里云百炼</strong>（RAM 角色，每工作空间单独配）、<strong>PAI</strong>、<strong>AgentRun</strong>（STS 角色，每日自动同步）、<strong>火山引擎 AgentKit</strong>（多云 AK）</td></tr>
+            <tr><td>可装防御插件的运行时</td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>OpenClaw</strong>、<strong>Hermes</strong>（官方文档明确仅这两类支持「安装防御插件」的完整流程）</td></tr>
+            <tr><td>运行时防御覆盖范围<br><span style="font-weight:400;font-size:11px">2026-09-11 升级</span></td><td class="c-sase"><span class="chip n">—</span></td><td class="c-asc"><strong>Qoder、QoderWork、Claude Code、Codex、Cursor、Trae</strong>（Coding 类）<br><strong>OpenClaw、Hermes、QwenPaw、Workbuddy</strong>（AI 办公 / 助手类）</td></tr>
+            <tr><td>终端 Agent 识别清单<br><span style="font-weight:400;font-size:11px">2026-07 / 09 更新</span></td><td class="c-sase"><strong>Claude Code、OpenClaw、OpenCode、Cursor Agent、Qoder、Qoder CN、Codex、悟空、Marvis、WPS CoMate</strong><br>运行时另覆盖 <strong>Qoder Agent SDK、Claude Agent SDK、Workbuddy</strong></td><td class="c-asc"><span class="chip n">—</span></td></tr>
+            <tr><td>资产分类维度</td><td class="c-sase"><strong>AI Agents / LLMs / Tools / Skills</strong> 四类终端资产</td><td class="c-asc"><strong>AI Agent、模型服务、数据集、应用配置、技能 Skill</strong>；另产出 <strong>Agent-BOM</strong> 物料清单</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== 2 报价 ==================== -->
+    <section id="sec-price">
+      <div class="sec-head"><span class="sec-num">§ 02</span><h2>企业使用范围与报价</h2></div>
+      <p class="sec-sub">一个预付费按人，一个后付费按量——预算确定性是这个选择里最实际的差别。</p>
+
+      <h3 style="font-family:var(--serif);font-size:16px;margin:26px 0 12px;color:var(--dim)">2.1 SASE：按授权数预付费，模块化拼装</h3>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">计费项</th>
+            <th class="sase-h">单价<span class="sub">人民币</span></th>
+            <th class="asc-h">起售 / 门槛<span class="sub">与说明</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>内网访问安全 Private Access 基础版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>100~500 人</strong>；基础功能必买；5 VPC + 5 连接器；接入点杭州/北京/上海/深圳/成都/乌兰察布</td></tr>
+            <tr><td>Private Access 高级版</td><td class="c-sase"><span class="price">以购买页为准</span></td><td class="c-asc">员工 <strong>&gt; 500 人</strong>；增加办公网准入（EAP-TLS）、全球化办公；10 VPC + 10 连接器；接入点扩至硅谷/弗吉尼亚/法兰克福/新加坡/东京/香港/迪拜/韩国等</td></tr>
+            <tr><td>互联网访问安全 — 上网行为管理</td><td class="c-sase"><span class="price">12.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；仅 Windows / macOS / 无影云桌面</td></tr>
+            <tr><td>互联网访问安全 — 办公数据保护</td><td class="c-sase"><span class="price">39.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；敏感文件检测 + 外设管控 + 水印</td></tr>
+            <tr><td>终端防护（防病毒版）</td><td class="c-sase"><span class="price">9.9<em> 元/月/授权</em></span></td><td class="c-asc">100 授权起售；同上</td></tr>
+            <tr><td><strong>Agent 办公安全</strong></td><td class="c-sase"><span class="price">以购买页为准</span><br><em style="font-size:11.5px;color:var(--muted)">授权数 + Credits + 时长</em></td><td class="c-asc"><strong>10 授权起售</strong>；每授权内置 <strong>2000 SASE 智能助手 Credits</strong>，超额另购安全 Credits 资源包</td></tr>
+            <tr><td>文件存储服务</td><td class="c-sase"><span class="price">300<em> 元/月/TB</em></span></td><td class="c-asc">1 TB 起；保存命中敏感策略 &gt; 30 天的源文件</td></tr>
+            <tr><td>日志存储服务</td><td class="c-sase"><span class="price">2.55<em> 元/月/GB</em></span></td><td class="c-asc">500 GB 起；默认仅存近 7 天日志，等保需单独购</td></tr>
+            <tr><td>购买时长</td><td class="c-sase"><strong>仅预付费</strong></td><td class="c-asc">1~6 个月 / 1 年 / 2 年 / 3 年；支持到期自动续费</td></tr>
+            <tr><td>国际站对照价</td><td class="c-sase" colspan="2">办公数据保护 4.5 USD/月/授权；终端防护 2 USD/月/授权；文件存储 75 USD/月/TB；日志 0.08 USD/月/GB</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">2.2 ASC：全按量后付费，T+1 出账</h3>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">计费项</th>
+            <th class="asc-h">单价<span class="sub">人民币</span></th>
+            <th class="sase-h">计量逻辑</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Skills 检测</td><td class="c-asc"><span class="price">¥10<em> / 次</em></span></td><td class="c-sase">按<strong>文件数</strong>计；单次调用传 10 个文件 = 10 次；任务成功才计费</td></tr>
+            <tr><td>Agent 风险检测</td><td class="c-asc"><span class="price free">公测期间免费</span></td><td class="c-sase">定时自动检测 + 手动检测限时免费</td></tr>
+            <tr><td>Agent 实时防御（防御插件）</td><td class="c-asc"><span class="price">席位 0.42<em> 元/席/小时</em></span><br><span class="price">+ 超量 0.015<em> 元/Credit</em></span></td><td class="c-sase">不足 1 小时按 1 小时；每席每日赠 300 Credits；单席 8 小时/日 ≈ 3.36 元/日</td></tr>
+            <tr><td>AI Red Teaming</td><td class="c-asc"><span class="price">¥1,000<em> / 次</em></span></td><td class="c-sase">按实际执行次数累计；官方已发布「停止公测」变更</td></tr>
+            <tr><td>Agent 审计日志</td><td class="c-asc"><span class="price">¥2<em> / TB·小时</em></span></td><td class="c-sase">每小时归档统计存储量，不足 1TB 按 1TB；3TB 稳定存储 = 24×3×2 = 144 元/日</td></tr>
+            <tr><td>欠费与释放</td><td class="c-asc">欠费停机保留 <strong>15 天</strong>（可叠加延停服务）→ 释放；Skills / 红队数据释放后保留 30 天，审计日志 T+3 删除</td><td class="c-sase">主动退订无保留期，即时释放</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-family:var(--serif);font-size:16px;margin:30px 0 12px;color:var(--dim)">2.3 报价模式对比</h3>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">对比项</th>
+            <th class="sase-h">SASE</th>
+            <th class="asc-h">ASC</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>计费模型</td><td class="c-sase"><strong>预付费包年包月</strong>，按授权数</td><td class="c-asc"><strong>后付费按量</strong>，按调用量 / 席位小时 / 存储量</td></tr>
+            <tr><td>预算确定性</td><td class="c-sase"><span class="chip y">高</span> 提前锁定年费</td><td class="c-asc"><span class="chip n">低</span> 用量浮动，需设预算告警</td></tr>
+            <tr><td>起步门槛</td><td class="c-sase">100 授权起（100 人 ≈ <strong>1,290 元/月</strong>起，最小组合）</td><td class="c-asc">无授权门槛，可只买 Skills 检测 ¥10 试水</td></tr>
+            <tr><td>规模化经济性</td><td class="c-sase">员工数越大越划算（授权数摊薄）</td><td class="c-asc">Agent 实例数越多越贵（席位按小时）</td></tr>
+            <tr><td>免费额度</td><td class="c-sase">通用免费试用</td><td class="c-asc">Agent 风险检测免费；每席每日 300 免费 Credits</td></tr>
+            <tr><td>退款</td><td class="c-sase"><strong>5 天内无理由退款</strong></td><td class="c-asc">按量无退款概念，退订即时释放</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cost">
+        <h4>成本体感 · 100 人办公室 vs 单个 Agent 服务</h4>
+        <div class="bar-row">
+          <span class="lb">SASE 最小组合</span>
+          <span class="tr"><span class="fl" style="width:64%;background:linear-gradient(90deg,#1d4f68,#5aaed6)"></span></span>
+          <span class="amt">≈ 1,290 元/月</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">ASC 单席 8h/日</span>
+          <span class="tr"><span class="fl" style="width:5%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
+          <span class="amt">≈ 3.36 元/日</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">ASC 单席 24h/日</span>
+          <span class="tr"><span class="fl" style="width:10%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
+          <span class="amt">≈ 10.1 元/日</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">ASC 审计日志 3TB</span>
+          <span class="tr"><span class="fl" style="width:11%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
+          <span class="amt">144 元/日</span>
+        </div>
+        <div class="bar-row">
+          <span class="lb">ASC AI Red Teaming</span>
+          <span class="tr"><span class="fl" style="width:76%;background:linear-gradient(90deg,#6b4520,#e0a05a)"></span></span>
+          <span class="amt">1,000 元/次</span>
+        </div>
+        <p style="margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.8">
+          量纲不可直接相加：SASE 计的是<strong>人</strong>，ASC 计的是<strong>Agent 席位与调用量</strong>。上表仅示意各自最小起步成本量级。
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== 3 功能细分 ==================== -->
+    <section id="sec-func">
+      <div class="sec-head"><span class="sec-num">§ 03</span><h2>功能细分 · 逐项能力对齐</h2></div>
+      <p class="sec-sub">把 ASC 九大能力模块与 SASE 现有功能一项一项对上，看谁真的多、谁只是换了个位置。</p>
+
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th class="dim-h">ASC 能力模块</th>
+            <th class="asc-h">ASC 的实现</th>
+            <th class="sase-h">SASE 对应能力</th>
+            <th class="dim-h" style="width:11%">强的一方</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>AI 安全护栏</td><td class="c-asc">输入输出双向实时检测，6 大维度：Prompt 注入、内容安全（有害/违规）、数据泄露、<strong>幻觉检测</strong>、合规性校验、工具调用审计</td><td class="c-sase">仅 <strong>提示词防护</strong>（注入/越狱/恶意指令）+ <strong>敏感数据检测</strong>（复用 DLP 文件正文规则），分高/中/低三级，观察/拦截</td><td><span class="chip a">ASC</span> 维度更全，有内容安全与幻觉检测</td></tr>
+            <tr><td>运行时安全</td><td class="c-asc">RASP 深入 Agent 进程，进程级异常检测、高危行为拦截、越权系统命令阻断</td><td class="c-sase">命令执行管控（内置命令一键启用 + 自定义）、Skills 防护（检测并隔离恶意 Skill）</td><td><span class="chip a">ASC</span> 进程内 RASP，粒度更细</td></tr>
+            <tr><td>数据安全</td><td class="c-asc">Agent 处理数据的分类分级，输入-处理-输出全链路防泄露</td><td class="c-sase"><strong>文件级 DLP 强项</strong>：分类分级、微信/企微/钉钉/QQ/邮箱/浏览器通道外发检测、USB/蓝牙/AirDrop 管控、屏幕与打印水印</td><td><span class="chip s">SASE</span> 数据外发治理完整度高</td></tr>
+            <tr><td>主机安全</td><td class="c-asc">入侵检测、漏洞防护、宿主机安全基线</td><td class="c-sase">终端防病毒版（云查杀 + 本地引擎，后门/木马/勒索/蠕虫）</td><td><span class="chip m">平手</span> 各守一端</td></tr>
+            <tr><td>身份安全</td><td class="c-asc">人 / 车 / 智能体<strong>三位一体</strong>统一身份，多 Agent 协作下的身份溯源与权限隔离</td><td class="c-sase">身份认证强：AD/LDAP、钉钉、飞书、企微、双因素（短信/邮件/OTP）、离职自动回收、免密办公网准入</td><td><span class="chip s">SASE</span> 身份源对接成熟<br><span class="chip a">ASC</span> 智能体身份独有</td></tr>
+            <tr><td>网络管控</td><td class="c-asc">Agent <strong>出站</strong>管控：域名白名单、TLS 证书校验、敏感数据外传拦截、<strong>防 SSRF</strong></td><td class="c-sase">员工<strong>出口</strong>管控：上网行为管理、办公数据保护（外发行为拦截）</td><td><span class="chip a">ASC</span> Agent 出站是 SASE 的盲区</td></tr>
+            <tr><td>配置检查（Agent-SPM）</td><td class="c-asc">Agent 权限配置、数据访问范围、凭证暴露检测 + 基线合规检查与加固建议</td><td class="c-sase"><span class="chip n">无对应能力</span>（SASE 侧无 Agent 配置基线）</td><td><span class="chip a">ASC</span></td></tr>
+            <tr><td>Skills 检测</td><td class="c-asc">独立计费项 ¥10/次，覆盖 SDK/Plugin/CLI，自动识别 + 手动上传，静态分析 Skill.md</td><td class="c-sase">内置于运行时防护，恶意 Skill 检测并隔离，按危险级高/中/低处置</td><td><span class="chip a">ASC</span> 可独立送检、供应链视角</td></tr>
+            <tr><td>AI Red Teaming</td><td class="c-asc">自动化红队，模拟注入/越权/泄露，输出评估报告</td><td class="c-sase"><span class="chip n">无</span></td><td><span class="chip a">ASC</span> 唯一</td></tr>
+            <tr><td>Agent-BOM 供应链</td><td class="c-asc">模型依赖 + Plugin/Skill + API 连接 + 数据源引用的完整物料清单</td><td class="c-sase">仅终端四类资产清单，<strong>非供应链 BOM</strong></td><td><span class="chip a">ASC</span></td></tr>
+            <tr><td>Agent 审计日志</td><td class="c-asc">全链路交互行为、工具调用、数据访问日志，多维检索回溯，¥2/TB·小时</td><td class="c-sase">会话审计（<strong>无需代理或注入</strong>即可采集 Session 会话文件做输入输出全链路审计），2026-09-10 支持预览</td><td><span class="chip m">平手</span> 实现路径不同</td></tr>
+            <tr><td>AI 桌面运维</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：运维 Agent 支持自然语言执行系统优化、软件服务、文件整理、内存清理</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>零信任接入 AI 服务</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：可在 SASE 上配置 AI 应用，用零信任策略管理大模型安全访问；办公网准入</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>数字水印 / AI 生成内容标识</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：网页、屏幕、APP、文档、音视频、图片水印；支持 AI 生成内容加合规标识，满足《人工智能生成合成内容标识办法》</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+            <tr><td>端点防毒 / 办公 IT 运维</td><td class="c-asc"><span class="chip n">无</span></td><td class="c-sase"><strong>独有</strong>：防病毒版、软件库、脚本下发、远程控制双屏、终端管理</td><td><span class="chip s">SASE</span> 唯一</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="solo" style="margin-top:28px">
+        <div class="card sase">
+          <h3>只有 SASE 有</h3>
+          <p class="tagline">办公安全体系的延伸面</p>
+          <ul>
+            <li>零信任内网访问（ZTNA）、办公网准入 NAC</li>
+            <li>互联网访问安全 / 上网行为管理</li>
+            <li>办公数据防泄漏 DLP（通道级 + 外设 + 水印）</li>
+            <li>数字水印 &amp; AI 生成内容标识</li>
+            <li>终端防病毒、软件管理、远程控制、脚本下发</li>
+            <li><strong>运维 Agent</strong>（自然语言桌面运维）</li>
+            <li>身份源对接与离职权限自动回收</li>
+            <li>全球边缘接入点与海外 POP</li>
+          </ul>
+        </div>
+        <div class="card asc">
+          <h3>只有 ASC 有</h3>
+          <p class="tagline">AI 应用安全平台的纵深面</p>
+          <ul>
+            <li>Agent-BOM 供应链物料清单</li>
+            <li>Agent-SPM 配置基线与合规检查</li>
+            <li>Agent 运行时 RASP（进程级）</li>
+            <li>AI Red Teaming 自动化红队</li>
+            <li>Agent 出站网络管控 / 防 SSRF</li>
+            <li>智能体统一身份（人 / 车 / 智能体）</li>
+            <li>多云纳管（火山 AgentKit、跨云 K8s）</li>
+            <li>AI 平台侧资产盘点（Dify / 百炼 / PAI / AgentRun）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4 决策 ==================== -->
+    <section id="sec-pick">
+      <div class="sec-head"><span class="sec-num">§ 04</span><h2>怎么选 · 场景对照</h2></div>
+      <p class="sec-sub">把痛点翻译成一句话就能落到产品上。</p>
+      <div class="pick">
+        <div class="row"><div class="q">员工在电脑上乱装 Cursor / Claude Code，影子 AI 失控，数据被 Agent 带出去</div><div class="who sase">SASE</div></div>
+        <div class="row"><div class="q">要给上线的产品（客服 Agent、Coding Agent、MCP）做上线前红队 + 运行时防护</div><div class="who asc">ASC</div></div>
+        <div class="row"><div class="q">怕 Agent 把业务数据通过外网 API 传走，或发起 SSRF</div><div class="who asc">ASC</div></div>
+        <div class="row"><div class="q">要管 Agent 读了哪些目录、能执行哪些命令</div><div class="who both">SASE 终端侧<br>ASC 服务端</div></div>
+        <div class="row"><div class="q">员工终端既要零信任内网、又要 DLP 和水印</div><div class="who sase">SASE</div></div>
+        <div class="row"><div class="q">Agent 跑在 K8s 里，且要按量付费更灵活</div><div class="who asc">ASC</div></div>
+        <div class="row"><div class="q">要摸清自己到底上线了多少个 Agent、用了哪些模型和插件</div><div class="who asc">ASC</div></div>
+        <div class="row"><div class="q">要满足《人工智能生成合成内容标识办法》的内容标识要求</div><div class="who sase">SASE</div></div>
+      </div>
+    </section>
+
+    <!-- ==================== 脚注 ==================== -->
+    <footer class="foot">
+      <h3>资料来源</h3>
+      <ul>
+        <li><a href="https://www.aliyun.com/product/sase" target="_blank" rel="noopener">办公安全平台 SASE 产品页</a> · <a href="https://help.aliyun.com/zh/sase/product-overview/product-function-node-csas" target="_blank" rel="noopener">SASE 功能特性文档</a></li>
+        <li><a href="https://www.aliyun.com/product/asc" target="_blank" rel="noopener">智能体安全中心产品页</a> · <a href="https://www.aliyun.com/product/asc/features" target="_blank" rel="noopener">ASC 产品功能</a> · <a href="https://www.aliyun.com/product/asc/pricing" target="_blank" rel="noopener">ASC 选型与定价</a></li>
+      </ul>
+      <p style="margin-top:14px">
+        价格为官方页面公示口径整理，实际以购买页与合同为准；标注「以购买页为准」的项随授权规模与区域变动。
+        本页为选型对照材料，非阿里云官方文档。
+      </p>
+    </footer>
+
+  </div>
+  </article>
+
+<script>
+(function(){
+  var doc = document.getElementById('doc');
+  var status = document.getElementById('status');
+  var btnEdit = document.getElementById('btn-edit');
+  var btnReset = document.getElementById('btn-reset');
+  var btnDl = document.getElementById('btn-download');
+  var btnPrint = document.getElementById('btn-print');
+  var KEY = 'agent-sec-sase-vs-asc-v1-edits-v1';
+  var original = doc.innerHTML;
+  var editing = false, timer = null;
+
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved && saved !== original) {
+      doc.innerHTML = saved;
+      status.textContent = '已载入你上次的本地修改';
+    }
+  } catch(e){}
+
+  function setEditing(on){
+    editing = on;
+    doc.contentEditable = on ? 'true' : 'false';
+    document.body.classList.toggle('editing', on);
+    btnEdit.classList.toggle('active', on);
+    btnEdit.textContent = on ? '✓ 编辑中 · 点此退出' : '✎ 开启编辑';
+    if (on) { status.textContent = '编辑中 · 输入即自动保存'; doc.focus(); }
+    else { status.textContent = '只读 · 开启编辑后改动自动存入本浏览器'; }
+  }
+
+  function save(){
+    try {
+      localStorage.setItem(KEY, doc.innerHTML);
+      var t = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      status.textContent = '已自动保存 ' + t;
+    } catch(e){ status.textContent = '⚠ 保存失败(存储已满或隐私模式)'; status.classList.add('warn'); }
+  }
+
+  doc.addEventListener('input', function(){
+    if (!editing) return;
+    clearTimeout(timer);
+    timer = setTimeout(function(){ timer = null; save(); }, 500);
+  });
+
+  btnEdit.addEventListener('click', function(){ setEditing(!editing); });
+
+  btnReset.addEventListener('click', function(){
+    if (!confirm('恢复原稿将丢弃本浏览器内的全部修改，确定?')) return;
+    try { localStorage.removeItem(KEY); } catch(e){}
+    doc.innerHTML = original;
+    setEditing(false);
+    status.textContent = '已恢复服务器原稿';
+    status.classList.remove('warn');
+  });
+
+  btnDl.addEventListener('click', function(){
+    var clone = document.documentElement.cloneNode(true);
+    var a = clone.querySelector('#doc');
+    if (a) a.removeAttribute('contenteditable');
+    clone.querySelector('body').classList.remove('editing');
+    var st = clone.querySelector('#status');
+    if (st) st.textContent = '导出于 ' + new Date().toLocaleString('zh-CN');
+    var blob = new Blob(['<!doctype html>\n' + clone.outerHTML], {type:'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url; link.download = 'agent-sec-sase-vs-asc-edited.html'; link.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  });
+
+  btnPrint.addEventListener('click', function(){ window.print(); });
+})();
+</script>
+</body>
+</html>
