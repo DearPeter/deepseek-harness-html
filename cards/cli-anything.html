@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLI-Anything：把软件变成 Agent 能直接调用的命令</title>
+<meta name="color-scheme" content="light">
+<meta name="description" content="香港大学 HKUDS 开源项目 CLI-Anything 的中文深度解读：57,789 stars、79 个 CLI、七阶段流水线、CLI-Hub 三种入口、官方 demo、与 GUI Agent / API / MCP 的对比，以及它真实的局限。">
+<link rel="stylesheet" href="../assets/frame.css">
+<style>
+/* ============================================================
+   CLI-Anything 深度解读
+   ------------------------------------------------------------
+   设计计划
+   Color : #e8eaec 冷灰纸底 / #12161b 墨 / #434c56 次级墨
+           #1f4fd8 ANSI 亮蓝（结构、链接）
+           #8a4b06 ANSI 暗黄（仅"降质、局限"语义）
+           #8c2f24 暗红（仅警示）
+           —— 强调色取自命令行 ANSI 色板，不取装饰性调色盘
+   Type  : 标题 -apple-system,"PingFang SC" 700 收紧字距
+           正文 同栈 15.5px / 1.85
+           数据 ui-monospace,"SF Mono",Menlo 等宽 tabular
+           零外部字体、零 Google Fonts
+   Layout: 单栏 ≤920px，正文行宽 ≤72 字符，左轨承载七阶段
+   唯一大胆处：一条不断开的竖向装配轨。Phase 6.5 用虚线肘接
+           横向插入，把"这是插入阶段、不是第八阶段"直接画出来。
+           其余部分安静：零圆角卡、零阴影、零渐变、零入场动画。
+   ============================================================ */
+:root{
+  --paper:#e8eaec; --paper-hi:#f3f4f5; --paper-lo:#dfe2e5;
+  --ink:#12161b; --ink2:#3d464f; --ink3:#434c56;
+  --rule:#c2c8cd; --rule-soft:#d3d8dc;
+  --blue:#1f4fd8; --amber:#8a4b06; --red:#8c2f24;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Courier New",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:15.5px; line-height:1.85;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(31,79,216,.16)}
+a{color:var(--blue); text-decoration:none; border-bottom:1px solid rgba(31,79,216,.32)}
+a:hover{border-bottom-color:var(--blue)}
+code,kbd{font-family:var(--mono); font-size:.875em; background:var(--paper-lo); padding:1px 5px; border-radius:2px}
+h1,h2,h3,h4{margin:0; font-weight:700; line-height:1.32; letter-spacing:-.012em}
+
+/* ---------- 工具条 ---------- */
+#toolbar{
+  position:sticky; top:0; z-index:60; display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  padding:9px 20px; background:rgba(232,234,236,.93); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+#toolbar .tag{font:600 11px/1 var(--mono); letter-spacing:.14em; color:var(--ink2); padding:6px 8px;
+  border:1px solid var(--rule); background:var(--paper-hi)}
+#toolbar button{
+  font-family:var(--mono); font-size:12px; letter-spacing:.02em; padding:6px 12px; cursor:pointer;
+  background:var(--paper-hi); color:var(--ink); border:1px solid var(--ink2); border-radius:2px;
+  transition:background .12s,color .12s;
+}
+#toolbar button:hover{background:var(--ink); color:var(--paper-hi)}
+#toolbar button:focus-visible{outline:2px solid var(--blue); outline-offset:2px}
+#toolbar button.on{background:var(--blue); border-color:var(--blue); color:#fff}
+#toolbar .state{margin-left:auto; font:11.5px/1.5 var(--mono); color:var(--ink3)}
+
+/* ---------- 版式骨架 ---------- */
+.wrap{max-width:920px; margin:0 auto; padding:0 24px 88px}
+main{display:block}
+#doc[contenteditable="true"]{outline:1px dashed var(--blue); outline-offset:16px}
+
+/* ---------- 报头 ---------- */
+.masthead{padding:52px 0 26px}
+.wordmark{
+  display:inline-flex; align-items:baseline; gap:10px; margin:0 0 22px;
+  font:600 12.5px/1 var(--mono); letter-spacing:.06em; color:var(--ink2);
+}
+.wordmark b{font-size:13px; letter-spacing:.16em; color:var(--ink)}
+.wordmark .ver{border:1px solid var(--rule); padding:4px 7px; color:var(--ink3); font-size:11px}
+h1{font-size:clamp(27px,4.6vw,41px); max-width:22em}
+h1 .en{font-family:var(--mono); font-weight:700; letter-spacing:-.02em}
+.lede{
+  margin:20px 0 0; font-size:17px; line-height:1.78; color:var(--ink2); max-width:64ch;
+}
+.lede strong{color:var(--ink); font-weight:600}
+
+/* 关键数字条 */
+.stats{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+  margin:32px 0 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--rule);
+}
+.stat{padding:16px 18px 15px 0; border-right:1px solid var(--rule-soft)}
+.stat:last-child{border-right:none}
+.stat .v{
+  display:block; font:700 25px/1.1 var(--mono); font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em; color:var(--ink);
+}
+.stat .k{display:block; font-size:12.5px; color:var(--ink3); margin-top:6px}
+.stat .src{display:block; font:10.5px/1.4 var(--mono); color:var(--ink3); margin-top:3px}
+
+/* ---------- 章节 ---------- */
+section{padding:44px 0 0}
+section + section{border-top:1px solid var(--rule-soft); margin-top:44px}
+h2{
+  font-size:22px; display:flex; align-items:baseline; gap:11px; margin:0 0 18px;
+}
+h2 .n{
+  font:700 11.5px/1 var(--mono); color:var(--blue); letter-spacing:.04em;
+  padding:4px 0 0; flex:none; width:2.2em;
+}
+h3{font-size:16.5px; margin:26px 0 8px}
+p{margin:0 0 15px; max-width:72ch}
+p:last-child{margin-bottom:0}
+.note{color:var(--ink3); font-size:14px}
+.note-em{color:var(--ink2)}
+
+/* 冷静结论块 */
+.verdict{
+  margin:26px 0 0; padding:18px 20px; background:var(--paper-hi);
+  border-left:3px solid var(--ink);
+}
+.verdict p{margin:0; font-size:16px; color:var(--ink)}
+.verdict .who{display:block; font:11px/1 var(--mono); color:var(--ink3); letter-spacing:.1em; margin-bottom:9px}
+
+/* 三条死路 */
+.deadends{list-style:none; margin:22px 0 0; padding:0; counter-reset:de}
+.deadends li{
+  counter-increment:de; position:relative; padding:16px 0 16px 46px;
+  border-top:1px solid var(--rule-soft);
+}
+.deadends li:last-child{border-bottom:1px solid var(--rule-soft)}
+.deadends li::before{
+  content:counter(de,decimal-leading-zero); position:absolute; left:0; top:19px;
+  font:700 12px/1 var(--mono); color:var(--red); letter-spacing:.04em;
+}
+.deadends b{display:block; font-size:15.5px; margin-bottom:4px}
+.deadends span{color:var(--ink2); font-size:14.5px}
+
+/* 通用表格 */
+.tbl{width:100%; overflow-x:auto; margin:20px 0 0; border-top:2px solid var(--ink)}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:560px}
+caption{caption-side:top; text-align:left; font:11.5px/1.6 var(--mono); color:var(--ink3); padding:0 0 10px}
+th{
+  text-align:left; font-weight:650; font-size:12.5px; color:var(--ink3);
+  padding:10px 14px 10px 0; border-bottom:1px solid var(--rule); vertical-align:bottom;
+  white-space:nowrap;
+}
+td{padding:11px 14px 11px 0; border-bottom:1px solid var(--rule-soft); vertical-align:top; color:var(--ink2)}
+td:first-child{color:var(--ink); font-weight:600}
+th:last-child, td:last-child{padding-right:0}
+.num-cell{font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:13px}
+.cta{color:var(--ink); font-weight:600}
+.tone{color:var(--amber)}
+
+/* 命令块 */
+.cmd{
+  margin:16px 0 0; padding:15px 17px; background:var(--paper-hi);
+  border:1px solid var(--rule); border-left:3px solid var(--ink2);
+  font:13px/1.85 var(--mono); color:var(--ink); overflow-x:auto; white-space:pre;
+}
+.cmd .c{color:var(--ink3)}
+.cmd .o{color:var(--blue)}
+
+/* ---------- 七阶段装配轨:全页唯一大胆处 ---------- */
+.rail{list-style:none; margin:26px 0 0; padding:0; position:relative}
+.ph{
+  position:relative; padding:0 0 26px 66px;
+}
+.ph::before{ /* 竖轨 */
+  content:""; position:absolute; left:23px; top:26px; bottom:0; width:1px; background:var(--rule);
+}
+.ph:last-child::before{display:none}
+.ph .dot{
+  position:absolute; left:14px; top:2px; width:19px; height:19px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--paper); border:1px solid var(--ink2); border-radius:0;
+  font:700 10px/1 var(--mono); color:var(--ink); font-variant-numeric:tabular-nums;
+}
+.ph.on .dot{background:var(--ink); border-color:var(--ink); color:var(--paper-hi)}
+.ph h3{margin:0 0 5px; font-size:16px; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px}
+.ph h3 .zh{font-size:13px; font-weight:600; color:var(--ink3); letter-spacing:.01em}
+.ph p{font-size:14.5px; color:var(--ink2); margin:0 0 7px; max-width:60ch}
+.ph .out{
+  display:block; font:11.8px/1.7 var(--mono); color:var(--ink3);
+  border-top:1px dotted var(--rule); padding-top:6px; max-width:60ch;
+}
+.ph .out b{color:var(--ink2); font-weight:600; letter-spacing:.06em; margin-right:6px}
+/* 6.5 插入阶段:虚线肘接 */
+.ph.ins{
+  margin-left:30px; padding-left:44px; padding-bottom:28px;
+}
+.ph.ins::after{ /* 肘接线 */
+  content:""; position:absolute; left:-30px; top:11px; width:34px; height:1px;
+  border-top:1px dashed var(--blue);
+}
+.ph.ins::before{left:23px; top:26px; border-left:1px dashed var(--blue); background:none; width:0}
+.ph.ins .dot{
+  left:13px; border:1px dashed var(--blue); color:var(--blue); background:var(--paper-hi);
+  width:21px; height:19px; font-size:9px;
+}
+.ph.ins p,.ph.ins .out{max-width:52ch} /* 支线窄于主线 */
+.ph.ins h3{color:var(--ink)}
+.ph.ins h3 .badge{
+  font:600 10px/1 var(--mono); color:var(--blue); border:1px solid var(--blue);
+  padding:3px 5px; letter-spacing:.04em;
+}
+.rail-key{
+  margin:14px 0 0; font:11.8px/1.7 var(--mono); color:var(--ink3);
+  border-top:1px solid var(--rule-soft); padding-top:12px; max-width:64ch;
+}
+
+/* ---------- 能力版图 ---------- */
+.domains{margin:20px 0 0; border-top:2px solid var(--ink)}
+.domains .row{display:grid; grid-template-columns:132px 1fr; gap:18px; padding:13px 0;
+  border-bottom:1px solid var(--rule-soft)}
+.domains .row .lab{font-size:13px; font-weight:650; color:var(--ink)}
+.domains .row .items{font-size:14px; color:var(--ink2); line-height:1.9}
+.domains .row .items span{white-space:nowrap}
+
+/* ---------- demo ---------- */
+.demo{margin:22px 0 0; padding:0; list-style:none}
+.demo > li{padding:17px 0 17px; border-top:1px solid var(--rule-soft)}
+.demo > li:last-child{padding-bottom:0}
+.demo .h{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:5px}
+.demo .h b{font-size:15.5px}
+.demo .h .t{font:11px/1 var(--mono); color:var(--ink3); border:1px solid var(--rule); padding:3px 6px}
+.demo p{font-size:14.5px; color:var(--ink2); margin:0; max-width:64ch}
+.demo code{font-size:12.5px}
+
+/* ---------- 局限 ---------- */
+.limits{list-style:none; margin:20px 0 0; padding:0}
+.limits li{position:relative; padding:12px 0 12px 24px; border-top:1px solid var(--rule-soft); font-size:14.5px; color:var(--ink2)}
+.limits li:last-child{border-bottom:1px solid var(--rule-soft)}
+.limits li::before{
+  content:"!"; position:absolute; left:0; top:14px; font:700 12px/1 var(--mono);
+  color:var(--amber); border:1px solid var(--amber); width:15px; height:15px;
+  display:flex; align-items:center; justify-content:center;
+}
+.limits b{color:var(--ink); font-weight:650}
+
+/* ---------- 上手路径 ---------- */
+.paths{margin:22px 0 0; counter-reset:pa}
+.paths > div{padding:18px 0 20px; border-top:1px solid var(--rule-soft)}
+.paths > div:last-child{padding-bottom:0}
+.paths h3{margin:0 0 7px; font-size:15.5px}
+.paths h3 em{
+  font-style:normal; font:700 11px/1 var(--mono); color:var(--blue);
+  border:1px solid var(--blue); padding:3px 6px; margin-right:9px; vertical-align:1px;
+}
+.paths .why{font-size:14.5px; color:var(--ink2); margin:0 0 4px; max-width:64ch}
+
+/* ---------- 页脚 ---------- */
+footer{margin-top:60px; padding-top:22px; border-top:2px solid var(--ink); font-size:13px; color:var(--ink3)}
+footer p{margin:0 0 9px; max-width:none}
+footer .meta{font:11.8px/1.9 var(--mono); color:var(--ink3)}
+footer a{color:var(--ink2); border-bottom-color:var(--rule)}
+footer a:hover{color:var(--blue); border-bottom-color:var(--blue)}
+
+/* ---------- 移动端 ---------- */
+@media (max-width:640px){
+  body{font-size:15px; line-height:1.82}
+  .wrap{padding:0 18px 64px}
+  .masthead{padding:34px 0 20px}
+  .lede{font-size:16px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{padding:13px 14px 12px 0}
+  .stat:nth-child(2){border-right:none}
+  .stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--rule-soft)}
+  .stat .v{font-size:21px}
+  section{padding-top:34px}
+  section + section{margin-top:34px}
+  h2{font-size:19px}
+  .ph{padding-left:44px}
+  .ph .dot{left:2px}
+  .ph::before{left:11px}
+  .ph.ins{margin-left:22px; padding-left:30px}
+  .ph.ins::after{left:-22px; width:26px}
+  .ph.ins::before{left:9px}
+  .ph.ins .dot{left:2px}
+  .domains .row{grid-template-columns:1fr; gap:4px}
+  .domains .row .lab{padding-top:2px}
+  .cmd{font-size:12px; padding:13px 12px}
+  #toolbar{padding:8px 18px}
+  #toolbar .state{display:none}
+  #toolbar button{padding:6px 9px; font-size:11.5px}
+}
+
+/* ---------- 打印:反转为纸面浅色 ---------- */
+@media print{
+  @page{margin:16mm 15mm}
+  html,body{background:#fff !important; color:#000 !important}
+  #toolbar{display:none !important}
+  .wrap{max-width:none; padding:0}
+  body{font-size:10.5pt; line-height:1.62}
+  a{color:#000 !important; border-bottom:none !important}
+  .masthead{padding-top:0}
+  .verdict,.cmd,.stat{background:#fff !important}
+  .verdict{border-left:2px solid #000}
+  .cmd{border:1px solid #999; border-left:2px solid #000}
+  .ph,.demo > li,.domains .row,tr{break-inside:avoid; page-break-inside:avoid}
+  section + section{margin-top:22px; padding-top:22px}
+  section{break-inside:auto}
+  .stats{border-top:1.5pt solid #000}
+  .stat .v{color:#000}
+  th{color:#000}
+  td{color:#222}
+  footer{margin-top:28px}
+  #doc[contenteditable="true"]{outline:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important; animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<div id="toolbar" role="toolbar" aria-label="文档工具">
+  <span class="tag">CLI-ANYTHING</span>
+  <button type="button" id="btn-edit" aria-pressed="false">✎ 开启编辑</button>
+  <button type="button" id="btn-reset">恢复原稿</button>
+  <button type="button" id="btn-save">下载当前版</button>
+  <button type="button" id="btn-print">打印 PDF</button>
+  <span class="state" id="edit-state">改动只存在本机浏览器</span>
+</div>
+
+<div class="wrap">
+<article id="doc">
+
+  <header class="masthead">
+    <div class="wordmark"><b>github.com/HKUDS/CLI-Anything</b><span class="ver">Apache-2.0</span></div>
+    <h1><span class="en">CLI-Anything</span>：把软件变成 Agent 能直接调用的命令</h1>
+    <p class="lede">
+      它不改界面、不做截图识别，也不要求软件先有 API。做法是把真实软件的后端包一层结构化命令行——
+      Agent 发命令、拿 JSON，人类看可读输出。<strong>不截图，不点击，不依赖 MCP。</strong>
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="v">57,789</span>
+        <span class="k">GitHub stars</span>
+        <span class="src">GitHub · 2026-10-30</span>
+      </div>
+      <div class="stat">
+        <span class="v">79</span>
+        <span class="k">CLI-Hub 收录 CLI</span>
+        <span class="src">registry.json</span>
+      </div>
+      <div class="stat">
+        <span class="v">2,461</span>
+        <span class="k">测试通过（仓库汇总）</span>
+        <span class="src">README 徽章</span>
+      </div>
+      <div class="stat">
+        <span class="v">18</span>
+        <span class="k">官方 demo 应用</span>
+        <span class="src">README</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  <!-- 1 -->
+  <section>
+    <h2><span class="n">01</span>它到底在干什么</h2>
+    <p>
+      一句话：<b>Making ALL Software Agent-Native</b>。这句口号写在仓库首页，中文直译就是"让所有软件都能被 Agent 直接调用"。
+      它不自建软件，也不重写软件，而是在软件后端和 Agent 之间补一层东西——一层用命令行表达、用 JSON 回答的接口层。
+    </p>
+    <p>
+      这层的形态很朴素：一个可执行的 pip 包，名字是 <code>cli-anything-&lt;software&gt;</code>。Agent 执行它、读到结构化结果、
+      再决定下一步。软件原本的功能一个不少，因为命令调用的就是软件自己的后端引擎，而不是替它做的阉割版。
+    </p>
+    <div class="verdict">
+      <span class="who">冷静一句</span>
+      <p>它更像是给软件补一层可被 Agent 调用的接口层，而不是让 Agent 学会用软件。</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <h2><span class="n">02</span>Agent 为什么用不了真实软件</h2>
+    <p>
+      大模型会推理，但它在软件面前没有手。要让 Agent 真去改一张图、剪一段视频、调一个 CAD 装配体，
+      目前只有三条路，而三条都不好用。
+    </p>
+    <ol class="deadends">
+      <li>
+        <b>GUI 自动化：截图 + 点像素</b>
+        <span>界面一改坐标就废，按钮位置漂移、弹窗遮挡、分辨率缩放都能让整条流程崩掉。它看起来能用，但维护成本随软件版本线性上升，而且 Agent 永远不知道自己点开了什么。</span>
+      </li>
+      <li>
+        <b>API 封装：只覆盖能力的一小部分</b>
+        <span>专业软件的 API 往往只暴露了核心功能的一小撮，画面渲染、时间线、图层、滤镜链这些真正值钱的部分根本不在接口里。而且每家接口风格都不一样，接十个软件就要维护十套适配。</span>
+      </li>
+      <li>
+        <b>重写一个阉割版：丢掉 90% 专业功能</b>
+        <span>为了让 Agent 能用，干脆自己写个简化版。结果做出来的东西专业用户一天就弃用——因为它不是那个软件，只是一个长得像它的玩具。</span>
+      </li>
+    </ol>
+    <p class="note" style="margin-top:16px">
+      这三条路的共同问题是：它们都在"界面"和"能力"之间做取舍。CLI-Anything 的赌注是——不用取。
+    </p>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <h2><span class="n">03</span>为什么答案是命令行</h2>
+    <p>
+      把接口做成 CLI，不是怀旧，是因为命令行对 Agent 恰好有四个别处凑不齐的性质。
+    </p>
+    <div class="tbl">
+      <table>
+        <caption>命令行作为 Agent 接口的四个性质</caption>
+        <thead>
+          <tr><th style="width:15%">性质</th><th style="width:42%">具体表现</th><th>对 Agent 意味着什么</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>结构化</td>
+            <td>默认双输出：人类看表格与进度，Agent 加 <code>--json</code> 拿机器可读结果</td>
+            <td>不用猜、不用正则从自然语言里抠数据，读到的就是字段</td>
+          </tr>
+          <tr>
+            <td>可组合</td>
+            <td>命令可以串、可以循环、可以带状态连续执行</td>
+            <td>多步工作流能被写成脚本，而不是靠模型临场记住上下文</td>
+          </tr>
+          <tr>
+            <td>自描述</td>
+            <td><code>--help</code> 说明语法，<code>SKILL.md</code> 说明用途</td>
+            <td>Agent 可以自己发现、自己确认参数，不必由人提前写死提示词</td>
+          </tr>
+          <tr>
+            <td>确定性</td>
+            <td>同一条命令永远得到同样结果，失败有非零退出码</td>
+            <td>可重放、可断言、可写进测试；不依赖像素是否对齐</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <h2><span class="n">04</span>七阶段流水线</h2>
+    <p>
+      这是这个项目真正的核心，也是它区别于"让模型自由发挥写个脚本"的地方：
+      给一个软件造 CLI 是一条<b>固定的七阶段流水线</b>，中途还插了一道 6.5。每一阶段都有名字、有产出物、有验收方式。
+    </p>
+
+    <ol class="rail">
+      <li class="ph on">
+        <span class="dot">1</span>
+        <h3>Codebase Analysis <span class="zh">代码库分析</span></h3>
+        <p>读后端引擎（如 MLT、GEGL、bpy）、数据模型（XML / JSON / 二进制）和已有 CLI，把 GUI 上看得见的操作映射回底层 API 调用。</p>
+        <span class="out"><b>产出</b>软件专属 SOP 文档，例如 <code>GIMP.md</code></span>
+      </li>
+      <li class="ph on">
+        <span class="dot">2</span>
+        <h3>CLI Architecture Design <span class="zh">命令行架构设计</span></h3>
+        <p>按软件本身的领域划分命令组，定状态模型（用 JSON 工程格式承载），定双输出格式（人类 + JSON），定渲染管线怎么落到文件上。</p>
+        <span class="out"><b>产出</b>命令组划分、状态模型、输出契约</span>
+      </li>
+      <li class="ph on">
+        <span class="dot">3</span>
+        <h3>Implementation <span class="zh">实现</span></h3>
+        <p>用 Click 写命令行，默认进入 REPL（统一由 <code>ReplSkin</code> 提供），所有命令支持 <code>--json</code>，全局会话状态与 undo / redo 可用。</p>
+        <span class="out"><b>产出</b><code>agent-harness/cli_anything/&lt;software&gt;/</code></span>
+      </li>
+      <li class="ph on">
+        <span class="dot">4</span>
+        <h3>Test Planning <span class="zh">测试计划</span></h3>
+        <p>先写计划再写代码：单元测试计划、E2E 测试计划，以及真实工作流场景（不是玩具用例，是"用户真会这么干"的串行操作）。</p>
+        <span class="out"><b>产出</b><code>TEST.md</code> 上半部分</span>
+      </li>
+      <li class="ph on">
+        <span class="dot">5</span>
+        <h3>Test Implementation <span class="zh">测试实现</span></h3>
+        <p><code>test_core.py</code> 用合成数据跑单元，<code>test_full_e2e.py</code> 用真实文件跑端到端，多步工作流连续验证，输出要过像素级或格式级检查；另有 <code>TestCLISubprocess</code> 通过子进程验证已安装命令真的可用。</p>
+        <span class="out"><b>产出</b>可运行的测试套件</span>
+      </li>
+      <li class="ph on">
+        <span class="dot">6</span>
+        <h3>Test Documentation <span class="zh">测试记录</span></h3>
+        <p>跑 <code>pytest -v --tb=no</code>，把结果与覆盖缺口一起写进文档——不是只写"全部通过"，缺口也要留痕。</p>
+        <span class="out"><b>产出</b><code>TEST.md</code> 下半部分</span>
+      </li>
+
+      <li class="ph ins">
+        <span class="dot">6.5</span>
+        <h3>SKILL.md Generation <span class="badge">插入阶段</span></h3>
+        <p><code>skill_generator.py</code> 从 Click 装饰器、<code>setup.py</code>、README 里抽取元数据，生成带 YAML frontmatter 的 <code>SKILL.md</code>。</p>
+        <p>这一步是整个设计的枢纽：有了它，Agent 才能自己发现这个 CLI 存在、知道它干什么，而不需要人去改提示词。</p>
+        <span class="out"><b>产出</b><code>SKILL.md</code></span>
+      </li>
+
+      <li class="ph on">
+        <span class="dot">7</span>
+        <h3>PyPI Publishing <span class="zh">发布</span></h3>
+        <p><code>setup.py</code> + <code>cli_anything.*</code> 命名空间包 + console_scripts 入口，本地先 <code>pip install -e .</code>，再用 <code>which</code> 确认命令真的挂上了，最后才发。</p>
+        <span class="out"><b>产出</b>PyPI 上的 <code>cli-anything-&lt;software&gt;</code></span>
+      </li>
+    </ol>
+
+    <p class="rail-key">
+      注：官方文档就写作「Phase 6.5」，它是插在测试记录与发布之间的补充阶段，不是第八阶段。这里照原样呈现。
+    </p>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <h2><span class="n">05</span>CLI-Hub 与三种入口</h2>
+    <p>
+      造出来的 CLI 需要一个分发的地方，这就是 <b>CLI-Hub</b>：一个 registry（<code>registry.json</code>），目前收录 79 个 CLI。
+      它支持四种安装源——pip、npm、brew、以及系统自带工具。
+    </p>
+    <p>围绕它有三种完全不同的使用姿势，取决于你是谁、要做什么。</p>
+
+    <div class="tbl">
+      <table>
+        <caption>三种入口</caption>
+        <thead>
+          <tr><th style="width:26%">如果你的目标是</th><th>做法</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>直接用现成的</td>
+            <td>装 <code>cli-anything-hub</code>，用 <code>cli-hub</code> 的七个动作管理全部 CLI</td>
+          </tr>
+          <tr>
+            <td>让 Agent 自己会找</td>
+            <td>给 Agent 装一个 meta skill，之后它自己知道去哪儿找、怎么装</td>
+          </tr>
+          <tr>
+            <td>给没有 CLI 的软件造一个</td>
+            <td>装 CLI-Anything 插件或 skill，对目标软件跑一条生成命令，走完七阶段</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>入口一：直接用现成的</h3>
+    <div class="cmd"><span class="c"># 装 hub 本体</span>
+pip install cli-anything-hub
+
+<span class="c"># 然后就有了一套统一的管理动作</span>
+cli-hub <span class="o">list</span>        <span class="c"># 看有哪些</span>
+cli-hub <span class="o">search</span> &lt;词&gt;  <span class="c"># 按关键词找</span>
+cli-hub <span class="o">info</span> &lt;名&gt;    <span class="c"># 看某个 CLI 的详情</span>
+cli-hub <span class="o">install</span> &lt;名&gt; <span class="c"># 装到本机</span>
+cli-hub <span class="o">update</span>       <span class="c"># 批量更新</span>
+cli-hub <span class="o">uninstall</span> &lt;名&gt;
+cli-hub <span class="o">launch</span> &lt;名&gt;  <span class="c"># 直接进 REPL</span></div>
+
+    <h3>入口二：让 Agent 自己会找</h3>
+    <p class="note-em" style="font-size:14.5px; margin-bottom:6px">
+      给支持 skills 的 Agent 装一个 meta skill。装完之后，你只要说"帮我把这个视频的音轨抽出来"，它会自己去 registry 里翻。
+    </p>
+    <div class="cmd">npx skills add HKUDS/CLI-Anything --skill cli-hub-meta-skill -g -y</div>
+
+    <h3>入口三：给没有 CLI 的软件造一个</h3>
+    <p class="note-em" style="font-size:14.5px; margin-bottom:6px">
+      装好 CLI-Anything 插件或 skill 后，把目标软件或仓库丢给它，它会照着七阶段走一遍。
+    </p>
+    <div class="cmd"><span class="c"># 在 Agent 里执行，参数是软件路径或仓库地址</span>
+/cli-anything &lt;软件路径或仓库&gt;</div>
+
+    <p style="margin-top:18px">
+      官方主页与 CLI-Hub 在线目录在 <a href="https://clianything.cc/">clianything.cc</a>，另有 GitHub Pages 镜像。
+    </p>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <h2><span class="n">06</span>能力版图</h2>
+    <p>
+      79 个 CLI 覆盖的面比想象中宽。下面按用途分组，每组只挑能说明问题的代表——完整清单在 registry 里。
+    </p>
+    <div class="domains">
+      <div class="row">
+        <div class="lab">创意与媒体</div>
+        <div class="items">
+          <span>Blender</span> · <span>GIMP</span> · <span>Krita</span> · <span>Inkscape</span> · <span>Audacity</span> ·
+          <span>OBS Studio</span> · <span>Shotcut</span> · <span>Kdenlive</span> · <span>Darktable</span> ·
+          <span>LMMS</span> · <span>Ardour</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">办公与知识</div>
+        <div class="items">
+          <span>LibreOffice</span> · <span>Zotero</span> · <span>Joplin</span> · <span>Calibre</span> ·
+          <span>Obsidian</span> · <span>Logseq</span> · <span>AppFlowy</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">工程与科学</div>
+        <div class="items">
+          <span>FreeCAD</span> · <span>QGIS</span> · <span>KiCad</span> · <span>ParaView</span> ·
+          <span>Gephi</span> · <span>ImageJ</span> · <span>Godot</span> · <span>s&amp;box</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">数据与 AI</div>
+        <div class="items">
+          <span>ComfyUI</span> · <span>Stable Diffusion WebUI</span> · <span>Ollama</span> ·
+          <span>InvokeAI</span> · <span>JupyterLab</span> · <span>Superset</span> · <span>n8n</span> · <span>Dify</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">网络与运维</div>
+        <div class="items">
+          <span>AdGuardHome</span> · <span>JumpServer</span> · <span>Portainer</span> · <span>Grafana</span> ·
+          <span>Mattermost</span> · <span>NextCloud</span> · <span>GitLab</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">其它</div>
+        <div class="items">
+          <span>Draw.io</span> · <span>Mermaid</span> · <span>Excalidraw</span> · <span>Zoom</span> ·
+          <span>WireMock</span> · <span>RenderDoc</span> · <span>VideoCaptioner</span> · <span>Exa</span> ·
+          <span>Safari</span> · <span>iTerm2</span>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px">
+      支持接入的 Agent 平台包括 Claude Code、Cursor、Pi、OpenClaw、OpenCode、Codex、Hermes、Reasonix、Qodercli、GitHub Copilot CLI 等。
+    </p>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <h2><span class="n">07</span>四个官方 demo，看 Agent 到底做了什么</h2>
+    <p>
+      官方 demo 值得看，是因为它们展示了同一套动作：Agent 不是在"操作界面"，而是在连续下发命令、
+      每一步都生成预览、并把每一步的状态记进轨迹文件。
+    </p>
+    <ul class="demo">
+      <li>
+        <div class="h"><b>FreeCAD</b><span class="t">逐步建模</span></div>
+        <p>
+          Agent 一步一步搭出一台 Curiosity 风格的火星车：悬挂、轮组、车体逐件生成。
+          全程用 <code>preview</code> 与 <code>preview live</code> 看中间态，同时写入 <code>trajectory.json</code>，
+          把每一步命令对应到哪一帧视觉状态都记下来——这既是调试手段，也是回放依据。
+        </p>
+      </li>
+      <li>
+        <div class="h"><b>Blender</b><span class="t">硬表面建模</span></div>
+        <p>
+          主题是一台硬表面的轨道中继无人机。同样是 preview + live + trajectory 的组合：
+          建模不是一次成型，而是"改一点、看一帧、再改"的循环，循环由命令驱动。
+        </p>
+      </li>
+      <li>
+        <div class="h"><b>Draw.io</b><span class="t">限时任务</span></div>
+        <p>
+          约 4 分钟从零画出一张完整的 HTTPS 握手生命周期图，最后产出 <code>.drawio</code> 源文件与 <code>.png</code> 图。
+          这个 demo 的说服力在于"限时"——它证明的不是能画，而是速度。
+        </p>
+      </li>
+      <li>
+        <div class="h"><b>Godot</b><span class="t">端到端管线</span></div>
+        <p>
+          完整游戏 E2E 管线。这是所有 demo 里跨度最大的一个：不是单点功能，而是从工程到产物的一整条链路。
+        </p>
+      </li>
+    </ul>
+    <p class="note" style="margin-top:16px">
+      另有 Slay the Spire II、Kdenlive、Shotcut、VideoCaptioner 等 demo。官方称覆盖 18 个 demo 应用。
+    </p>
+  </section>
+
+  <!-- 8 -->
+  <section>
+    <h2><span class="n">08</span>和相邻方案放在一起看</h2>
+    <p>
+      这张表不是为了证明 CLI 最好，而是标清楚四条路各自在哪一格会失手。
+      <b>MCP 不是敌人，是另一条路</b>：它解决的是"协议怎么统一"，CLI-Anything 解决的是"软件本来没有接口"。
+    </p>
+    <div class="tbl">
+      <table>
+        <caption>四种让 Agent 使用软件的方式</caption>
+        <thead>
+          <tr>
+            <th style="width:16%">维度</th>
+            <th>GUI Agent / RPA</th>
+            <th>普通 API 封装</th>
+            <th>MCP Server</th>
+            <th>CLI-Anything</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>交互方式</td>
+            <td>截图 + 点击</td><td>HTTP 调用</td><td>协议调用</td><td class="cta">命令行 + JSON</td>
+          </tr>
+          <tr>
+            <td>覆盖能力</td>
+            <td>看得见才做得到</td><td>取决于 API</td><td>取决于实现</td><td class="cta">直接调软件后端</td>
+          </tr>
+          <tr>
+            <td>稳定性</td>
+            <td>低，界面一改就崩</td><td>中</td><td>中</td><td class="cta">高，确定性命令</td>
+          </tr>
+          <tr>
+            <td>是否需要软件本体</td>
+            <td>需要</td><td>不需要</td><td>视情况</td><td>需要</td>
+          </tr>
+          <tr>
+            <td>Agent 发现成本</td>
+            <td>高</td><td>中</td><td>低</td><td class="cta">低（<code>--help</code> + <code>SKILL.md</code>）</td>
+          </tr>
+          <tr>
+            <td>典型失败</td>
+            <td>像素漂移</td><td>功能缺口</td><td>生态割裂</td><td class="tone">无源码则降质</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section>
+    <h2><span class="n">09</span>局限与冷静判断</h2>
+    <p>
+      57,789 star 的增速会让人误判成熟度。把宣传语剥掉之后，有几件事必须先说清楚。
+    </p>
+    <ul class="limits">
+      <li><b>依赖源码。</b>只有编译好的二进制、需要反编译时，harness 的质量和覆盖率会显著下降。这一点官方 README 自己就写了。</li>
+      <li><b>依赖软件本体。</b>装了 CLI 不等于装了能力——GIMP、Blender、LibreOffice 这些上游软件还得自己装。CLI 是接口，不是替代品。</li>
+      <li><b>79 个 CLI 不等于"任何软件"。</b>口号是 ALL Software，实际覆盖面仍在早期。用"能跑 79 个"去推"能跑任何软件"，是明显的跳跃。</li>
+      <li><b>生成质量参差。</b>CLI 以社区贡献为主，仓库有 236 个 open issues，部分 CLI 版本还停在 v0.1.x。同名不同质的情况会存在。</li>
+      <li><b>"2,461 tests passing" 是仓库汇总口径。</b>它统计的是整个仓库的测试总量，不等于每个 CLI 都有同等覆盖。看单个 CLI 时要看它自己的 <code>TEST.md</code>。</li>
+      <li><b>热度与生态之间有明显时间差。</b>5.7 万 star 建立在一个还很薄的生态上——文档、教程、踩坑记录都还没跟上。现在入场，你遇到的问题大概率没人踩过。</li>
+    </ul>
+    <p style="margin-top:18px">
+      换个角度说：它解决的是"接口有无"，不是"接口好用"。能不能稳定跑起来，一半取决于你选的软件，一半取决于那个 CLI 的贡献者写得认不认真。
+    </p>
+  </section>
+
+  <!-- 10 -->
+  <section>
+    <h2><span class="n">10</span>三条上手路径</h2>
+    <p>按投入从低到高排。第一条五分钟能跑通，第三条是按天算的活。</p>
+
+    <div class="paths">
+      <div>
+        <h3><em>路径 A</em>只想用，不想造</h3>
+        <p class="why">适合先验证"这东西到底行不行"。装 hub，挑一个你熟的软件，跑一条命令看输出。</p>
+        <div class="cmd">pip install cli-anything-hub
+cli-hub list
+cli-hub info &lt;你熟的软件&gt;
+cli-hub install &lt;同名&gt;
+cli-hub launch &lt;同名&gt;</div>
+      </div>
+
+      <div>
+        <h3><em>路径 B</em>让 Agent 自己找工具</h3>
+        <p class="why">适合已经在用 Claude Code / Cursor / OpenClaw 这类支持 skills 的环境。装完 meta skill 就不用记住命令名了。</p>
+        <div class="cmd">npx skills add HKUDS/CLI-Anything --skill cli-hub-meta-skill -g -y</div>
+        <p class="why" style="margin-top:10px">装完之后直接说需求，例如"把这个工程里的贴图批量压到 2K"，Agent 会自己去 registry 里找现成的 CLI。</p>
+      </div>
+
+      <div>
+        <h3><em>路径 C</em>自己造一个</h3>
+        <p class="why">适合目标软件没人做过、而你有它的源码。这条路要按七阶段走完，别跳步——尤其是第 4、5 阶段，跳过就没有可信度。</p>
+        <div class="cmd"><span class="c"># 1. 让 Agent 按七阶段生成</span>
+/cli-anything &lt;软件路径或仓库&gt;
+
+<span class="c"># 2. 本地装起来验证入口挂没挂上</span>
+cd agent-harness
+pip install -e .
+which cli-anything-&lt;software&gt;
+
+<span class="c"># 3. 跑测试,把结果写回 TEST.md</span>
+pytest -v --tb=no</div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer>
+    <p>
+      数据抓取日期 <b>2026-10-30</b>。数字来源：GitHub 仓库与 API（stars / forks / open issues / 创建与推送时间 / 文件数）、
+      CLI-Hub <code>registry.json</code>（79 个 CLI）、README 徽章（2,461 tests passing）与 README 正文（18 个 demo）。
+      页面内所有数字以该时点为准，之后可能已变化。
+    </p>
+    <p class="meta">
+      仓库 github.com/HKUDS/CLI-Anything　·　主页 clianything.cc　·　技术报告 arXiv:2606.03854　·　许可证 Apache-2.0<br>
+      归属 香港大学数据智能实验室（HKUDS, HKU Data Intelligence Lab）　·　创建于 2026-03-08，最后推送 2026-09-22，仓库 2,582 个文件
+    </p>
+    <p class="meta">
+      可编辑稿：localStorage key <code>cli-anything-v1-edits-v1</code>　·　零外部依赖，零 CDN
+    </p>
+  </footer>
+
+</article>
+</div>
+
+<script>
+(function(){
+  var KEY='cli-anything-v1-edits-v1';
+  var doc=document.getElementById('doc');
+  var btnEdit=document.getElementById('btn-edit');
+  var btnReset=document.getElementById('btn-reset');
+  var btnDownload=document.getElementById('btn-save');
+  var btnPrint=document.getElementById('btn-print');
+  var state=document.getElementById('edit-state');
+  var pristine=doc.innerHTML;
+  var timer=null;
+
+  try{
+    var saved=localStorage.getItem(KEY);
+    if(saved){doc.innerHTML=saved;state.textContent='已从本地恢复你的编辑稿';}
+  }catch(e){}
+
+  function setEditing(on){
+    doc.contentEditable=on?'true':'false';
+    btnEdit.classList.toggle('on',on);
+    btnEdit.setAttribute('aria-pressed',on?'true':'false');
+    btnEdit.textContent=on?'■ 退出编辑':'✎ 开启编辑';
+    if(on)state.textContent='编辑中 · 改动自动存本机';
+  }
+
+  btnEdit.addEventListener('click',function(){
+    setEditing(doc.getAttribute('contenteditable')!=='true');
+  });
+
+  doc.addEventListener('input',function(){
+    if(doc.getAttribute('contenteditable')!=='true')return;
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      try{
+        localStorage.setItem(KEY,doc.innerHTML);
+        state.textContent='已保存 · '+new Date().toLocaleTimeString();
+      }catch(e){}
+    },500);
+  });
+
+  btnReset.addEventListener('click',function(){
+    if(!confirm('放弃本地修改，恢复原始稿件？'))return;
+    try{localStorage.removeItem(KEY);}catch(e){}
+    doc.innerHTML=pristine;
+    setEditing(false);
+    state.textContent='已恢复原稿';
+  });
+
+  btnDownload.addEventListener('click',function(){
+    var clone=document.documentElement.cloneNode(true);
+    var d=clone.querySelector('#doc');
+    if(d)d.removeAttribute('contenteditable');
+    var t=clone.querySelector('#toolbar');
+    if(t)t.remove();
+    var blob=new Blob(['<!doctype html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='cli-anything-当前版.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  });
+
+  btnPrint.addEventListener('click',function(){window.print();});
+})();
+</script>
+</body>
+</html>
